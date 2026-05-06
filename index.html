@@ -115,7 +115,7 @@
             font-size: 14px;
         }
 
-        input, select, textarea {
+        input, select {
             width: 100%;
             padding: 12px;
             border: 2px solid #ddd;
@@ -125,14 +125,10 @@
             transition: border-color 0.3s ease;
         }
 
-        input:focus, select:focus, textarea:focus {
+        input:focus, select:focus {
             outline: none;
             border-color: #667eea;
             background-color: #f8f9ff;
-        }
-
-        input::placeholder {
-            color: #999;
         }
 
         .btn-submit {
@@ -153,8 +149,9 @@
             background: #5568d3;
         }
 
-        .btn-submit:active {
-            transform: scale(0.98);
+        .btn-submit:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
         }
 
         .btn-volver {
@@ -181,6 +178,7 @@
             margin-bottom: 15px;
             font-size: 14px;
             border-left: 4px solid;
+            line-height: 1.4;
         }
 
         .alert-success {
@@ -210,93 +208,6 @@
             font-size: 14px;
         }
 
-        .registro-item strong {
-            color: #333;
-        }
-
-        .registro-item .fecha-hora {
-            color: #666;
-            font-size: 13px;
-            margin-top: 4px;
-        }
-
-        .registros-container {
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-            padding-right: 5px;
-        }
-
-        .registros-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .registros-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        .registros-container::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 10px;
-        }
-
-        .registros-container::-webkit-scrollbar-thumb:hover {
-            background: #5568d3;
-        }
-
-        .btn-limpiar {
-            width: 100%;
-            padding: 12px;
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-limpiar:hover {
-            background: #c82333;
-        }
-
-        .estadisticas {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .stat-card {
-            background: #667eea;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-card h3 {
-            font-size: 28px;
-            margin: 0 0 5px 0;
-        }
-
-        .stat-card p {
-            font-size: 12px;
-            opacity: 0.9;
-            margin: 0;
-        }
-
-        .titulo-seccion {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
         .info-docente {
             background: #e8f4f8;
             padding: 10px;
@@ -316,18 +227,9 @@
                 display: flex;
                 flex-direction: column;
             }
-
             .content {
                 flex: 1;
                 padding: 20px;
-            }
-
-            .header {
-                padding: 20px;
-            }
-
-            .header h1 {
-                font-size: 20px;
             }
         }
     </style>
@@ -335,7 +237,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📚 Sistema de Asistencia</h1>
+            <h1>📚 Control de Asistencia</h1>
             <p>Grupo Cented - Instructor Wicho</p>
         </div>
 
@@ -346,16 +248,16 @@
                         ✍️ Registrar Asistencia
                     </button>
                     <button class="btn-menu" onclick="mostrarFormulario('generarClave')">
-                        🔑 Generar Clave de Estudiante
+                        🔑 Generar Clave Única
                     </button>
                     <button class="btn-menu" onclick="mostrarFormulario('verRegistros')">
-                        📋 Ver Registros (Hojas de Cálculo)
+                        📋 Ver e Ir a Registros
                     </button>
                 </div>
             </div>
 
             <div id="formRegistro" class="formulario">
-                <h3 class="titulo-seccion">Registrar Asistencia</h3>
+                <h3 style="margin-bottom: 15px; text-align: center; color: #333;">Registrar Asistencia</h3>
                 <div id="alertRegistro"></div>
 
                 <div class="form-group">
@@ -366,13 +268,13 @@
                         placeholder="Ej: Juan Pérez López"
                         autocomplete="off"
                     >
-                    <small style="color: #666; font-size: 12px; margin-top: 3px; display: block;">
-                        Formato: Primera letra de cada nombre y apellido en mayúscula
+                    <small style="color: #555; font-size: 11px; margin-top: 4px; display: block;">
+                        ⚠️ Obligatorio: Primera letra de cada nombre y apellido en MAYÚSCULA.
                     </small>
                 </div>
 
                 <div class="form-group">
-                    <label for="claveEstudiante">Clave Única (4 dígitos) *</label>
+                    <label for="claveEstudiante">Clave Única (4 caracteres) *</label>
                     <input 
                         type="text" 
                         id="claveEstudiante" 
@@ -386,18 +288,18 @@
                 <div class="form-group">
                     <label for="grupoAsistencia">Grupo *</label>
                     <select id="grupoAsistencia">
-                        <option value="">-- Selecciona un grupo --</option>
+                        <option value="">-- Selecciona tu horario --</option>
                         <option value="Mañana">Mañana</option>
                         <option value="Tarde">Tarde</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="claveDocente">Clave Maestra (Docente) *</label>
+                    <label for="claveDocente">Clave Maestra de Validación (Docente) *</label>
                     <input 
                         type="password" 
                         id="claveDocente" 
-                        placeholder="Ingresa tu clave"
+                        placeholder="Pídele la clave al Instructor Wicho"
                         autocomplete="off"
                     >
                 </div>
@@ -406,28 +308,28 @@
                     ✅ Registrar Asistencia
                 </button>
                 <button class="btn-volver" onclick="volverMenuPrincipal()">
-                    ← Volver
+                    ← Volver al Menú
                 </button>
             </div>
 
             <div id="formGenerarClave" class="formulario">
-                <h3 class="titulo-seccion">Generar Clave de Estudiante</h3>
+                <h3 style="margin-bottom: 15px; text-align: center; color: #333;">Generar Clave de Estudiante</h3>
                 <div id="alertGenerarClave"></div>
 
                 <div class="info-docente">
-                    ℹ️ Esta clave generada te servirá para entregársela al estudiante. Asegúrate de anotarla.
+                    ℹ️ Esta clave se registrará permanentemente en tu Google Sheets asociado para que el alumno no la pierda.
                 </div>
 
                 <div class="form-group">
-                    <label for="nombreNuvoEstudiante">Nombre del Estudiante *</label>
+                    <label for="nombreNuevoEstudiante">Nombre del Estudiante *</label>
                     <input 
                         type="text" 
-                        id="nombreNuvoEstudiante" 
+                        id="nombreNuevoEstudiante" 
                         placeholder="Ej: María García Rodríguez"
                         autocomplete="off"
                     >
-                    <small style="color: #666; font-size: 12px; margin-top: 3px; display: block;">
-                        Formato: Primera letra de cada nombre y apellido en mayúscula
+                    <small style="color: #555; font-size: 11px; margin-top: 4px; display: block;">
+                        ⚠️ Obligatorio: Primera letra de cada nombre y apellido en MAYÚSCULA.
                     </small>
                 </div>
 
@@ -436,22 +338,22 @@
                     <input 
                         type="password" 
                         id="claveDocenteGenerar" 
-                        placeholder="Ingresa tu clave"
+                        placeholder="Ingresa tu Clave Maestra"
                         autocomplete="off"
                     >
                 </div>
 
-                <button class="btn-submit" onclick="generarClave()">
-                    🔐 Generar Clave Automática
+                <button class="btn-submit" id="btnGenerar" onclick="generarClave()">
+                    🔐 Generar y Guardar Clave
                 </button>
 
                 <div id="claveGenerada" style="display: none; margin-top: 15px;">
                     <div class="alert alert-success">
-                        ✅ Clave generada exitosamente
+                        🎉 Clave guardada de forma segura en Google Sheets.
                     </div>
                     <div class="registro-item">
-                        <strong>Nombre:</strong> <span id="nomGenerado"></span><br>
-                        <strong>Clave:</strong> <span id="codGenerado" style="font-family: monospace; font-weight: bold; font-size: 16px;"></span>
+                        <strong>Estudiante:</strong> <span id="nomGenerado"></span><br>
+                        <strong>Su clave permanente:</strong> <span id="codGenerado" style="font-family: monospace; font-weight: bold; font-size: 18px; color: #764ba2;"></span>
                     </div>
                 </div>
 
@@ -461,25 +363,21 @@
             </div>
 
             <div id="formVerRegistros" class="formulario">
-                <h3 class="titulo-seccion">Registros de Asistencia</h3>
+                <h3 style="margin-bottom: 15px; text-align: center; color: #333;">Acceso a Base de Datos</h3>
                 <div id="alertVerRegistros"></div>
 
-                <div class="info-docente">
-                    ℹ️ Los datos ahora se almacenan de forma segura en tu Google Sheets en la nube.
-                </div>
-
                 <div class="form-group">
-                    <label for="claveDocenteRegistros">Clave Maestra para ver instrucciones *</label>
+                    <label for="claveDocenteRegistros">Clave Maestra de Docente *</label>
                     <input 
                         type="password" 
                         id="claveDocenteRegistros" 
-                        placeholder="Ingresa tu clave"
+                        placeholder="Ingresa tu clave de acceso"
                         autocomplete="off"
                     >
                 </div>
 
-                <button class="btn-submit" onclick="abrirRegistros()">
-                    🔓 Ir a tu Google Sheet
+                <button class="btn-submit" onclick="abrirGoogleSheets()">
+                    🔓 Ir a tu Excel en Google Drive
                 </button>
 
                 <button class="btn-volver" onclick="volverMenuPrincipal()">
@@ -490,145 +388,118 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN CENTRAL
+        // CONFIGURACIÓN CENTRAL DE SEGURIDAD
         const CLAVE_MAESTRA = '111010';
         const CARACTERES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         
-        // Coloca aquí la dirección que obtuviste en el Paso 1.3
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuxBs-k9c690giwF6qukndaAYkb_P1Y-NdAbXkAPjjhcYM_mmNsJ9t6Ew_c2JHEQpi/exec"; 
+        // REEMPLAZA ESTO CON LA URL QUE COPIASTE DE GOOGLE APPS SCRIPT
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw8CpMLjgu-zo6kH9BKxg5fqLX3nHcBGfjgS-2PSg-aWzYVQwOOY5QIb_Vc-9IFzo2v/exec"; 
 
-        // Mostrar formulario
         function mostrarFormulario(formulario) {
-            document.querySelectorAll('.formulario').forEach(el => {
-                el.classList.remove('activo');
-            });
-
+            document.querySelectorAll('.formulario').forEach(el => el.classList.remove('activo'));
             if (formulario === 'registro') {
                 document.getElementById('formRegistro').classList.add('activo');
             } else if (formulario === 'generarClave') {
                 document.getElementById('formGenerarClave').classList.add('activo');
                 document.getElementById('claveGenerada').style.display = 'none';
-                limpiarFormularioGenerarClave();
             } else if (formulario === 'verRegistros') {
                 document.getElementById('formVerRegistros').classList.add('activo');
             }
         }
 
-        // Volver al menú principal
         function volverMenuPrincipal() {
-            document.querySelectorAll('.formulario').forEach(el => {
-                el.classList.remove('activo');
-            });
+            document.querySelectorAll('.formulario').forEach(el => el.classList.remove('activo'));
             document.getElementById('menuPrincipal').classList.add('activo');
             limpiarFormularios();
         }
 
-        // Limpiar formularios
         function limpiarFormularios() {
             document.getElementById('nombreAsistencia').value = '';
             document.getElementById('claveEstudiante').value = '';
             document.getElementById('grupoAsistencia').value = '';
             document.getElementById('claveDocente').value = '';
+            document.getElementById('nombreNuevoEstudiante').value = '';
+            document.getElementById('claveDocenteGenerar').value = '';
             document.getElementById('claveDocenteRegistros').value = '';
             document.getElementById('alertRegistro').innerHTML = '';
             document.getElementById('alertGenerarClave').innerHTML = '';
             document.getElementById('alertVerRegistros').innerHTML = '';
         }
 
-        function limpiarFormularioGenerarClave() {
-            document.getElementById('nombreNuvoEstudiante').value = '';
-            document.getElementById('claveDocenteGenerar').value = '';
-            document.getElementById('alertGenerarClave').innerHTML = '';
-        }
-
-        // Validar formato de nombre
-        function validarNombre(nombre) {
-            const regex = /^[A-Z][a-z]+(\s[A-Z][a-z]+)+$/;
+        // RESTRICCIÓN DE EXPRESIÓN REGULAR: Valida mayúscula inicial en cada palabra
+        function validarNombreEstricto(nombre) {
+            // Permite 2, 3 o 4 palabras separadas por un espacio único, cada una con mayúscula inicial estricta
+            const regex = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){1,3}$/;
             return regex.test(nombre.trim());
         }
 
-        // Normalizar nombre
-        function normalizarNombre(nombre) {
-            return nombre.trim().split(' ').map(palabra => {
-                return palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase();
-            }).join(' ');
-        }
-
-        // Validar código
-        function validarCodigo(codigo) {
+        function validarClaveEstudiante(clave) {
             const regex = /^[A-Z0-9]{4}$/;
-            return regex.test(codigo.toUpperCase());
+            return regex.test(clave.toUpperCase());
         }
 
-        // Mostrar alerta
         function mostrarAlerta(elementId, mensaje, tipo) {
             const elemento = document.getElementById(elementId);
             elemento.innerHTML = `<div class="alert alert-${tipo}">${mensaje}</div>`;
         }
 
-        // ENVIAR ASISTENCIA A GOOGLE SHEETS
+        // REGISTRAR ASISTENCIA EN GOOGLE SHEETS
         function registrarAsistencia() {
-            const nombre = document.getElementById('nombreAsistencia').value;
-            const clave = document.getElementById('claveEstudiante').value.toUpperCase();
+            const nombre = document.getElementById('nombreAsistencia').value.trim();
+            const clave = document.getElementById('claveEstudiante').value.trim().toUpperCase();
             const grupo = document.getElementById('grupoAsistencia').value;
-            const claveDocente = document.getElementById('claveDocente').value;
+            const claveDocente = document.getElementById('claveDocente').value.trim();
             const btn = document.getElementById('btnRegistrar');
 
-            // Validaciones
             if (!nombre || !clave || !grupo || !claveDocente) {
-                mostrarAlerta('alertRegistro', '⚠️ Completa todos los campos', 'warning');
+                mostrarAlerta('alertRegistro', '⚠️ Completa todos los campos obligatorios.', 'warning');
                 return;
             }
 
-            const nombreNormalizado = normalizarNombre(nombre);
-
-            if (!validarNombre(nombreNormalizado)) {
-                mostrarAlerta('alertRegistro', '❌ Nombre inválido. Formato: Nombre Apellido (Primera letra mayúscula)', 'error');
+            // RESTRICCIÓN: Nombre bien escrito
+            if (!validarNombreEstricto(nombre)) {
+                mostrarAlerta('alertRegistro', '❌ Nombre inválido. Debes iniciar cada nombre y apellido con Mayúscula (Ej: Juan Pérez López). Sin espacios dobles.', 'error');
                 return;
             }
 
-            if (!validarCodigo(clave)) {
-                mostrarAlerta('alertRegistro', '❌ Clave debe tener 4 caracteres (letras mayúsculas y números)', 'error');
+            // RESTRICCIÓN: Clave única de 4 dígitos
+            if (!validarClaveEstudiante(clave)) {
+                mostrarAlerta('alertRegistro', '❌ La clave debe tener exactamente 4 caracteres compuestos por letras MAYÚSCULAS y números.', 'error');
                 return;
             }
 
+            // RESTRICCIÓN: Clave Docente
             if (claveDocente !== CLAVE_MAESTRA) {
-                mostrarAlerta('alertRegistro', '❌ Clave de docente incorrecta', 'error');
+                mostrarAlerta('alertRegistro', '❌ La Clave Maestra de Docente es incorrecta. Asistencia no validada.', 'error');
                 return;
             }
 
-            // Deshabilitar botón para evitar múltiples envíos
             btn.disabled = true;
-            btn.textContent = "⌛ Registrando en la nube...";
+            btn.textContent = "⌛ Procesando y Validando...";
 
-            // Preparar los datos
+            // Enviar datos por POST
             const formData = new URLSearchParams();
-            formData.append('nombre', nombreNormalizado);
+            formData.append('action', 'asistencia');
+            formData.append('nombre', nombre);
             formData.append('clave', clave);
             formData.append('grupo', grupo);
 
-            // Enviar petición POST a Google Apps Script
             fetch(SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Evita problemas de CORS comunes con Google Sheets
+                mode: 'no-cors',
                 body: formData,
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             })
             .then(() => {
-                // Como usamos no-cors, asumimos éxito si la petición no falló físicamente
-                mostrarAlerta('alertRegistro', `✅ ¡Perfecto! Asistencia registrada para ${nombreNormalizado}`, 'success');
-                
-                // Limpiar campos
+                mostrarAlerta('alertRegistro', `✅ ¡Asistencia Exitosa! Registrada para ${nombre}.`, 'success');
                 document.getElementById('nombreAsistencia').value = '';
                 document.getElementById('claveEstudiante').value = '';
                 document.getElementById('grupoAsistencia').value = '';
                 document.getElementById('claveDocente').value = '';
             })
             .catch(error => {
-                console.error('Error:', error);
-                mostrarAlerta('alertRegistro', '❌ Error de conexión al guardar la asistencia.', 'error');
+                console.error(error);
+                mostrarAlerta('alertRegistro', '❌ Error de conexión con la Base de Datos.', 'error');
             })
             .finally(() => {
                 btn.disabled = false;
@@ -636,60 +507,77 @@
             });
         }
 
-        // GENERAR CLAVE
+        // GENERAR CLAVE ÚNICA Y GUARDAR EN LA BASE DE DATOS
         function generarClave() {
-            const nombre = document.getElementById('nombreNuvoEstudiante').value;
-            const claveDocente = document.getElementById('claveDocenteGenerar').value;
+            const nombre = document.getElementById('nombreNuevoEstudiante').value.trim();
+            const claveDocente = document.getElementById('claveDocenteGenerar').value.trim();
+            const btn = document.getElementById('btnGenerar');
 
             if (!nombre || !claveDocente) {
-                mostrarAlerta('alertGenerarClave', '⚠️ Completa todos los campos', 'warning');
+                mostrarAlerta('alertGenerarClave', '⚠️ Completa todos los campos.', 'warning');
                 return;
             }
 
-            const nombreNormalizado = normalizarNombre(nombre);
-
-            if (!validarNombre(nombreNormalizado)) {
-                mostrarAlerta('alertGenerarClave', '❌ Nombre inválido. Formato: Nombre Apellido', 'error');
+            if (!validarNombreEstricto(nombre)) {
+                mostrarAlerta('alertGenerarClave', '❌ Nombre inválido. Formato requerido: Juan Pérez (Primera letra de cada palabra en mayúscula).', 'error');
                 return;
             }
 
             if (claveDocente !== CLAVE_MAESTRA) {
-                mostrarAlerta('alertGenerarClave', '❌ Clave de docente incorrecta', 'error');
+                mostrarAlerta('alertGenerarClave', '❌ Clave Maestra de Docente incorrecta.', 'error');
                 return;
             }
 
-            // Generar clave aleatoria simple de 4 dígitos
-            let claveNueva = '';
+            btn.disabled = true;
+            btn.textContent = "⌛ Registrando clave en la nube...";
+
+            // Primero generamos una clave aleatoria de 4 caracteres
+            let nuevaClave = '';
             for (let i = 0; i < 4; i++) {
-                claveNueva += CARACTERES.charAt(Math.floor(Math.random() * CARACTERES.length));
+                nuevaClave += CARACTERES.charAt(Math.floor(Math.random() * CARACTERES.length));
             }
 
-            // Mostrar clave generada
-            document.getElementById('nomGenerado').textContent = nombreNormalizado;
-            document.getElementById('codGenerado').textContent = claveNueva;
-            document.getElementById('claveGenerada').style.display = 'block';
+            const formData = new URLSearchParams();
+            formData.append('action', 'guardar_clave');
+            formData.append('nombre', nombre);
+            formData.append('clave', nuevaClave);
 
-            mostrarAlerta('alertGenerarClave', '✅ Clave generada. ¡Recuerda guardarla!', 'success');
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formData,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            })
+            .then(() => {
+                document.getElementById('nomGenerado').textContent = nombre;
+                document.getElementById('codGenerado').textContent = nuevaClave;
+                document.getElementById('claveGenerada').style.display = 'block';
+                mostrarAlerta('alertGenerarClave', '✅ Clave generada y guardada permanentemente.', 'success');
+                document.getElementById('nombreNuevoEstudiante').value = '';
+                document.getElementById('claveDocenteGenerar').value = '';
+            })
+            .catch(error => {
+                console.error(error);
+                mostrarAlerta('alertGenerarClave', '❌ Error de red al registrar la clave.', 'error');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = "🔐 Generar y Guardar Clave";
+            });
         }
 
-        // REDIRECCIÓN A REGISTROS
-        function abrirRegistros() {
-            const claveDocente = document.getElementById('claveDocenteRegistros').value;
+        // REDIRECCIÓN A GOOGLE SHEETS
+        function abrirGoogleSheets() {
+            const clave = document.getElementById('claveDocenteRegistros').value.trim();
 
-            if (!claveDocente) {
-                mostrarAlerta('alertVerRegistros', '⚠️ Ingresa tu clave de docente', 'warning');
+            if (clave !== CLAVE_MAESTRA) {
+                mostrarAlerta('alertVerRegistros', '❌ Acceso denegado. Clave Maestra incorrecta.', 'error');
                 return;
             }
 
-            if (claveDocente !== CLAVE_MAESTRA) {
-                mostrarAlerta('alertVerRegistros', '❌ Clave incorrecta', 'error');
-                return;
-            }
-
-            mostrarAlerta('alertVerRegistros', '✅ Abriendo tu hoja de cálculo...', 'success');
+            mostrarAlerta('alertVerRegistros', '🔓 Clave correcta. Abriendo hoja de cálculo...', 'success');
             setTimeout(() => {
-                // Abre el archivo del Google Sheet en una pestaña nueva
-                alert("🔐 Abre tu Google Drive para visualizar tu hoja de cálculo 'Asistencia Grupo Cented' de manera segura.");
+                alert("Redireccionando de forma segura... Revisa tu Google Drive para ver la hoja 'Asistencia Grupo Cented'.");
                 volverMenuPrincipal();
             }, 1000);
         }
