@@ -62,7 +62,7 @@
                 <div id="alertRegistro"></div>
                 <div class="form-group">
                     <label>Nombre Completo *</label>
-                    <input type="text" id="nombreAsistencia" placeholder="Ej: Juan Pérez" autocomplete="off">
+                    <input type="text" id="nombreAsistencia" placeholder="Ej: Tatiana Abigail Flores Ortiz" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label>Tu Clave Única (4 caracteres) *</label>
@@ -77,8 +77,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Clave Maestra de Validación *</label>
-                    <input type="password" id="claveDocente" placeholder="Pídele la clave a Wicho">
+                    <label>Firma del docente *</label>
+                    <input type="password" id="claveDocente" placeholder="Clave de Validación">
                 </div>
                 <button class="btn-submit" id="btnRegistrar" onclick="registrarAsistencia()">✅ Enviar Asistencia</button>
                 <button class="btn-volver" onclick="volverMenuPrincipal()">← Volver</button>
@@ -89,7 +89,7 @@
                 <div id="alertGenerarClave"></div>
                 <div class="form-group">
                     <label>Escribe tu Nombre Completo *</label>
-                    <input type="text" id="nombreNuevoEstudiante" placeholder="Ej: María García" autocomplete="off">
+                    <input type="text" id="nombreNuevoEstudiante" placeholder="Ej: Tatiana Abigail Flores Ortiz" autocomplete="off">
                     <small style="color: #666; font-size: 11px;">Usa mayúscula inicial en nombres y apellidos.</small>
                 </div>
                 
@@ -111,7 +111,7 @@
                 <h3 style="margin-bottom: 15px; text-align: center;">Panel del Docente</h3>
                 <div id="alertVerRegistros"></div>
                 <div class="form-group">
-                    <label>Clave Maestra *</label>
+                    <label>Clave de Validación *</label>
                     <input type="password" id="claveDocenteRegistros">
                 </div>
                 <button class="btn-submit" id="btnAccederRegistros" onclick="cargarRegistros()">🔓 Entrar</button>
