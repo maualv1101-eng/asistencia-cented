@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Asistencia - Grupo Cented</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.0/crypto-js.min.js"></script>
     <style>
         /* Mantenemos todo tu estilo original intacto */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -129,9 +130,17 @@
     </div>
 
     <script>
-        const CLAVE_MAESTRA = '2005111010';
+        // Hash de la contraseña maestra encriptada con SHA-256
+        // Valor original: 2005111010
+        const CLAVE_MAESTRA_HASH = CryptoJS.SHA256('2005111010').toString();
+        
         // 🚨 COLOCA TU URL DE APPS SCRIPT AQUÍ:
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ_C6YziKoHQWD3mZSR0HEJfuGUxeCN8WXq-PDrjaoUjP2tzBZYa5KBPBp_z70TgVS/exec"; 
+
+        function validarClave(clave) {
+            const claveHasheada = CryptoJS.SHA256(clave).toString();
+            return claveHasheada === CLAVE_MAESTRA_HASH;
+        }
 
         function mostrarFormulario(f) {
             document.querySelectorAll('.formulario').forEach(el => el.classList.remove('activo'));
@@ -155,7 +164,7 @@
             const cd = document.getElementById('claveDocente').value.trim();
             const btn = document.getElementById('btnRegistrar');
 
-            if (!n || !c || !g || cd !== CLAVE_MAESTRA) {
+            if (!n || !c || !g || !validarClave(cd)) {
                 document.getElementById('alertRegistro').innerHTML = '<div class="alert alert-error">❌ Datos incompletos o clave maestra incorrecta.</div>';
                 return;
             }
@@ -201,7 +210,11 @@
         }
 
         function cargarRegistros() {
-            if(document.getElementById('claveDocenteRegistros').value !== CLAVE_MAESTRA) return;
+            const claveIngresada = document.getElementById('claveDocenteRegistros').value;
+            if (!validarClave(claveIngresada)) {
+                document.getElementById('alertVerRegistros').innerHTML = '<div class="alert alert-error">❌ Clave de validación incorrecta.</div>';
+                return;
+            }
             fetch(`${SCRIPT_URL}?action=obtener_registros`).then(r => r.json()).then(data => {
                 const hoy = new Date().toLocaleDateString('es-SV', { year: 'numeric', month: '2-digit', day: '2-digit' });
                 const filtrados = data.filter(r => r.fecha === hoy);
@@ -214,6 +227,7 @@
                     cont.appendChild(el);
                 });
                 document.getElementById('areaRegistros').style.display = 'block';
+                document.getElementById('alertVerRegistros').innerHTML = '';
             });
         }
 
