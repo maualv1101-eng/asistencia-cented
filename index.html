@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Asistencia - Grupo Cented</title>
     <style>
-        /* Mantenemos todo tu estilo original intacto */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; display: flex; align-items: center; justify-content: center; }
         .container { width: 100%; max-width: 500px; background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); overflow: hidden; }
@@ -45,7 +44,7 @@
     <div class="container">
         <div class="header">
             <h1>📚 Control de Asistencia</h1>
-            <p>DEPARTAMENTO DE SISTEMAS INFORMATICOS - GRUPO CENTED</p>
+            <p>SISTEMA GENERAL - GRUPO CENTED</p>
         </div>
 
         <div class="content">
@@ -57,6 +56,7 @@
                 </div>
             </div>
 
+            <!-- REGISTRO DE ASISTENCIA -->
             <div id="formRegistro" class="formulario">
                 <h3 style="margin-bottom: 15px; text-align: center;">Registrar Asistencia</h3>
                 <div id="alertRegistro"></div>
@@ -67,6 +67,15 @@
                 <div class="form-group">
                     <label>Tu Clave Única (4 caracteres) *</label>
                     <input type="text" id="claveEstudiante" maxlength="4" style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label>Docente / Especialidad *</label>
+                    <select id="docenteAsistencia">
+                        <option value="">-- Selecciona tu Docente --</option>
+                        <option value="Mauricio Alvarado (Informática)">Mauricio Alvarado (Informática)</option>
+                        <option value="Docente de Inglés">Docente de Inglés</option>
+                        <option value="Otros Módulos">Otros Módulos / Docentes</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Grupo *</label>
@@ -84,6 +93,7 @@
                 <button class="btn-volver" onclick="volverMenuPrincipal()">← Volver</button>
             </div>
 
+            <!-- GENERACIÓN DE CLAVE -->
             <div id="formGenerarClave" class="formulario">
                 <h3 style="margin-bottom: 15px; text-align: center;">Generar Mi Clave</h3>
                 <div id="alertGenerarClave"></div>
@@ -92,9 +102,18 @@
                     <input type="text" id="nombreNuevoEstudiante" placeholder="Ej: Tatiana Abigail Flores Ortiz" autocomplete="off">
                     <small style="color: #666; font-size: 11px;">Usa mayúscula inicial en nombres y apellidos.</small>
                 </div>
+                <div class="form-group">
+                    <label>Asigna tu Docente Principal *</label>
+                    <select id="docenteNuevoEstudiante">
+                        <option value="">-- Selecciona tu Docente --</option>
+                        <option value="Mauricio Alvarado (Informática)">Mauricio Alvarado (Informática)</option>
+                        <option value="Docente de Inglés">Docente de Inglés</option>
+                        <option value="Otros Módulos">Otros Módulos / Docentes</option>
+                    </select>
+                </div>
 
                 <div class="form-group" style="display: none;">
-                    <input type="password" id="claveDocenteGenerar" value="1110102005">
+                    <input type="password" id="claveDocenteGenerar" value="CENTED2000">
                 </div>
 
                 <button class="btn-submit" id="btnGenerar" onclick="generarClave()">🔐 Generar Mi Clave Permanente</button>
@@ -107,6 +126,7 @@
                 <button class="btn-volver" onclick="volverMenuPrincipal()">← Volver</button>
             </div>
 
+            <!-- PANEL DEL DOCENTE -->
             <div id="formVerRegistros" class="formulario">
                 <h3 style="margin-bottom: 15px; text-align: center;">Panel del Docente</h3>
                 <div id="alertVerRegistros"></div>
@@ -129,9 +149,8 @@
     </div>
 
     <script>
-        const CLAVE_MAESTRA = '1110102005';
-        // 🚨 COLOCA TU URL DE APPS SCRIPT AQUÍ:
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ_C6YziKoHQWD3mZSR0HEJfuGUxeCN8WXq-PDrjaoUjP2tzBZYa5KBPBp_z70TgVS/exec"; 
+        const CLAVE_MAESTRA = 'CENTED2000';
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysOHARusKpjZrPidB_2IuFOBbNDobY5ekanXUo1lgXln6oTQRKg-IRPRRDViTvNp0a/exec"; 
 
         function mostrarFormulario(f) {
             document.querySelectorAll('.formulario').forEach(el => el.classList.remove('activo'));
@@ -151,34 +170,41 @@
         function registrarAsistencia() {
             const n = document.getElementById('nombreAsistencia').value.trim();
             const c = document.getElementById('claveEstudiante').value.trim().toUpperCase();
+            const d = document.getElementById('docenteAsistencia').value;
             const g = document.getElementById('grupoAsistencia').value;
             const cd = document.getElementById('claveDocente').value.trim();
             const btn = document.getElementById('btnRegistrar');
 
-            if (!n || !c || !g || cd !== CLAVE_MAESTRA) {
+            if (!n || !c || !d || !g || cd !== CLAVE_MAESTRA) {
                 document.getElementById('alertRegistro').innerHTML = '<div class="alert alert-error">❌ Datos incompletos o clave maestra incorrecta.</div>';
                 return;
             }
 
             btn.disabled = true; btn.textContent = "⌛ Registrando...";
-            const fd = new URLSearchParams(); fd.append('action', 'asistencia'); fd.append('nombre', n); fd.append('clave', c); fd.append('grupo', g);
+            const fd = new URLSearchParams(); 
+            fd.append('action', 'asistencia'); 
+            fd.append('nombre', n); 
+            fd.append('clave', c); 
+            fd.append('docente', d);
+            fd.append('grupo', g);
 
             fetch(SCRIPT_URL, { method: 'POST', body: fd })
-            .then(r => r.json()).then(d => {
-                if(d.result === 'success') {
+            .then(r => r.json()).then(data => {
+                if(data.result === 'success') {
                     document.getElementById('alertRegistro').innerHTML = '<div class="alert alert-success">✅ ¡Listo! Ya puedes cerrar la página.</div>';
                 } else {
-                    document.getElementById('alertRegistro').innerHTML = `<div class="alert alert-error">${d.message}</div>`;
+                    document.getElementById('alertRegistro').innerHTML = `<div class="alert alert-error">${data.message}</div>`;
                 }
             }).finally(() => { btn.disabled = false; btn.textContent = "✅ Enviar Asistencia"; });
         }
 
         function generarClave() {
             const n = document.getElementById('nombreNuevoEstudiante').value.trim();
+            const d = document.getElementById('docenteNuevoEstudiante').value;
             const btn = document.getElementById('btnGenerar');
 
-            if (!n || !validarNombreEstricto(n)) {
-                document.getElementById('alertGenerarClave').innerHTML = '<div class="alert alert-error">❌ Escribe tu nombre correctamente (Mayúsculas iniciales).</div>';
+            if (!n || !d || !validarNombreEstricto(n)) {
+                document.getElementById('alertGenerarClave').innerHTML = '<div class="alert alert-error">❌ Escribe tu nombre correctamente (Mayúsculas iniciales) y selecciona tu docente.</div>';
                 return;
             }
 
@@ -186,16 +212,20 @@
             let cn = ''; const car = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             for (let i = 0; i < 4; i++) cn += car.charAt(Math.floor(Math.random() * car.length));
 
-            const fd = new URLSearchParams(); fd.append('action', 'guardar_clave'); fd.append('nombre', n); fd.append('clave', cn);
+            const fd = new URLSearchParams(); 
+            fd.append('action', 'guardar_clave'); 
+            fd.append('nombre', n); 
+            fd.append('clave', cn);
+            fd.append('docente', d);
 
             fetch(SCRIPT_URL, { method: 'POST', body: fd })
-            .then(r => r.json()).then(d => {
-                if(d.result === 'success') {
+            .then(r => r.json()).then(data => {
+                if(data.result === 'success') {
                     document.getElementById('codGenerado').textContent = cn;
                     document.getElementById('claveGenerada').style.display = 'block';
                     document.getElementById('alertGenerarClave').innerHTML = '';
                 } else {
-                    document.getElementById('alertGenerarClave').innerHTML = `<div class="alert alert-error">${d.message}</div>`;
+                    document.getElementById('alertGenerarClave').innerHTML = `<div class="alert alert-error">${data.message}</div>`;
                 }
             }).finally(() => { btn.disabled = false; btn.textContent = "🔐 Generar Mi Clave Permanente"; });
         }
@@ -210,7 +240,7 @@
                 const cont = document.getElementById('listaRegistros'); cont.innerHTML = '';
                 filtrados.forEach(r => {
                     const el = document.createElement('div'); el.className = 'registro-item';
-                    el.innerHTML = `<strong>${r.nombre}</strong> - ${r.grupo}<br><small>Clave: ${r.clave} | Hora: ${r.hora}</small>`;
+                    el.innerHTML = `<strong>${r.nombre}</strong> - ${r.grupo}<br><small>Clave: ${r.clave} | Docente: ${r.docente || 'N/A'} | Hora: ${r.hora}</small>`;
                     cont.appendChild(el);
                 });
                 document.getElementById('areaRegistros').style.display = 'block';
