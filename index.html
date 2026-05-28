@@ -1,254 +1,554 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sistema de Asistencia - Grupo Cented</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; display: flex; align-items: center; justify-content: center; }
-        .container { width: 100%; max-width: 500px; background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; text-align: center; }
-        .header h1 { font-size: 24px; margin-bottom: 5px; }
-        .header p { font-size: 14px; opacity: 0.9; }
-        .content { padding: 30px; }
-        .menu-principal { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .btn-menu { padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; background: #667eea; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-menu:hover { background: #5568d3; transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-        .formulario { display: none; }
-        .formulario.activo { display: block; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .form-group { margin-bottom: 18px; }
-        label { display: block; margin-bottom: 6px; font-weight: 500; color: #333; font-size: 14px; }
-        input, select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit; transition: border-color 0.3s ease; }
-        input:focus, select:focus { outline: none; border-color: #667eea; background-color: #f8f9ff; }
-        .btn-submit { width: 100%; padding: 13px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 10px; }
-        .btn-submit:hover { background: #5568d3; }
-        .btn-submit:disabled { background: #cccccc; cursor: not-allowed; }
-        .btn-volver { width: 100%; padding: 12px; background: #f0f0f0; color: #333; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.3s ease; }
-        .btn-volver:hover { background: #e0e0e0; }
-        .alert { padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; border-left: 4px solid; line-height: 1.4; }
-        .alert-success { background: #d4edda; color: #155724; border-color: #28a745; }
-        .alert-error { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-        .alert-warning { background: #fff3cd; color: #856404; border-color: #ffc107; }
-        .registro-item { background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #667eea; font-size: 14px; }
-        .registros-container { max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
-        .estadisticas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-card { background: #667eea; color: white; padding: 10px; border-radius: 8px; text-align: center; }
-        .stat-card h3 { font-size: 20px; margin-bottom: 2px; }
-        .stat-card p { font-size: 11px; opacity: 0.9; }
-        .btn-limpiar { width: 100%; padding: 12px; background: #dc3545; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.3s ease; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .container {
+        width: 100%;
+        max-width: 500px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+      }
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        text-align: center;
+      }
+      .header h1 {
+        font-size: 24px;
+        margin-bottom: 5px;
+      }
+      .header p {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+      .content {
+        padding: 30px;
+      }
+      .menu-principal {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+      .btn-menu {
+        padding: 15px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #667eea;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .btn-menu:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+      }
+      .formulario {
+        display: none;
+      }
+      .formulario.activo {
+        display: block;
+        animation: slideIn 0.3s ease;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .form-group {
+        margin-bottom: 18px;
+      }
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #333;
+        font-size: 14px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 15px;
+        font-family: inherit;
+        transition: border-color 0.3s ease;
+      }
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #667eea;
+        background-color: #f8f9ff;
+      }
+      .btn-submit {
+        width: 100%;
+        padding: 13px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+      }
+      .btn-submit:hover {
+        background: #5568d3;
+      }
+      .btn-submit:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+      }
+      .btn-volver {
+        width: 100%;
+        padding: 12px;
+        background: #f0f0f0;
+        color: #333;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.3s ease;
+      }
+      .btn-volver:hover {
+        background: #e0e0e0;
+      }
+      .alert {
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 14px;
+        border-left: 4px solid;
+        line-height: 1.4;
+      }
+      .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border-color: #28a745;
+      }
+      .alert-error {
+        background: #f8d7da;
+        color: #721c24;
+        border-color: #f5c6cb;
+      }
+      .alert-warning {
+        background: #fff3cd;
+        color: #856404;
+        border-color: #ffc107;
+      }
+      .registro-item {
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 4px solid #667eea;
+        font-size: 14px;
+      }
+      .registros-container {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 15px;
+      }
+      .estadisticas {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      .stat-card {
+        background: #667eea;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .stat-card h3 {
+        font-size: 20px;
+        margin-bottom: 2px;
+      }
+      .stat-card p {
+        font-size: 11px;
+        opacity: 0.9;
+      }
+      .btn-limpiar {
+        width: 100%;
+        padding: 12px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.3s ease;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>📚 Control de Asistencia</h1>
-            <p>SISTEMA GENERAL - GRUPO CENTED</p>
+      <div class="header">
+        <h1>📚 Control de Asistencia</h1>
+        <p>SISTEMA GENERAL - GRUPO CENTED</p>
+      </div>
+
+      <div class="content">
+        <div id="menuPrincipal" class="formulario activo">
+          <div class="menu-principal">
+            <button class="btn-menu" onclick="mostrarFormulario('registro')">
+              ✍️ Registrar Asistencia
+            </button>
+            <button
+              class="btn-menu"
+              onclick="mostrarFormulario('generarClave')"
+            >
+              🔑 Generar Mi Clave Única
+            </button>
+            <button
+              class="btn-menu"
+              onclick="mostrarFormulario('verRegistros')"
+            >
+              📋 Ver Registros (Docente)
+            </button>
+          </div>
         </div>
 
-        <div class="content">
-            <div id="menuPrincipal" class="formulario activo">
-                <div class="menu-principal">
-                    <button class="btn-menu" onclick="mostrarFormulario('registro')">✍️ Registrar Asistencia</button>
-                    <button class="btn-menu" onclick="mostrarFormulario('generarClave')">🔑 Generar Mi Clave Única</button>
-                    <button class="btn-menu" onclick="mostrarFormulario('verRegistros')">📋 Ver Registros (Docente)</button>
-                </div>
-            </div>
-
-            <div id="formRegistro" class="formulario">
-                <h3 style="margin-bottom: 15px; text-align: center;">Registrar Asistencia</h3>
-                <div id="alertRegistro"></div>
-                <div class="form-group">
-                    <label>Tu Clave Única (4 caracteres) *</label>
-                    <input type="text" id="claveEstudiante" maxlength="4" style="text-transform: uppercase;" placeholder="Ej: A1B2">
-                </div>
-                <div class="form-group">
-                    <label>Docente / Especialidad *</label>
-                    <select id="docenteAsistencia">
-                        <option value="">-- Selecciona tu Docente --</option>
-                        <option value="Mauricio Alvarado (Informática)">Mauricio Alvarado (Informática)</option>
-                        <option value="Docente de Inglés">Docente de Inglés</option>
-                        <option value="Otros Módulos">Otros Módulos / Docentes</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Grupo *</label>
-                    <select id="grupoAsistencia">
-                        <option value="">-- Selecciona --</option>
-                        <option value="Mañana">Mañana</option>
-                        <option value="Tarde">Tarde</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Firma del docente *</label>
-                    <input type="password" id="claveDocente" placeholder="Clave de Validación">
-                </div>
-                <button class="btn-submit" id="btnRegistrar" onclick="registrarAsistencia()">✅ Enviar Asistencia</button>
-                <button class="btn-volver" onclick="volverMenuPrincipal()">← Volver</button>
-            </div>
-
-            <div id="formGenerarClave" class="formulario">
-                <h3 style="margin-bottom: 15px; text-align: center;">Generar Mi Clave</h3>
-                <div id="alertGenerarClave"></div>
-                <div class="form-group">
-                    <label>Escribe tu Nombre Completo *</label>
-                    <input type="text" id="nombreNuevoEstudiante" placeholder="Ej: Tatiana Abigail Flores Ortiz" autocomplete="off">
-                    <small style="color: #666; font-size: 11px;">Usa mayúscula inicial en nombres y apellidos.</small>
-                </div>
-                <div class="form-group">
-                    <label>Asigna tu Docente Principal *</label>
-                    <select id="docenteNuevoEstudiante">
-                        <option value="">-- Selecciona tu Docente --</option>
-                        <option value="Mauricio Alvarado (Informática)">Mauricio Alvarado (Informática)</option>
-                        <option value="Docente de Inglés">Docente de Inglés</option>
-                        <option value="Otros Módulos">Otros Módulos / Docentes</option>
-                    </select>
-                </div>
-
-                <div class="form-group" style="display: none;">
-                    <input type="password" id="claveDocenteGenerar" value="1110102005">
-                </div>
-
-                <button class="btn-submit" id="btnGenerar" onclick="generarClave()">🔐 Generar Mi Clave Permanente</button>
-                <div id="claveGenerada" style="display: none; margin-top: 15px;">
-                    <div class="alert alert-success">🎉 ¡Clave creada! Guárdala bien:</div>
-                    <div class="registro-item" style="text-align: center;">
-                        <span id="codGenerado" style="font-size: 24px; font-weight: bold; color: #764ba2;"></span>
-                    </div>
-                </div>
-                <button class="btn-volver" onclick="volverMenuPrincipal()">← Volver</button>
-            </div>
-
-            <div id="formVerRegistros" class="formulario">
-                <h3 style="margin-bottom: 15px; text-align: center;">Panel del Docente</h3>
-                <div id="alertVerRegistros"></div>
-                <div class="form-group">
-                    <label>Clave de Validación *</label>
-                    <input type="password" id="claveDocenteRegistros">
-                </div>
-                <button class="btn-submit" id="btnAccederRegistros" onclick="cargarRegistros()">🔓 Entrar</button>
-                <div id="areaRegistros" style="display: none; margin-top: 20px;">
-                    <div class="estadisticas">
-                        <div class="stat-card"><h3 id="statManana">0</h3><p>Mañana</p></div>
-                        <div class="stat-card"><h3 id="statTarde">0</h3><p>Tarde</p></div>
-                    </div>
-                    <div class="registros-container" id="listaRegistros"></div>
-                    <button class="btn-limpiar" onclick="limpiarRegistrosHoy()">🗑️ Limpiar Todo</button>
-                </div>
-                <button class="btn-volver" onclick="volverMenuPrincipal()">← Volver</button>
-            </div>
+        <div id="formRegistro" class="formulario">
+          <h3 style="margin-bottom: 15px; text-align: center">
+            Registrar Asistencia
+          </h3>
+          <div id="alertRegistro"></div>
+          <div class="form-group">
+            <label>Tu Clave Única (4 caracteres) *</label>
+            <input
+              type="text"
+              id="claveEstudiante"
+              maxlength="4"
+              style="text-transform: uppercase"
+            />
+          </div>
+          <div class="form-group">
+            <label>Docente</label>
+            <select id="docenteAsistencia">
+              <option value="">-- Selecciona tu Docente --</option>
+              <option value="Mauricio Alvarado">Mauricio Alvarado</option>
+              <option value="Wilfredo Pineda">Wilfredo Pineda</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Grupo *</label>
+            <select id="grupoAsistencia">
+              <option value="">-- Selecciona --</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Firma del docente *</label>
+            <input
+              type="password"
+              id="claveDocente"
+              placeholder="Clave de Validación"
+            />
+          </div>
+          <button
+            class="btn-submit"
+            id="btnRegistrar"
+            onclick="registrarAsistencia()"
+          >
+            ✅ Enviar Asistencia
+          </button>
+          <button class="btn-volver" onclick="volverMenuPrincipal()">
+            ← Volver
+          </button>
         </div>
+
+        <div id="formGenerarClave" class="formulario">
+          <h3 style="margin-bottom: 15px; text-align: center">
+            Generar Mi Clave
+          </h3>
+          <div id="alertGenerarClave"></div>
+          <div class="form-group">
+            <label>Escribe tu Nombre Completo *</label>
+            <input
+              type="text"
+              id="nombreNuevoEstudiante"
+              placeholder="Ej: Tatiana Abigail Flores Ortiz"
+              autocomplete="off"
+            />
+            <small style="color: #666; font-size: 11px"
+              >Usa mayúscula inicial en nombres y apellidos.</small
+            >
+          </div>
+          <div class="form-group">
+            <label>Asigna tu Docente Principal *</label>
+            <select id="docenteNuevoEstudiante">
+              <option value="">-- Selecciona tu Docente --</option>
+              <option value="Mauricio Alvarado">Mauricio Alvarado</option>
+              <option value="Wilfredo Pineda">Wilfredo Pineda</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="display: none">
+            <input
+              type="password"
+              id="claveDocenteGenerar"
+              value="CENTED2000"
+            />
+          </div>
+
+          <button class="btn-submit" id="btnGenerar" onclick="generarClave()">
+            🔐 Generar Mi Clave Permanente
+          </button>
+          <div id="claveGenerada" style="display: none; margin-top: 15px">
+            <div class="alert alert-success">
+              🎉 ¡Clave creada! Guárdala bien:
+            </div>
+            <div class="registro-item" style="text-align: center">
+              <span
+                id="codGenerado"
+                style="font-size: 24px; font-weight: bold; color: #764ba2"
+              ></span>
+            </div>
+          </div>
+          <button class="btn-volver" onclick="volverMenuPrincipal()">
+            ← Volver
+          </button>
+        </div>
+
+        <div id="formVerRegistros" class="formulario">
+          <h3 style="margin-bottom: 15px; text-align: center">
+            Panel del Docente
+          </h3>
+          <div id="alertVerRegistros"></div>
+          <div class="form-group">
+            <label>Clave de Validación *</label>
+            <input type="password" id="claveDocenteRegistros" />
+          </div>
+          <button
+            class="btn-submit"
+            id="btnAccederRegistros"
+            onclick="cargarRegistros()"
+          >
+            🔓 Entrar
+          </button>
+          <div id="areaRegistros" style="display: none; margin-top: 20px">
+            <div class="estadisticas">
+              <div class="stat-card">
+                <h3 id="statManana">0</h3>
+                <p>Mañana</p>
+              </div>
+              <div class="stat-card">
+                <h3 id="statTarde">0</h3>
+                <p>Tarde</p>
+              </div>
+            </div>
+            <div class="registros-container" id="listaRegistros"></div>
+            <button class="btn-limpiar" onclick="limpiarRegistrosHoy()">
+              🗑️ Limpiar Todo
+            </button>
+          </div>
+          <button class="btn-volver" onclick="volverMenuPrincipal()">
+            ← Volver
+          </button>
+        </div>
+      </div>
     </div>
 
     <script>
-        const CLAVE_MAESTRA = '1110102005';
-        // 🚨 COLOCA TU URL DE APPS SCRIPT AQUÍ:
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyKPDkm3K5y_BkjswvSvnfx8cdf2WtJ9cJLY57UG-wUuVuXzgwv_KyhPhbwfaieCL9K/exec"; 
+      const CLAVE_MAESTRA = "CENTED2000";
+      const SCRIPT_URL =
+        "https://script.google.com/macros/s/AKfycbysOHARusKpjZrPidB_2IuFOBbNDobY5ekanXUo1lgXln6oTQRKg-IRPRRDViTvNp0a/exec";
 
-        function mostrarFormulario(f) {
-            document.querySelectorAll('.formulario').forEach(el => el.classList.remove('activo'));
-            document.getElementById(f === 'registro' ? 'formRegistro' : f === 'generarClave' ? 'formGenerarClave' : 'formVerRegistros').classList.add('activo');
+      function mostrarFormulario(f) {
+        document
+          .querySelectorAll(".formulario")
+          .forEach((el) => el.classList.remove("activo"));
+        document
+          .getElementById(
+            f === "registro"
+              ? "formRegistro"
+              : f === "generarClave"
+                ? "formGenerarClave"
+                : "formVerRegistros",
+          )
+          .classList.add("activo");
+      }
+
+      function volverMenuPrincipal() {
+        document
+          .querySelectorAll(".formulario")
+          .forEach((el) => el.classList.remove("activo"));
+        document.getElementById("menuPrincipal").classList.add("activo");
+      }
+
+      function validarNombreEstricto(n) {
+        const regex =
+          /^[A-ZÁÉÍÓÚÑ][a-zzáéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-zzáéíóúñ]+){1,3}$/;
+        return regex.test(n.trim());
+      }
+
+      function registrarAsistencia() {
+        const c = document
+          .getElementById("claveEstudiante")
+          .value.trim()
+          .toUpperCase();
+        const d = document.getElementById("docenteAsistencia").value;
+        const g = document.getElementById("grupoAsistencia").value;
+        const cd = document.getElementById("claveDocente").value.trim();
+        const btn = document.getElementById("btnRegistrar");
+
+        if (!c || !d || !g || cd !== CLAVE_MAESTRA) {
+          document.getElementById("alertRegistro").innerHTML =
+            '<div class="alert alert-error">❌ Datos incompletos o clave maestra incorrecta.</div>';
+          return;
         }
 
-        function volverMenuPrincipal() {
-            document.querySelectorAll('.formulario').forEach(el => el.classList.remove('activo'));
-            document.getElementById('menuPrincipal').classList.add('activo');
-        }
+        btn.disabled = true;
+        btn.textContent = "⌛ Registrando...";
+        const fd = new URLSearchParams();
+        fd.append("action", "asistencia");
+        fd.append("clave", c);
+        fd.append("docente", d);
+        fd.append("grupo", g);
 
-        function validarNombreEstricto(n) {
-            const regex = /^[A-ZÁÉÍÓÚÑ][a-zzáéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-zzáéíóúñ]+){1,3}$/;
-            return regex.test(n.trim());
-        }
-
-        function registrarAsistencia() {
-            const c = document.getElementById('claveEstudiante').value.trim().toUpperCase();
-            const d = document.getElementById('docenteAsistencia').value;
-            const g = document.getElementById('grupoAsistencia').value;
-            const cd = document.getElementById('claveDocente').value.trim();
-            const btn = document.getElementById('btnRegistrar');
-
-            // Eliminada la comprobación del nombre local de la web
-            if (!c || !d || !g || cd !== CLAVE_MAESTRA) {
-                document.getElementById('alertRegistro').innerHTML = '<div class="alert alert-error">❌ Datos incompletos o clave maestra incorrecta.</div>';
-                return;
+        fetch(SCRIPT_URL, { method: "POST", body: fd })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.result === "success") {
+              document.getElementById("alertRegistro").innerHTML =
+                '<div class="alert alert-success">✅ ¡Listo! Ya puedes cerrar la página.</div>';
+              document.getElementById("claveEstudiante").value = "";
+            } else {
+              document.getElementById("alertRegistro").innerHTML =
+                `<div class="alert alert-error">${data.message}</div>`;
             }
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.textContent = "✅ Enviar Asistencia";
+          });
+      }
 
-            btn.disabled = true; btn.textContent = "⌛ Registrando...";
-            const fd = new URLSearchParams(); 
-            fd.append('action', 'asistencia'); 
-            fd.append('clave', c); 
-            fd.append('docente', d);
-            fd.append('grupo', g);
+      function generarClave() {
+        const n = document.getElementById("nombreNuevoEstudiante").value.trim();
+        const d = document.getElementById("docenteNuevoEstudiante").value;
+        const btn = document.getElementById("btnGenerar");
 
-            fetch(SCRIPT_URL, { method: 'POST', body: fd })
-            .then(r => r.json()).then(data => {
-                if(data.result === 'success') {
-                    document.getElementById('alertRegistro').innerHTML = '<div class="alert alert-success">✅ ¡Listo! Ya puedes cerrar la página.</div>';
-                    document.getElementById('claveEstudiante').value = ''; // Limpia el input
-                } else {
-                    document.getElementById('alertRegistro').innerHTML = `<div class="alert alert-error">${data.message}</div>`;
-                }
-            }).catch(err => {
-                document.getElementById('alertRegistro').innerHTML = `<div class="alert alert-error">❌ Error de conexión: ${err.toString()}</div>`;
-            }).finally(() => { btn.disabled = false; btn.textContent = "✅ Enviar Asistencia"; });
+        if (!n || !d || !validarNombreEstricto(n)) {
+          document.getElementById("alertGenerarClave").innerHTML =
+            '<div class="alert alert-error">❌ Escribe tu nombre correctamente (Mayúsculas iniciales) y selecciona tu docente.</div>';
+          return;
         }
 
-        function generarClave() {
-            const n = document.getElementById('nombreNuevoEstudiante').value.trim();
-            const d = document.getElementById('docenteNuevoEstudiante').value;
-            const btn = document.getElementById('btnGenerar');
+        btn.disabled = true;
+        btn.textContent = "⌛ Creando tu clave...";
+        let cn = "";
+        const car = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        for (let i = 0; i < 4; i++)
+          cn += car.charAt(Math.floor(Math.random() * car.length));
 
-            if (!n || !d || !validarNombreEstricto(n)) {
-                document.getElementById('alertGenerarClave').innerHTML = '<div class="alert alert-error">❌ Escribe tu nombre correctamente (Mayúsculas iniciales) y selecciona tu docente.</div>';
-                return;
+        const fd = new URLSearchParams();
+        fd.append("action", "guardar_clave");
+        fd.append("nombre", n);
+        fd.append("clave", cn);
+        fd.append("docente", d);
+
+        fetch(SCRIPT_URL, { method: "POST", body: fd })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.result === "success") {
+              document.getElementById("codGenerado").textContent = cn;
+              document.getElementById("claveGenerada").style.display = "block";
+              document.getElementById("alertGenerarClave").innerHTML = "";
+            } else {
+              document.getElementById("alertGenerarClave").innerHTML =
+                `<div class="alert alert-error">${data.message}</div>`;
             }
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.textContent = "🔐 Generar Mi Clave Permanente";
+          });
+      }
 
-            btn.disabled = true; btn.textContent = "⌛ Creando tu clave...";
-            let cn = ''; const car = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            for (let i = 0; i < 4; i++) cn += car.charAt(Math.floor(Math.random() * car.length));
-
-            const fd = new URLSearchParams(); 
-            fd.append('action', 'guardar_clave'); 
-            fd.append('nombre', n); 
-            fd.append('clave', cn);
-            fd.append('docente', d);
-
-            fetch(SCRIPT_URL, { method: 'POST', body: fd })
-            .then(r => r.json()).then(data => {
-                if(data.result === 'success') {
-                    document.getElementById('codGenerado').textContent = cn;
-                    document.getElementById('claveGenerada').style.display = 'block';
-                    document.getElementById('alertGenerarClave').innerHTML = '';
-                    document.getElementById('nombreNuevoEstudiante').value = '';
-                } else {
-                    document.getElementById('alertGenerarClave').innerHTML = `<div class="alert alert-error">${data.message}</div>`;
-                }
-            }).finally(() => { btn.disabled = false; btn.textContent = "🔐 Generar Mi Clave Permanente"; });
-        }
-
-        function cargarRegistros() {
-            if(document.getElementById('claveDocenteRegistros').value !== CLAVE_MAESTRA) return;
-            fetch(`${SCRIPT_URL}?action=obtener_registros`).then(r => r.json()).then(data => {
-                const hoy = new Date().toLocaleDateString('es-SV', { year: 'numeric', month: '2-digit', day: '2-digit' });
-                const filtrados = data.filter(r => r.fecha === hoy);
-                document.getElementById('statManana').textContent = filtrados.filter(r => r.grupo === 'Mañana').length;
-                document.getElementById('statTarde').textContent = filtrados.filter(r => r.grupo === 'Tarde').length;
-                const cont = document.getElementById('listaRegistros'); cont.innerHTML = '';
-                filtrados.forEach(r => {
-                    const el = document.createElement('div'); el.className = 'registro-item';
-                    el.innerHTML = `<strong>${r.nombre}</strong> - ${r.grupo}<br><small>Clave: ${r.clave} | Docente: ${r.docente || 'N/A'} | Hora: ${r.hora}</small>`;
-                    cont.appendChild(el);
-                });
-                document.getElementById('areaRegistros').style.display = 'block';
+      function cargarRegistros() {
+        if (
+          document.getElementById("claveDocenteRegistros").value !==
+          CLAVE_MAESTRA
+        )
+          return;
+        fetch(`${SCRIPT_URL}?action=obtener_registros`)
+          .then((r) => r.json())
+          .then((data) => {
+            const hoy = new Date().toLocaleDateString("es-SV", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
             });
-        }
+            const filtrados = data.filter((r) => r.fecha === hoy);
+            document.getElementById("statManana").textContent =
+              filtrados.filter((r) => r.grupo === "Mañana").length;
+            document.getElementById("statTarde").textContent = filtrados.filter(
+              (r) => r.grupo === "Tarde",
+            ).length;
+            const cont = document.getElementById("listaRegistros");
+            cont.innerHTML = "";
+            filtrados.forEach((r) => {
+              const el = document.createElement("div");
+              el.className = "registro-item";
+              el.innerHTML = `<strong>${r.nombre}</strong> - ${r.grupo}<br><small>Clave: ${r.clave} | Docente: ${r.docente || "N/A"} | Hora: ${r.hora}</small>`;
+              cont.appendChild(el);
+            });
+            document.getElementById("areaRegistros").style.display = "block";
+          });
+      }
 
-        function limpiarRegistrosHoy() {
-            if(!confirm("¿Borrar asistencias de hoy?")) return;
-            const fd = new URLSearchParams(); fd.append('action', 'limpiar_asistencias');
-            fetch(SCRIPT_URL, { method: 'POST', body: fd }).then(() => location.reload());
-        }
+      function limpiarRegistrosHoy() {
+        if (!confirm("¿Borrar asistencias de hoy?")) return;
+        const fd = new URLSearchParams();
+        fd.append("action", "limpiar_asistencias");
+        fetch(SCRIPT_URL, { method: "POST", body: fd }).then(() =>
+          location.reload(),
+        );
+      }
     </script>
-</body>
+  </body>
 </html>
