@@ -250,21 +250,12 @@
           </div>
         </div>
 
-        <!-- REGISTRO DE ASISTENCIA -->
         <div id="formRegistro" class="formulario">
           <h3 style="margin-bottom: 15px; text-align: center">
             Registrar Asistencia
           </h3>
           <div id="alertRegistro"></div>
-          <div class="form-group">
-            <label>Nombre Completo *</label>
-            <input
-              type="text"
-              id="nombreAsistencia"
-              placeholder="Ej: Tatiana Abigail Flores Ortiz"
-              autocomplete="off"
-            />
-          </div>
+          
           <div class="form-group">
             <label>Tu Clave Única (4 caracteres) *</label>
             <input
@@ -310,7 +301,6 @@
           </button>
         </div>
 
-        <!-- GENERACIÓN DE CLAVE -->
         <div id="formGenerarClave" class="formulario">
           <h3 style="margin-bottom: 15px; text-align: center">
             Generar Mi Clave
@@ -364,7 +354,6 @@
           </button>
         </div>
 
-        <!-- PANEL DEL DOCENTE -->
         <div id="formVerRegistros" class="formulario">
           <h3 style="margin-bottom: 15px; text-align: center">
             Panel del Docente
@@ -407,7 +396,7 @@
     <script>
       const CLAVE_MAESTRA = "CENTED2000";
       const SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbw32vOaBtN4e84LVu35ZUV6Z004LzjoIIxmVRVKTF8QgSlKT6UR43XVJHFQk5_eUACd/exec";
+        "https://script.google.com/macros/s/AKfycbx_f4slTms56hqsTctOKjw3WBfTmMryQQM1TpXavg1tl27hfJiyvvYQCLEqPbVV7uTj/exec";
 
       function mostrarFormulario(f) {
         document
@@ -438,7 +427,6 @@
       }
 
       function registrarAsistencia() {
-        const n = document.getElementById("nombreAsistencia").value.trim();
         const c = document
           .getElementById("claveEstudiante")
           .value.trim()
@@ -448,7 +436,7 @@
         const cd = document.getElementById("claveDocente").value.trim();
         const btn = document.getElementById("btnRegistrar");
 
-        if (!n || !c || !d || !g || cd !== CLAVE_MAESTRA) {
+        if (!c || !d || !g || cd !== CLAVE_MAESTRA) {
           document.getElementById("alertRegistro").innerHTML =
             '<div class="alert alert-error">❌ Datos incompletos o clave maestra incorrecta.</div>';
           return;
@@ -458,7 +446,6 @@
         btn.textContent = "⌛ Registrando...";
         const fd = new URLSearchParams();
         fd.append("action", "asistencia");
-        fd.append("nombre", n);
         fd.append("clave", c);
         fd.append("docente", d);
         fd.append("grupo", g);
