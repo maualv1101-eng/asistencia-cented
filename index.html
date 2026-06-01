@@ -1,888 +1,1021 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Asistencia — Grupo Cented</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-color: #f4f3ef; /* Blanco roto papel periódico retro */
-      --text-color: #0d0d0d; /* Negro profundo puro */
-      --accent-color: #2b46ff; /* Azul eléctrico SpaceX de alta tecnología */
-      --danger-color: #ff3b30; /* Rojo advertencia editorial */
-      --success-color: #00c781; /* Verde de confirmación */
-      --border-width: 2px;
-      --font-heading: "Syne", sans-serif;
-      --font-body: "Space Grotesk", sans-serif;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      font-family: var(--font-body);
-      overflow-x: hidden;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 2rem;
-    }
-
-    /* Efecto grano y textura retro superpuesta */
-    .overlay-texture {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image:
-        radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 0),
-        linear-gradient(rgba(13, 13, 13, 0.02) 1px, transparent 0);
-      background-size: 24px 24px;
-      pointer-events: none;
-      z-index: 999;
-    }
-
-    /* Contenedor Principal (Estilo Revista / Maquetación rígida moderna) */
-    .app-container {
-      width: 100%;
-      max-width: 680px;
-      background: #ffffff;
-      border: var(--border-width) solid var(--text-color);
-      padding: 2.5rem;
-      box-shadow: 12px 12px 0px var(--text-color);
-      position: relative;
-      z-index: 10;
-      transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-    }
-
-    /* Ajuste dinámico de tamaño para cuando el docente audita la hoja */
-    .app-container.expanded {
-      max-width: 900px;
-    }
-
-    /* Encabezado */
-    .main-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1.5rem;
-    }
-
-    .brand .badge {
-      background: var(--text-color);
-      color: var(--bg-color);
-      font-size: 0.75rem;
-      font-weight: bold;
-      padding: 0.2rem 0.6rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    .brand h1 {
-      font-family: var(--font-heading);
-      font-size: 1.8rem;
-      font-weight: 800;
-      line-height: 1.1;
-      margin-top: 0.5rem;
-      letter-spacing: -1px;
-    }
-
-    .brand .subtitle {
-      font-size: 0.85rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      opacity: 0.6;
-      margin-top: 0.2rem;
-    }
-
-    .live-status {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-variant-numeric: tabular-nums;
-      font-weight: bold;
-      border: var(--border-width) solid var(--text-color);
-      padding: 0.4rem 0.8rem;
-      background: var(--bg-color);
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      background-color: var(--success-color);
-      border-radius: 50%;
-      animation: status-pulse 1.5s infinite;
-    }
-
-    .editorial-line {
-      border: none;
-      height: var(--border-width);
-      background-color: var(--text-color);
-      margin-bottom: 2.5rem;
-    }
-
-    /* Manejo de transiciones entre pantallas */
-    .card-view {
-      display: none;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-    }
-
-    .card-view.active {
-      display: block;
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* Botones del Menú Principal */
-    .menu-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .btn-retro {
-      background: none;
-      border: var(--border-width) solid var(--text-color);
-      padding: 1.5rem;
-      display: flex;
-      align-items: center;
-      text-align: left;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      font-family: var(--font-body);
-      color: var(--text-color);
-      transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
-    }
-
-    .btn-retro .btn-num {
-      font-family: var(--font-heading);
-      font-size: 1.2rem;
-      margin-right: 1.5rem;
-      opacity: 0.4;
-      transition: transform 0.3s ease;
-    }
-
-    .btn-retro .btn-text {
-      font-size: 1.2rem;
-      font-weight: 700;
-      flex-grow: 1;
-    }
-
-    .btn-retro .btn-arrow {
-      font-size: 1.5rem;
-      transform: translateX(-10px);
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
-    }
-
-    .btn-retro:hover {
-      background-color: var(--text-color);
-      color: var(--bg-color);
-      transform: translateX(8px);
-    }
-
-    .btn-retro:hover .btn-num {
-      transform: scale(1.2);
-      opacity: 1;
-      color: var(--accent-color);
-    }
-
-    .btn-retro:hover .btn-arrow {
-      transform: translateX(0);
-      opacity: 1;
-    }
-
-    /* Formularios e Inputs */
-    .view-title {
-      font-family: var(--font-heading);
-      font-size: 1.4rem;
-      margin-bottom: 2rem;
-      text-transform: uppercase;
-      letter-spacing: -0.5px;
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .input-group label {
-      font-size: 0.9rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    input[type="text"],
-    input[type="password"],
-    select {
-      width: 100%;
-      padding: 1rem;
-      font-family: var(--font-body);
-      font-size: 1rem;
-      border: var(--border-width) solid var(--text-color);
-      background: var(--bg-color);
-      color: var(--text-color);
-      outline: none;
-      border-radius: 0;
-      transition: all 0.2s ease;
-    }
-
-    input:focus,
-    select:focus {
-      background: #ffffff;
-      box-shadow: 4px 4px 0px var(--accent-color);
-      border-color: var(--accent-color);
-    }
-
-    .helper-text {
-      font-size: 0.8rem;
-      opacity: 0.6;
-      margin-top: 0.2rem;
-    }
-
-    /* Cuadros de Feedback */
-    .alert-box {
-      padding: 1rem;
-      border: var(--border-width) solid var(--text-color);
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      text-transform: uppercase;
-      font-size: 0.9rem;
-      display: none;
-    }
-    .alert-box.error { background-color: #ffdad9; color: var(--danger-color); display: block; }
-    .alert-box.success { background-color: #d2fbe3; color: #007d4f; display: block; }
-    .alert-box.warning { background-color: #fff3cd; color: #856404; display: block; }
-
-    /* Botones de Acción */
-    .form-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-      margin-top: 2rem;
-    }
-
-    .form-actions.row-layout {
-      flex-direction: row;
-    }
-
-    .btn-submit,
-    .btn-back,
-    .btn-danger {
-      padding: 1rem;
-      font-family: var(--font-body);
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      border: var(--border-width) solid var(--text-color);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: all 0.2s ease;
-      text-align: center;
-    }
-
-    .btn-submit {
-      background-color: var(--accent-color);
-      color: #ffffff;
-      border-color: var(--accent-color);
-    }
-
-    .btn-submit:hover {
-      background-color: var(--text-color);
-      border-color: var(--text-color);
-      transform: translateY(-2px);
-    }
-
-    .btn-submit:disabled {
-      background-color: #cccccc !important;
-      border-color: #cccccc !important;
-      color: #666666 !important;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    .btn-back {
-      background: transparent;
-      color: var(--text-color);
-    }
-
-    .btn-back:hover {
-      background: var(--bg-color);
-      transform: translateY(-2px);
-    }
-
-    .btn-danger {
-      background-color: var(--danger-color);
-      color: white;
-      border-color: var(--danger-color);
-      flex: 1;
-    }
-
-    .btn-danger:hover {
-      background-color: var(--text-color);
-      border-color: var(--text-color);
-    }
-
-    /* Caja contenedora para mostrar la Clave Generada */
-    .generated-key-display {
-      background: #fff9e6;
-      border: var(--border-width) dashed var(--text-color);
-      padding: 1.5rem;
-      text-align: center;
-      margin-top: 1.5rem;
-    }
-
-    .generated-key-display h3 {
-      font-size: 2.2rem;
-      font-family: var(--font-heading);
-      color: var(--accent-color);
-      letter-spacing: 2px;
-      margin: 0.5rem 0;
-    }
-
-    /* Contenedor de Registros Asíncronos */
-    .registros-container {
-      max-height: 220px;
-      overflow-y: auto;
-      border: var(--border-width) solid var(--text-color);
-      margin-bottom: 1.5rem;
-      background: var(--bg-color);
-    }
-
-    .registro-item {
-      padding: 1rem;
-      border-bottom: var(--border-width) solid var(--text-color);
-      font-size: 0.9rem;
-    }
-    .registro-item:last-child {
-      border-bottom: none;
-    }
-
-    /* Ventana de Excel Incrustada e Interactiva */
-    .excel-frame-wrapper {
-      border: var(--border-width) solid var(--text-color);
-      box-shadow: 4px 4px 0px var(--text-color);
-      margin-top: 1.5rem;
-      margin-bottom: 1.5rem;
-      background: #ffffff;
-      position: relative;
-    }
-
-    .excel-frame-wrapper iframe {
-      width: 100%;
-      height: 380px;
-      border: none;
-      display: block;
-    }
-
-    /* Panel del Docente */
-    .hidden-panel {
-      display: none;
-    }
-    .hidden-panel.visible {
-      display: block;
-      animation: slide-down 0.4s ease forwards;
-    }
-
-    .stats-counter-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .stat-box {
-      border: var(--border-width) solid var(--text-color);
-      padding: 2rem 1rem;
-      text-align: center;
-      background: var(--bg-color);
-    }
-
-    .stat-box .stat-num {
-      display: block;
-      font-family: var(--font-heading);
-      font-size: 3.5rem;
-      font-weight: 800;
-      line-height: 1;
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-box .stat-label {
-      font-size: 0.9rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      opacity: 0.7;
-    }
-
-    /* Animaciones */
-    @keyframes status-pulse {
-      0% { opacity: 0.4; }
-      50% { opacity: 1; }
-      100% { opacity: 0.4; }
-    }
-
-    @keyframes slide-down {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 480px) {
-      .app-container { padding: 1.5rem; }
-      .main-header { flex-direction: column; gap: 1rem; }
-      .live-status { width: 100%; justify-content: center; }
-      .form-actions.row-layout { flex-direction: column; }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="overlay-texture"></div>
-
-  <div id="app-card" class="app-container">
-    
-    <header class="main-header">
-      <div class="brand">
-        <span class="badge">CENTED CONTROL</span>
-        <h1 id="dynamic-title">Asistencia</h1>
-        <div class="subtitle">Módulo de gestión v3.5</div>
-      </div>
-      <div class="live-status">
-        <div class="status-dot"></div>
-        <span>LIVE</span>
-      </div>
-    </header>
-
-    <hr class="editorial-line">
-
-    <div id="view-alert" class="alert-box"></div>
-
-    <div id="view-menu" class="card-view active">
-      <div class="menu-grid">
-        
-        <button class="btn-retro" onclick="navigateTo('view-register')">
-          <span class="btn-num">01</span>
-          <span class="btn-text">Registrar Mi Asistencia</span>
-          <span class="btn-arrow">→</span>
-        </button>
-
-        <button class="btn-retro" onclick="navigateTo('view-keygen')">
-          <span class="btn-num">02</span>
-          <span class="btn-text">Solicitar Clave Alfanumérica</span>
-          <span class="btn-arrow">→</span>
-        </button>
-
-        <button class="btn-retro" onclick="navigateTo('view-auth')">
-          <span class="btn-num">03</span>
-          <span class="btn-text">Panel del Cuerpo Docente</span>
-          <span class="btn-arrow">→</span>
-        </button>
-
-      </div>
-    </div>
-
-    <div id="view-register" class="card-view">
-      <h2 class="view-title">Validar Entrada</h2>
-      
-      <form id="form-asistencia" onsubmit="registrarAsistencia(event)">
-        <div class="input-group">
-          <label for="input-clave">Clave de Alumno</label>
-          <input type="text" id="input-clave" placeholder="Ej: K9B2" maxlength="4" required style="text-transform: uppercase;">
-          <div class="helper-text">Código único de 4 dígitos asignado por el sistema.</div>
-        </div>
-
-        <div class="input-group">
-          <label for="select-grupo">Franja de Horario</label>
-          <select id="select-grupo" required>
-            <option value="" disabled selected>-- Selecciona tu grupo --</option>
-            <option value="Mañana">Mañana</option>
-            <option value="Tarde">Tarde</option>
-          </select>
-        </div>
-
-        <div class="input-group">
-          <label for="select-docente">Docente Tutor</label>
-          <select id="select-docente" required>
-            <option value="" disabled selected>-- Asignado a cargo --</option>
-            <option value="Docente 1">Docente 1</option>
-            <option value="Docente 2">Docente 2</option>
-          </select>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" id="submit-btn-asistencia" class="btn-submit">⚡ Enviar Registro</button>
-          <button type="button" class="btn-back" onclick="backToMenu()">Volver</button>
-        </div>
-      </form>
-    </div>
-
-    <div id="view-keygen" class="card-view">
-      <h2 class="view-title">Alta de Estudiante</h2>
-
-      <form id="form-clave" onsubmit="solicitarClave Unica(event)">
-        <div class="input-group">
-          <label for="input-nombre">Nombre Completo</label>
-          <input type="text" id="input-nombre" placeholder="Ej: Carlos David Ramos" required>
-          <div class="helper-text">* Formato Estricto: Mayúscula al inicio de cada palabra (mínimo un apellido).</div>
-        </div>
-
-        <div class="input-group">
-          <label for="select-docente-clave">Instructor Principal</label>
-          <select id="select-docente-clave" required>
-            <option value="" disabled selected>-- Selecciona tu docente --</option>
-            <option value="Docente 1">Docente 1</option>
-            <option value="Docente 2">Docente 2</option>
-          </select>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" id="submit-btn-clave" class="btn-submit">🎯 Generar Mi Ficha</button>
-          <button type="button" class="btn-back" onclick="backToMenu()">Volver</button>
-        </div>
-      </form>
-
-      <div id="key-success-box" class="generated-key-display" style="display: none;">
-        <div class="helper-text" style="text-transform: uppercase; font-weight: bold;">Tu código asignado es:</div>
-        <h3 id="target-key-val">----</h3>
-        <div class="helper-text">Apúntalo. Úsalo a partir de ahora para marcar asistencia en tus laboratorios.</div>
-      </div>
-    </div>
-
-    <div id="view-auth" class="card-view">
-      <h2 class="view-title">Llave de Control</h2>
-
-      <form id="form-auth" onsubmit="autenticarDocente(event)">
-        <div class="input-group">
-          <label for="input-pass">Contraseña Maestra</label>
-          <input type="password" id="input-pass" placeholder="••••••••" required>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn-submit">🔓 Validar Entrada</button>
-          <button type="button" class="btn-back" onclick="backToMenu()">Volver</button>
-        </div>
-      </form>
-    </div>
-
-    <div id="view-dashboard" class="card-view hidden-panel">
-      
-      <div class="stats-counter-grid">
-        <div class="stat-box">
-          <span id="statManana" class="stat-num">0</span>
-          <span class="stat-label">Grupo Mañana</span>
-        </div>
-        <div class="stat-box">
-          <span id="statTarde" class="stat-num">0</span>
-          <span class="stat-label">Grupo Tarde</span>
-        </div>
-      </div>
-
-      <label class="input-group label" style="margin-bottom: 0.5rem;">Lista del Servidor (Asíncrono):</label>
-      <div id="listaRegistros" class="registros-container">
-        </div>
-
-      <label class="input-group label" style="margin-bottom: 0.5rem;">Visualización e Interacción Directa con la Hoja:</label>
-      <div class="excel-frame-wrapper">
-        <iframe src="https://docs.google.com/spreadsheets/d/1ZW5PqqPPGjtKJKiGCCIkYSDQBtGEZ3SorOCqjf_8NfI/edit?rm=minimal&ui=2"></iframe>
-      </div>
-
-      <div class="form-actions row-layout">
-        <button type="button" class="btn-back" style="flex: 1;" onclick="actualizarListaDashboard()">🔄 Refrescar API</button>
-        <button type="button" class="btn-danger" onclick="limpiarRegistrosHoy()">🚨 Archivar y Limpiar Tabla</button>
-      </div>
-
-      <button type="button" class="btn-back" style="width: 100%; margin-top: 1rem;" onclick="logoutDashboard()">🔒 Bloquear Panel</button>
-    </div>
-
-  </div>
-
-  <script>
-    // Variables operativas exactas e inalterables
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxk0kH_w9q-dzutc0NMoKhZwJJdNyqIWbzd4KZrqJZqFbeSHKINTNIHYEVFmqlrv9Ys/exec";
-    const CLAVE_MAESTRA = "CENTED2000";
-
-    // Textos informativos de cabeceras dinámicas
-    const HEADERS_CONFIG = {
-      'view-menu': "Asistencia",
-      'view-register': "Validar Entrada",
-      'view-keygen': "Alta Alumno",
-      'view-auth': "Seguridad",
-      'view-dashboard': "Dashboard"
-    };
-
-    function navigateTo(viewId) {
-      document.querySelectorAll('.card-view').forEach(view => {
-        view.classList.remove('active');
-        view.style.display = "none";
-      });
-      clearAlert();
-
-      const targetView = document.getElementById(viewId);
-      if(targetView) {
-        targetView.style.display = "block";
-        // Provocar reflujo para animación CSS suave
-        targetView.offsetHeight;
-        targetView.classList.add('active');
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control de Asistencia — Grupo Cented</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-color: #f4f3ef; /* Blanco roto papel periódico retro */
+        --text-color: #0d0d0d; /* Negro profundo puro */
+        --accent-color: #2b46ff; /* Azul eléctrico SpaceX de alta tecnología */
+        --danger-color: #ff3b30; /* Rojo advertencia editorial */
+        --success-color: #00c781; /* Verde de confirmación */
+        --border-width: 2px;
+        --font-heading: "Syne", sans-serif;
+        --font-body: "Space Grotesk", sans-serif;
       }
 
-      if(HEADERS_CONFIG[viewId]) {
-        document.getElementById('dynamic-title').textContent = HEADERS_CONFIG[viewId];
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      // Expandir tamaño de caja si el panel del docente está desplegado
-      const appContainer = document.getElementById('app-card');
-      if(viewId === 'view-dashboard') {
-        appContainer.classList.add('expanded');
-      } else {
-        appContainer.classList.remove('expanded');
-      }
-    }
-
-    function backToMenu() {
-      document.getElementById('form-asistencia').reset();
-      document.getElementById('form-clave').reset();
-      document.getElementById('form-auth').reset();
-      document.getElementById('key-success-box').style.display = "none";
-      navigateTo('view-menu');
-    }
-
-    function triggerAlert(message, type) {
-      const alertBox = document.getElementById('view-alert');
-      alertBox.className = `alert-box ${type}`;
-      alertBox.textContent = message;
-    }
-
-    function clearAlert() {
-      document.getElementById('view-alert').style.display = "none";
-    }
-
-    // RegEx de validación exacta V3
-    function validarNombreEstricto(nombre) {
-      const patron = /^[A-ZÁÉÍÓÚÑ][a-zzáéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-zzáéíóúñ]+){1,3}$/;
-      return patron.test(nombre.trim());
-    }
-
-    function generarCodigoAlfanumerico() {
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let code = "";
-      for (let i = 0; i < 4; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return code;
-    }
-
-    // ==========================================
-    // CONTROLADOR 1: EMISIÓN DE ASISTENCIA
-    // ==========================================
-    function registrarAsistencia(e) {
-      e.preventDefault();
-      clearAlert();
-
-      const clave = document.getElementById('input-clave').value.trim().toUpperCase();
-      const grupo = document.getElementById('select-grupo').value;
-      const docente = document.getElementById('select-docente').value;
-      const btn = document.getElementById('submit-btn-asistencia');
-
-      btn.disabled = true;
-      btn.textContent = "Guardando en Google Sheets...";
-
-      const dataPayload = new URLSearchParams();
-      dataPayload.append("action", "asistencia");
-      dataPayload.append("clave", clave);
-      dataPayload.append("grupo", grupo);
-      dataPayload.append("docente", docente);
-
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        body: dataPayload
-      })
-      .then(res => res.json())
-      .then(data => {
-        if(data.result === "success") {
-          triggerAlert("🎉 ¡Perfecto! Tu asistencia ha quedado registrada correctamente.", "success");
-          document.getElementById('form-asistencia').reset();
-        } else {
-          triggerAlert(data.message, "warning");
-        }
-      })
-      .catch(() => {
-        triggerAlert("❌ Incidente en la red. No se guardaron los datos de asistencia.", "error");
-      })
-      .finally(() => {
-        btn.disabled = false;
-        btn.textContent = "⚡ Enviar Registro";
-      });
-    }
-
-    // ==========================================
-    // CONTROLADOR 2: GENERACIÓN DE FICHA DE ALUMNO
-    // ==========================================
-    function solicitarClaveUnica(e) {
-      e.preventDefault();
-      clearAlert();
-      document.getElementById('key-success-box').style.display = "none";
-
-      const nombre = document.getElementById('input-nombre').value.trim();
-      const docente = document.getElementById('select-docente-clave').value;
-      const btn = document.getElementById('submit-btn-clave');
-
-      if (!validarNombreEstricto(nombre)) {
-        triggerAlert("❌ Formato inválido. Recuerda usar mayúsculas iniciales y omitir números.", "error");
-        return;
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: var(--font-body);
+        overflow-x: hidden;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
       }
 
-      btn.disabled = true;
-      btn.textContent = "Inscribiendo cuenta...";
-
-      const codigoGenerado = generarCodigoAlfanumerico();
-
-      const dataPayload = new URLSearchParams();
-      dataPayload.append("action", "guardar_clave");
-      dataPayload.append("nombre", nombre);
-      dataPayload.append("clave", codigoGenerado);
-      dataPayload.append("docente", docente);
-
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        body: dataPayload
-      })
-      .then(res => res.json())
-      .then(data => {
-        if(data.result === "success") {
-          triggerAlert("🎉 Registro finalizado con éxito.", "success");
-          document.getElementById('target-key-val').textContent = data.clave;
-          document.getElementById('key-success-box').style.display = "block";
-          document.getElementById('form-clave').reset();
-        } else {
-          triggerAlert(data.message, "warning");
-        }
-      })
-      .catch(() => {
-        triggerAlert("❌ Error de comunicación con el backend de claves.", "error");
-      })
-      .finally(() => {
-        btn.disabled = false;
-        btn.textContent = "🎯 Generar Mi Ficha";
-      });
-    }
-
-    // ==========================================
-    // CONTROLADOR 3: AUTENTICACIÓN Y ENTRADA AL DASHBOARD
-    // ==========================================
-    function autenticarDocente(e) {
-      e.preventDefault();
-      clearAlert();
-
-      const pass = document.getElementById('input-pass').value;
-
-      if(pass === CLAVE_MAESTRA) {
-        document.getElementById('view-auth').classList.remove('active');
-        document.getElementById('view-auth').style.display = "none";
-        
-        const dashboard = document.getElementById('view-dashboard');
-        dashboard.style.display = "block";
-        dashboard.offsetHeight;
-        dashboard.classList.add('visible', 'active');
-        
-        document.getElementById('dynamic-title').textContent = HEADERS_CONFIG['view-dashboard'];
-        document.getElementById('app-card').classList.add('expanded');
-        
-        actualizarListaDashboard();
-      } else {
-        triggerAlert("❌ Acceso Denegado. Contraseña errónea.", "error");
-        document.getElementById('input-pass').value = "";
+      /* Efecto grano y textura retro superpuesta */
+      .overlay-texture {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image:
+          radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 0),
+          linear-gradient(rgba(13, 13, 13, 0.02) 1px, transparent 0);
+        background-size: 24px 24px;
+        pointer-events: none;
+        z-index: 999;
       }
-    }
 
-    // Sincronización asíncrona de registros V3
-    function actualizarListaDashboard() {
-      const cont = document.getElementById('listaRegistros');
-      cont.innerHTML = '<div style="padding: 1.5rem; font-weight: bold; text-align: center;">⌛ Sincronizando servidor de Google...</div>';
+      /* Contenedor Principal (Estilo Revista / Maquetación rígida moderna) */
+      .app-container {
+        width: 100%;
+        max-width: 720px;
+        background: #ffffff;
+        border: var(--border-width) solid var(--text-color);
+        padding: 2.5rem;
+        box-shadow: 12px 12px 0px var(--text-color);
+        position: relative;
+        z-index: 10;
+        transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+      }
 
-      document.getElementById('statManana').textContent = "0";
-      document.getElementById('statTarde').textContent = "0";
+      /* Encabezado */
+      .main-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+      }
 
-      fetch(`${SCRIPT_URL}?action=obtener_registros`)
-      .then(res => res.json())
-      .then(data => {
-        const hoy = new Date().toLocaleDateString("es-SV", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit"
+      .brand .badge {
+        background: var(--text-color);
+        color: var(--bg-color);
+        font-size: 0.75rem;
+        font-weight: bold;
+        padding: 0.2rem 0.6rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      .brand h1 {
+        font-family: var(--font-heading);
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-top: 0.5rem;
+        letter-spacing: -1px;
+      }
+
+      .brand .subtitle {
+        font-size: 0.85rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        opacity: 0.6;
+        margin-top: 0.2rem;
+      }
+
+      .live-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-variant-numeric: tabular-nums;
+        font-weight: bold;
+        border: var(--border-width) solid var(--text-color);
+        padding: 0.4rem 0.8rem;
+        background: var(--bg-color);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background-color: var(--success-color);
+        border-radius: 50%;
+        animation: status-pulse 1.5s infinite;
+      }
+
+      .editorial-line {
+        border: none;
+        height: var(--border-width);
+        background-color: var(--text-color);
+        margin-bottom: 2.5rem;
+      }
+
+      /* Manejo de transiciones entre pantallas */
+      .card-view {
+        display: none;
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.4s ease,
+          transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+      }
+
+      .card-view.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Botones del Menú Principal */
+      .menu-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .btn-retro {
+        background: none;
+        border: var(--border-width) solid var(--text-color);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        text-align: left;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        font-family: var(--font-body);
+        color: var(--text-color);
+        transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+      }
+
+      .btn-retro .btn-num {
+        font-family: var(--font-heading);
+        font-size: 1.2rem;
+        margin-right: 1.5rem;
+        opacity: 0.4;
+        transition: transform 0.3s ease;
+      }
+
+      .btn-retro .btn-text {
+        font-size: 1.2rem;
+        font-weight: 700;
+        flex-grow: 1;
+      }
+
+      .btn-retro .btn-arrow {
+        font-size: 1.5rem;
+        transform: translateX(-10px);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+      }
+
+      .btn-retro:hover {
+        background-color: var(--text-color);
+        color: var(--bg-color);
+        transform: translateX(8px);
+      }
+
+      .btn-retro:hover .btn-num {
+        transform: scale(1.2);
+        opacity: 1;
+        color: var(--accent-color);
+      }
+
+      .btn-retro:hover .btn-arrow {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      /* Formularios e Inputs */
+      .view-title {
+        font-family: var(--font-heading);
+        font-size: 1.4rem;
+        margin-bottom: 2rem;
+        text-transform: uppercase;
+        letter-spacing: -0.5px;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .input-group label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      input[type="text"],
+      input[type="password"],
+      select {
+        width: 100%;
+        padding: 1rem;
+        font-family: var(--font-body);
+        font-size: 1rem;
+        border: var(--border-width) solid var(--text-color);
+        background: var(--bg-color);
+        color: var(--text-color);
+        outline: none;
+        border-radius: 0;
+        transition: all 0.2s ease;
+      }
+
+      input:focus,
+      select:focus {
+        background: #ffffff;
+        box-shadow: 4px 4px 0px var(--accent-color);
+        border-color: var(--accent-color);
+      }
+
+      .helper-text {
+        font-size: 0.8rem;
+        opacity: 0.6;
+        margin-top: 0.2rem;
+      }
+
+      /* Cuadros de Feedback (Alertas Estilo Editorial) */
+      .alert-box {
+        padding: 1rem;
+        border: var(--border-width) solid var(--text-color);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        display: none;
+      }
+      .alert-box.error {
+        background-color: #ffdad9;
+        color: var(--danger-color);
+        display: block;
+      }
+      .alert-box.success {
+        background-color: #d2fbe3;
+        color: #007d4f;
+        display: block;
+      }
+      .alert-box.warning {
+        background-color: #fff3cd;
+        color: #856404;
+        display: block;
+      }
+
+      /* Botones de Acción */
+      .form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-top: 2rem;
+      }
+
+      .form-actions.row-layout {
+        flex-direction: row;
+      }
+
+      .btn-submit,
+      .btn-back,
+      .btn-danger {
+        padding: 1rem;
+        font-family: var(--font-body);
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: var(--border-width) solid var(--text-color);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.2s ease;
+        text-align: center;
+      }
+
+      .btn-submit {
+        background-color: var(--accent-color);
+        color: #ffffff;
+        border-color: var(--accent-color);
+      }
+
+      .btn-submit:hover {
+        background-color: var(--text-color);
+        border-color: var(--text-color);
+        transform: translateY(-2px);
+      }
+
+      .btn-submit:disabled {
+        background-color: #cccccc !important;
+        border-color: #cccccc !important;
+        color: #666666 !important;
+        cursor: not-allowed;
+      }
+
+      .btn-back {
+        background: transparent;
+        color: var(--text-color);
+      }
+
+      .btn-back:hover {
+        background: var(--bg-color);
+        transform: translateY(-2px);
+      }
+
+      .btn-danger {
+        background-color: var(--danger-color);
+        color: white;
+        border-color: var(--danger-color);
+        flex: 1;
+      }
+
+      .btn-danger:hover {
+        background-color: var(--text-color);
+        border-color: var(--text-color);
+      }
+
+      /* Contenedor de Registros en Tiempo Real */
+      .registros-container {
+        max-height: 220px;
+        overflow-y: auto;
+        border: var(--border-width) solid var(--text-color);
+        margin-bottom: 1.5rem;
+        background: var(--bg-color);
+      }
+
+      .registro-item {
+        padding: 1rem;
+        border-bottom: var(--border-width) solid var(--text-color);
+        font-size: 0.9rem;
+      }
+      .registro-item:last-child {
+        border-bottom: none;
+      }
+
+      /* Panel del Docente e Incrustación de Excel */
+      .hidden-panel {
+        display: none;
+      }
+      .hidden-panel.visible {
+        display: block;
+        animation: slide-down 0.4s ease forwards;
+      }
+
+      .excel-embed-container {
+        width: 100%;
+        height: 380px;
+        border: var(--border-width) solid var(--text-color);
+        box-shadow: 4px 4px 0px var(--text-color);
+        margin-bottom: 1.5rem;
+        background: #ffffff;
+      }
+
+      .excel-embed-container iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      .stats-counter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .stat-box {
+        border: var(--border-width) solid var(--text-color);
+        padding: 1.5rem 1rem;
+        text-align: center;
+        background: var(--bg-color);
+      }
+
+      .stat-box .stat-num {
+        display: block;
+        font-family: var(--font-heading);
+        font-size: 2.8rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-box .stat-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.7;
+      }
+
+      /* MENSAJES EMERGENTES (TOASTS RETRO BRUTALISTAS) */
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 320px;
+      }
+
+      .toast-card {
+        background: #ffffff;
+        color: var(--text-color);
+        border: var(--border-width) solid var(--text-color);
+        box-shadow: 4px 4px 0px var(--text-color);
+        padding: 1rem;
+        font-family: var(--font-body);
+        font-size: 0.9rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        animation: toast-slide-in 0.3s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        position: relative;
+      }
+
+      .toast-card.success { border-color: var(--success-color); box-shadow: 4px 4px 0px var(--success-color); }
+      .toast-card.info { border-color: var(--accent-color); box-shadow: 4px 4px 0px var(--accent-color); }
+      .toast-card.warning { border-color: #ff9500; box-shadow: 4px 4px 0px #ff9500; }
+
+      @keyframes toast-slide-in {
+        from { transform: translateX(120%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes toast-fade-out {
+        to { transform: translateX(120%); opacity: 0; }
+      }
+
+      /* Animaciones generales */
+      @keyframes status-pulse {
+        0% { opacity: 0.4; }
+        50% { opacity: 1; }
+        100% { opacity: 0.4; }
+      }
+
+      @keyframes slide-down {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @media (max-width: 480px) {
+        .app-container { padding: 1.5rem; }
+        .main-header { flex-direction: column; gap: 1rem; }
+        .live-status { width: 100%; justify-content: center; }
+        .form-actions.row-layout { flex-direction: column; }
+        .toast-container { left: 20px; right: 20px; max-width: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="overlay-texture"></div>
+    <div id="toast-box-container" class="toast-container"></div>
+
+    <main class="app-container">
+      <header class="main-header">
+        <div class="brand">
+          <span class="badge">SYS v2.6</span>
+          <h1>出席 CONTROL DE ASISTENCIA</h1>
+          <p class="subtitle">SISTEMA GENERAL • GRUPO CENTED</p>
+        </div>
+        <div class="live-status">
+          <span class="status-dot"></span>
+          <span id="live-clock">00:00:00 PM</span>
+        </div>
+      </header>
+
+      <hr class="editorial-line" />
+
+      <!-- PANTALLA 1: MENÚ -->
+      <section id="view-menu" class="card-view active">
+        <div class="menu-grid">
+          <button class="btn-retro" onclick="switchView('view-register')">
+            <span class="btn-num">01</span>
+            <span class="btn-text">Registrar Asistencia</span>
+            <span class="btn-arrow">→</span>
+          </button>
+          <button class="btn-retro" onclick="switchView('view-keygen')">
+            <span class="btn-num">02</span>
+            <span class="btn-text">Generar Mi Clave Única</span>
+            <span class="btn-arrow">→</span>
+          </button>
+          <button class="btn-retro" onclick="switchView('view-teacher')">
+            <span class="btn-num">03</span>
+            <span class="btn-text">Ver Registros (Docente)</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- PANTALLA 2: REGISTRAR ASISTENCIA -->
+      <section id="view-register" class="card-view">
+        <h2 class="view-title">【 登録 】 Registrar Asistencia</h2>
+        <div id="alertRegistro" class="alert-box"></div>
+
+        <form id="form-register" onsubmit="registrarAsistencia(event)">
+          <div class="input-group">
+            <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
+            <input
+              type="text"
+              id="reg-key"
+              maxlength="4"
+              placeholder="Ej: F2BQ"
+              required
+              autocomplete="off"
+              style="text-transform: uppercase"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="reg-teacher">Docente *</label>
+            <select id="reg-teacher" required>
+              <option value="" disabled selected>
+                -- Selecciona tu Docente --
+              </option>
+              <option value="Mauricio Alvarado">Mauricio Alvarado</option>
+              <option value="Wilfredo Pineda">Wilfredo Pineda</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="reg-group">Grupo *</label>
+            <select id="reg-group" required>
+              <option value="" disabled selected>-- Selecciona --</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="reg-token"
+              >Firma del Docente (Clave de Validación) *</label
+            >
+            <input
+              type="password"
+              id="reg-token"
+              placeholder="Código de validación diaria"
+              required
+            />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btnRegistrar" class="btn-submit">
+              ✓ Enviar Asistencia
+            </button>
+            <button
+              type="button"
+              class="btn-back"
+              onclick="switchView('view-menu')"
+            >
+              ← Volver
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- PANTALLA 3: GENERAR CLAVE PERMANENTE -->
+      <section id="view-keygen" class="card-view">
+        <h2 class="view-title">【 鍵作成 】 Generar Mi Clave</h2>
+        <div id="alertGenerarClave" class="alert-box"></div>
+
+        <form id="form-keygen" onsubmit="generarClave(event)">
+          <div class="input-group">
+            <label for="gen-name">Escribe tu Nombre Completo *</label>
+            <input
+              type="text"
+              id="gen-name"
+              placeholder="Ej: Tatiana Abigail Flores Ortiz"
+              required
+              autocomplete="off"
+              onfocus="showToast('💡 Recuerda: Usa Mayúscula Inicial en nombres y apellidos.', 'info')"
+            />
+            <small class="helper-text"
+              >Usa mayúscula inicial en nombres y apellidos.</small
+            >
+          </div>
+
+          <div class="input-group">
+            <label for="gen-teacher">Asigna tu Docente Principal *</label>
+            <select id="gen-teacher" required>
+              <option value="" disabled selected>
+                -- Selecciona tu Docente --
+              </option>
+              <option value="Mauricio Alvarado">Mauricio Alvarado</option>
+              <option value="Wilfredo Pineda">Wilfredo Pineda</option>
+            </select>
+          </div>
+
+          <!-- Bloque de clave generada con diseño brutalista -->
+          <div
+            id="claveGeneradaContainer"
+            style="display: none; margin-top: 1.5rem; margin-bottom: 1.5rem"
+          >
+            <div
+              class="alert-box success"
+              style="display: block; margin-bottom: 0.5rem"
+            >
+              🎉 ¡Clave creada! Guárdala bien:
+            </div>
+            <div class="stat-box" style="padding: 1rem; background: #ffffff">
+              <span
+                id="codGenerado"
+                style="
+                  font-family: var(--font-heading);
+                  font-size: 2.2rem;
+                  font-weight: 800;
+                  color: var(--accent-color);
+                "
+              ></span>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btnGenerar" class="btn-submit">
+              🔒 Generar Mi Clave Permanente
+            </button>
+            <button
+              type="button"
+              class="btn-back"
+              onclick="switchView('view-menu')"
+            >
+              ← Volver
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- PANTALLA 4: PANEL DE CONTROL DOCENTE -->
+      <section id="view-teacher" class="card-view">
+        <h2 class="view-title">【 管理 】 Panel del Docente</h2>
+        <div id="alertVerRegistros" class="alert-box"></div>
+
+        <div id="teacher-auth">
+          <div class="input-group">
+            <label for="teacher-password">Clave de Validación *</label>
+            <input
+              type="password"
+              id="teacher-password"
+              placeholder="••••••••••••"
+              required
+            />
+          </div>
+          <div class="form-actions">
+            <button
+              type="button"
+              id="btnAccederRegistros"
+              class="btn-submit"
+              onclick="unlockTeacherPanel()"
+            >
+              🔓 Entrar
+            </button>
+            <button
+              type="button"
+              class="btn-back"
+              onclick="switchView('view-menu')"
+            >
+              ← Volver
+            </button>
+          </div>
+        </div>
+
+        <div id="teacher-dashboard" class="hidden-panel">
+          
+          <!-- CONTENEDOR EN VIVO DE GOOGLE SHEETS (HOJA VER ASISTENCIA) -->
+          <div class="input-group">
+            <label>Vista en Tiempo Real (Hoja Asistencia):</label>
+            <div class="excel-embed-container">
+              <!-- Cargado con gid=0 para apuntar exclusivamente a la pestaña inicial -->
+              <iframe src="https://docs.google.com/spreadsheets/d/1ZW5PqqPPGjtKJKiGCCIkYSDQBtGEZ3SorOCqjf_8NfI/edit?gid=0&rm=minimal"></iframe>
+            </div>
+          </div>
+
+          <div class="stats-counter-grid">
+            <div class="stat-box">
+              <span class="stat-num" id="count-morning">0</span>
+              <span class="stat-label">Mañana</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num" id="count-afternoon">0</span>
+              <span class="stat-label">Tarde</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Logs Rápidos Filtrados (Hoy):</label>
+            <div class="registros-container" id="listaRegistros">
+              <!-- Cargados dinámicamente -->
+            </div>
+          </div>
+
+          <div class="form-actions row-layout">
+            <button
+              type="button"
+              class="btn-danger"
+              onclick="triggerClearAll()"
+            >
+              🗑 Limpiar Todo
+            </button>
+            <button type="button" class="btn-back" onclick="lockAndReturn()">
+              ← Volver
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // ==========================================
+      // CONFIGURACIÓN GLOBAL
+      // ==========================================
+      const CLAVE_MAESTRA = "CENTED2000";
+      const SCRIPT_URL =
+        "https://script.google.com/macros/s/AKfycbxk0kH_w9q-dzutc0NMoKhZwJJdNyqIWbzd4KZrqJZqFbeSHKINTNIHYEVFmqlrv9Ys/exec";
+
+      // LÓGICA DE MENSAJES EMERGENTES (TOASTS)
+      function showToast(message, type = "success") {
+        const container = document.getElementById("toast-box-container");
+        const toast = document.createElement("div");
+        toast.className = `toast-card ${type}`;
+        toast.textContent = message;
+
+        container.appendChild(toast);
+
+        // Remover de forma fluida a los 4 segundos
+        setTimeout(() => {
+          toast.style.animation = "toast-fade-out 0.4s cubic-bezier(0.19, 1, 0.22, 1) forwards";
+          toast.addEventListener("animationend", () => {
+            toast.remove();
+          });
+        }, 4000);
+      }
+
+      // Reloj En Vivo
+      function updateClock() {
+        const clockElement = document.getElementById("live-clock");
+        if (!clockElement) return;
+        const now = new Date();
+        let hours = now.getHours();
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        clockElement.textContent = `${String(hours).padStart(2, "0")}:${minutes}:${seconds} ${ampm}`;
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      // Control de Navegación entre Pantallas
+      function switchView(viewId) {
+        const activeView = document.querySelector(".card-view.active");
+        const targetView = document.getElementById(viewId);
+
+        // Resetear alertas al cambiar de vista
+        document.querySelectorAll(".alert-box").forEach((el) => {
+          el.className = "alert-box";
+          el.style.display = "none";
         });
 
-        const filtrados = data.filter(r => r.fecha === hoy);
+        if (activeView) {
+          activeView.style.opacity = "0";
+          activeView.style.transform = "translateY(-15px)";
+          setTimeout(() => {
+            activeView.classList.remove("active");
+            targetView.classList.add("active");
+            setTimeout(() => {
+              targetView.style.opacity = "1";
+              targetView.style.transform = "translateY(0)";
+            }, 50);
+          }, 300);
+        }
+      }
 
-        document.getElementById('statManana').textContent = filtrados.filter(r => r.grupo === "Mañana").length;
-        document.getElementById('statTarde').textContent = filtrados.filter(r => r.grupo === "Tarde").length;
+      function validarNombreEstricto(n) {
+        const regex = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){1,4}$/;
+        return regex.test(n.trim());
+      }
 
-        cont.innerHTML = "";
+      // ==========================================
+      // ACCIÓN 1: ACCIONAR ASISTENCIA
+      // ==========================================
+      function registrarAsistencia(event) {
+        event.preventDefault();
 
-        if(filtrados.length === 0) {
-          cont.innerHTML = '<div style="padding: 1.5rem; text-align: center; font-weight: bold; opacity: 0.6;">Sin asistencias hoy.</div>';
+        const claveInput = document.getElementById("reg-key").value.trim().toUpperCase();
+        const docenteInput = document.getElementById("reg-teacher").value;
+        const grupoInput = document.getElementById("reg-group").value;
+        const tokenInput = document.getElementById("reg-token").value.trim();
+
+        const alertBox = document.getElementById("alertRegistro");
+        const btn = document.getElementById("btnRegistrar");
+
+        if (tokenInput !== CLAVE_MAESTRA) {
+          alertBox.textContent = "❌ LA FIRMA DEL DOCENTE ES INCORRECTA.";
+          alertBox.className = "alert-box error";
+          showToast("❌ Firma denegada.", "warning");
           return;
         }
 
-        filtrados.forEach(r => {
-          const row = document.createElement('div');
-          row.className = "registro-item";
-          row.innerHTML = `
-            <strong>${r.nombre}</strong> — Horario: ${r.grupo}
-            <br><small>Clave: ${r.clave} | Docente: ${r.docente || "N/A"} | Hora: ${r.hora}</small>
-          `;
-          cont.appendChild(row);
-        });
-      })
-      .catch(() => {
-        cont.innerHTML = '<div style="padding: 1.5rem; color: var(--danger-color); text-align: center; font-weight: bold;">❌ Error de conexión al leer el Excel.</div>';
-      });
-    }
+        btn.disabled = true;
+        btn.innerHTML = `⚡ ENVIANDO REGISTRO...`;
 
-    // Petición de limpieza total
-    function limpiarRegistrosHoy() {
-      if(!confirm("🚨 ATENCIÓN DOCENTE:\n¿Estás completamente seguro de archivar y vaciar las asistencias de hoy?\nEsta operación es irreversible.")) return;
+        const params = new URLSearchParams();
+        params.append("action", "asistencia");
+        params.append("clave", claveInput);
+        params.append("docente", docenteInput);
+        params.append("grupo", grupoInput);
 
-      clearAlert();
-      const payload = new URLSearchParams();
-      payload.append("action", "limpiar_asistencias");
+        fetch(SCRIPT_URL, { method: "POST", body: params })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.result === "success") {
+              alertBox.textContent = "✓ ¡ASISTENCIA PROCESADA CON ÉXITO!";
+              alertBox.className = "alert-box success";
+              showToast("✓ ¡Asistencia registrada exitosamente!", "success");
+              document.getElementById("form-register").reset();
+              setTimeout(() => {
+                switchView("view-menu");
+              }, 2000);
+            } else {
+              alertBox.textContent = data.message;
+              alertBox.className = "alert-box error";
+              showToast("⚠️ Fallo al procesar.", "warning");
+            }
+          })
+          .catch((err) => {
+            alertBox.textContent = "❌ ERROR DE RED O CONEXIÓN.";
+            alertBox.className = "alert-box error";
+            showToast("❌ Error crítico de red.", "warning");
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = `✓ Enviar Asistencia`;
+          });
+      }
 
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        body: payload
-      })
-      .then(res => res.json())
-      .then(data => {
-        if(data.result === "success") {
-          alert("📦 Correcto. Las asistencias se movieron a Historial_Asistencias y la tabla activa se limpió.");
-          actualizarListaDashboard();
-        } else {
-          alert("Hubo un inconveniente al vaciar la hoja.");
+      // ==========================================
+      // ACCIÓN 2: GENERAR CLAVE ÚNICA
+      // ==========================================
+      function generarClave(event) {
+        event.preventDefault();
+
+        const nombreInput = document.getElementById("gen-name").value.trim();
+        const docenteInput = document.getElementById("gen-teacher").value;
+        const alertBox = document.getElementById("alertGenerarClave");
+        const btn = document.getElementById("btnGenerar");
+        const containerClave = document.getElementById("claveGeneradaContainer");
+
+        if (!validarNombreEstricto(nombreInput)) {
+          alertBox.textContent = "❌ FORMATO ERRÓNEO. USA MAYÚSCULAS INICIALES (EJ: Carlos David).";
+          alertBox.className = "alert-box error";
+          showToast("❌ Nombre inválido. Revisa las iniciales.", "warning");
+          return;
         }
-      })
-      .catch(() => {
-        alert("Fallo crítico en la solicitud de limpieza.");
-      });
-    }
 
-    function logoutDashboard() {
-      document.getElementById('view-dashboard').classList.remove('visible', 'active');
-      document.getElementById('view-dashboard').style.display = "none";
-      backToMenu();
-    }
-  </script>
-</body>
+        btn.disabled = true;
+        btn.innerHTML = `⚡ CREANDO CREDENCIAL...`;
+        containerClave.style.display = "none";
+
+        let claveNueva = "";
+        const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        for (let i = 0; i < 4; i++) {
+          claveNueva += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+        }
+
+        const params = new URLSearchParams();
+        params.append("action", "guardar_clave");
+        params.append("nombre", nombreInput);
+        params.append("clave", claveNueva);
+        params.append("docente", docenteInput);
+
+        fetch(SCRIPT_URL, { method: "POST", body: params })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.result === "success") {
+              document.getElementById("codGenerado").textContent = claveNueva;
+              containerClave.style.display = "block";
+              alertBox.style.display = "none";
+              showToast("🎉 ¡Tu nueva clave permanente fue creada!", "success");
+              document.getElementById("form-keygen").reset();
+            } else {
+              alertBox.textContent = data.message;
+              alertBox.className = "alert-box error";
+              showToast("⚠️ Clave duplicada o error.", "warning");
+            }
+          })
+          .catch((err) => {
+            alertBox.textContent = "❌ NO SE PUDO GUARDAR EN LA BASE DE DATOS.";
+            alertBox.className = "alert-box error";
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = `🔒 Generar Mi Clave Permanente`;
+          });
+      }
+
+      // ==========================================
+      // ACCIÓN 3: PANEL DEL DOCENTE Y CARGA DE DATOS
+      // ==========================================
+      function unlockTeacherPanel() {
+        const passwordInput = document.getElementById("teacher-password");
+        const authSection = document.getElementById("teacher-auth");
+        const dashboardSection = document.getElementById("teacher-dashboard");
+        const alertBox = document.getElementById("alertVerRegistros");
+
+        if (passwordInput.value.trim() !== CLAVE_MAESTRA) {
+          alertBox.textContent = "❌ CREDENCIAL DE ACCESO DENEGADA.";
+          alertBox.className = "alert-box error";
+          showToast("❌ Acceso Incorrecto.", "warning");
+          passwordInput.focus();
+          return;
+        }
+
+        alertBox.style.display = "none";
+        document.getElementById("btnAccederRegistros").disabled = true;
+        document.getElementById("btnAccederRegistros").innerHTML = "⚡ CARGANDO PANEL...";
+
+        fetch(`${SCRIPT_URL}?action=obtener_registros`)
+          .then((res) => res.json())
+          .then((data) => {
+            authSection.style.display = "none";
+            dashboardSection.classList.add("visible");
+            showToast("🔓 Modo Administrador Activo", "success");
+
+            const hoy = new Date().toLocaleDateString("es-SV", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }).replace(/-/g, '/');
+
+            const filtrados = data.filter((r) => {
+              const fechaRegistro = r.fecha ? r.fecha.replace(/-/g, '/') : '';
+              return fechaRegistro === hoy;
+            });
+
+            document.getElementById("count-morning").textContent = filtrados.filter((r) => r.grupo === "Mañana").length;
+            document.getElementById("count-afternoon").textContent = filtrados.filter((r) => r.grupo === "Tarde").length;
+
+            const contenedor = document.getElementById("listaRegistros");
+            contenedor.innerHTML = "";
+
+            if (filtrados.length === 0) {
+              contenedor.innerHTML = `<div class="registro-item" style="text-align:center; opacity:0.5;">No hay asistencias registradas este día.</div>`;
+            } else {
+              filtrados.forEach((r) => {
+                const item = document.createElement("div");
+                item.className = "registro-item";
+                item.innerHTML = `<strong>${r.nombre}</strong> — ${r.grupo}<br>
+                                  <small style="opacity: 0.7;">Clave: ${r.clave} | Docente: ${r.docente} | Hora: ${r.hora}</small>`;
+                contenedor.appendChild(item);
+              });
+            }
+          })
+          .catch((err) => {
+            alertBox.textContent = "❌ ERROR AL TRAER LOS REGISTROS DESDE EL SERVIDOR.";
+            alertBox.className = "alert-box error";
+          })
+          .finally(() => {
+            document.getElementById("btnAccederRegistros").disabled = false;
+            document.getElementById("btnAccederRegistros").innerHTML = "🔓 Entrar";
+            passwordInput.value = "";
+          });
+      }
+
+      function lockAndReturn() {
+        document.getElementById("teacher-dashboard").classList.remove("visible");
+        document.getElementById("teacher-auth").style.display = "block";
+        switchView("view-menu");
+      }
+
+      function triggerClearAll() {
+        if (confirm("🚨 ¿Estás completamente seguro de que deseas limpiar y archivar todos los registros del día?")) {
+          const params = new URLSearchParams();
+          params.append("action", "limpiar_asistencias");
+
+          fetch(SCRIPT_URL, { method: "POST", body: params })
+            .then(() => {
+              showToast("🗑 Registros archivados con éxito.", "success");
+              alert("Registros guardados en Historial y limpiados correctamente.");
+              lockAndReturn();
+            })
+            .catch(() => showToast("❌ Error al reiniciar el día.", "warning"));
+        }
+      }
+    </script>
+  </body>
 </html>
