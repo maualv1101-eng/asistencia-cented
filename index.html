@@ -1,712 +1,973 @@
-Aquí tienes el archivo unificado de producción. He fusionado la lógica e integridad operativa exacta de tu versión `V3` con la interfaz gráfica **Neo-Brutalista** limpia y estilizada de la versión `V5`.
-
-Se han corregido minuciosamente las llamadas cruzadas en el **Panel Docente** para mapear con precisión los atributos JSON que el backend (`doGet`) devuelve (`fecha`, `hora`, `nombre`, `clave`, `grupo`, `docente`), garantizando que puedas auditar todas las asistencias en tiempo real directamente desde la web sin necesidad de entrar al archivo de Google Sheets.
-
-Guarda el siguiente código completo como un único archivo `.html`:
-
-```html
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Asistencia — Grupo Cented</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-color: #f4f3ef;      /* Blanco roto papel periódico retro */
-      --text-color: #0d0d0d;    /* Negro profundo puro */
-      --accent-color: #2b46ff;  /* Azul eléctrico SpaceX */
-      --danger-color: #ff3b30;  /* Rojo advertencia */
-      --success-color: #00c781; /* Verde esmeralda de confirmación */
-      --border-width: 2px;
-      --font-heading: 'Syne', sans-serif;
-      --font-body: 'Space Grotesk', sans-serif;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      font-family: var(--font-body);
-      padding: 20px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 520px;
-      background: #ffffff;
-      border: var(--border-width) solid var(--text-color);
-      box-shadow: 6px 6px 0px var(--text-color);
-      padding: 30px 25px;
-      position: relative;
-      transition: all 0.2s ease;
-    }
-
-    /* Modificador dinámico para expandir el contenedor en el Dashboard Docente */
-    .container.expanded {
-      max-width: 800px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 25px;
-      border-bottom: var(--border-width) solid var(--text-color);
-      padding-bottom: 20px;
-    }
-
-    header h1 {
-      font-family: var(--font-heading);
-      font-weight: 800;
-      font-size: 1.8rem;
-      text-transform: uppercase;
-      letter-spacing: -1px;
-      line-height: 1.1;
-    }
-
-    header p {
-      font-size: 0.95rem;
-      margin-top: 6px;
-      font-weight: 700;
-      opacity: 0.8;
-    }
-
-    .view-section {
-      display: none;
-    }
-
-    .view-section.active {
-      display: block;
-    }
-
-    /* Grilla de Menú Principal */
-    .menu-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 15px;
-    }
-
-    /* Elementos de Formulario */
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      font-weight: 700;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-      letter-spacing: 0.5px;
-    }
-
-    input[type="text"], input[type="password"], select {
-      width: 100%;
-      padding: 12px 14px;
-      font-family: var(--font-body);
-      font-size: 1rem;
-      font-weight: 400;
-      background: #ffffff;
-      border: var(--border-width) solid var(--text-color);
-      color: var(--text-color);
-      outline: none;
-      transition: all 0.15s ease;
-    }
-
-    input:focus, select:focus {
-      box-shadow: 3px 3px 0px var(--text-color);
-      background: #fcfcfa;
-    }
-
-    /* Botones Estilo Brutalista */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: 14px 20px;
-      font-family: var(--font-heading);
-      font-weight: 700;
-      font-size: 1rem;
-      text-transform: uppercase;
-      text-decoration: none;
-      color: #ffffff;
-      background-color: var(--text-color);
-      border: var(--border-width) solid var(--text-color);
-      cursor: pointer;
-      position: relative;
-      box-shadow: 4px 4px 0px var(--accent-color);
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
-    }
-
-    .btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0px var(--accent-color);
-    }
-
-    .btn:disabled {
-      background-color: #cccccc !important;
-      box-shadow: none !important;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    .btn-accent {
-      background-color: var(--accent-color);
-      box-shadow: 4px 4px 0px var(--text-color);
-    }
-    .btn-accent:active {
-      box-shadow: 2px 2px 0px var(--text-color);
-    }
-
-    .btn-danger {
-      background-color: var(--danger-color);
-      box-shadow: 4px 4px 0px var(--text-color);
-    }
-    .btn-danger:active {
-      box-shadow: 2px 2px 0px var(--text-color);
-    }
-
-    .btn-outline {
-      background-color: transparent;
-      color: var(--text-color);
-      box-shadow: 4px 4px 0px var(--text-color);
-    }
-    .btn-outline:active {
-      box-shadow: 2px 2px 0px var(--text-color);
-    }
-
-    .btn-back {
-      margin-top: 15px;
-      font-size: 0.85rem;
-      padding: 10px;
-    }
-
-    /* Cajas de Alerta */
-    .alert-box {
-      border: var(--border-width) solid var(--text-color);
-      padding: 15px;
-      font-weight: 700;
-      margin-bottom: 20px;
-      display: none;
-    }
-    .alert-box.success {
-      display: block;
-      background-color: var(--success-color);
-      color: var(--text-color);
-      box-shadow: 3px 3px 0px var(--text-color);
-    }
-    .alert-box.error {
-      display: block;
-      background-color: var(--danger-color);
-      color: #ffffff;
-      box-shadow: 3px 3px 0px var(--text-color);
-    }
-    .alert-box.info {
-      display: block;
-      background-color: #ffcc00;
-      color: var(--text-color);
-      box-shadow: 3px 3px 0px var(--text-color);
-    }
-
-    /* Caja de Éxito de Clave Generada */
-    .key-display-box {
-      border: var(--border-width) dashed var(--text-color);
-      background-color: #fff9e6;
-      padding: 20px;
-      text-align: center;
-      margin-top: 15px;
-    }
-    .key-display-box .key-title {
-      font-weight: 700;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      color: #555;
-    }
-    .key-display-box .key-value {
-      font-family: var(--font-heading);
-      font-size: 2.5rem;
-      font-weight: 800;
-      letter-spacing: 2px;
-      color: var(--accent-color);
-      margin: 10px 0;
-    }
-
-    /* Tarjetas de Estadísticas Avanzadas */
-    .stats-strip {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .stat-card {
-      border: var(--border-width) solid var(--text-color);
-      padding: 12px;
-      background: #ffffff;
-      box-shadow: 3px 3px 0px var(--text-color);
-      text-align: center;
-    }
-    .stat-card .stat-num {
-      font-family: var(--font-heading);
-      font-size: 1.8rem;
-      font-weight: 800;
-    }
-    .stat-card .stat-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      font-weight: 700;
-      margin-top: 2px;
-      opacity: 0.7;
-    }
-
-    /* Contenedor y Filas de Asistencias (Mapeo V3) */
-    .registros-container {
-      border: var(--border-width) solid var(--text-color);
-      max-height: 350px;
-      overflow-y: auto;
-      background: #fafafa;
-      margin-bottom: 20px;
-    }
-    .registro-item {
-      padding: 12px 15px;
-      border-bottom: var(--border-width) solid var(--text-color);
-      font-size: 0.95rem;
-    }
-    .registro-item:last-child {
-      border-bottom: none;
-    }
-    .registro-item strong {
-      font-size: 1rem;
-      color: var(--text-color);
-    }
-    .registro-item small {
-      display: block;
-      margin-top: 4px;
-      color: #555;
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    /* Utilidades */
-    .text-center { text-align: center; }
-    .mb-10 { margin-bottom: 10px; }
-    
-    /* Adaptación del pie de página */
-    footer {
-      margin-top: 20px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      opacity: 0.6;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-
-  <div id="main-card" class="container">
-    <header>
-      <h1 id="main-title">Asistencia</h1>
-      <p id="main-subtitle">Grupo Cented — Control de Alumnos</p>
-    </header>
-
-    <div id="global-alert" class="alert-box"></div>
-
-    <div id="view-menu" class="view-section active">
-      <div class="menu-grid">
-        <button class="btn btn-accent" onclick="switchView('view-attendance')">📝 Registrar Asistencia</button>
-        <button class="btn btn-outline" onclick="switchView('view-generate-key')">🔑 Generar Nueva Clave</button>
-        <button class="btn" style="background-color: #000;" onclick="switchView('view-teacher-auth')">🔒 Panel Docente</button>
-      </div>
-    </div>
-
-    <div id="view-attendance" class="view-section">
-      <form id="form-attendance" onsubmit="enviarAsistencia(event)">
-        <div class="form-group">
-          <label for="att-key">Ingresa tu Clave Única</label>
-          <input type="text" id="att-key" maxlength="4" placeholder="Ej: A7B9" required style="text-transform: uppercase;">
-        </div>
-        
-        <div class="form-group">
-          <label for="att-group">Grupo Horario</label>
-          <select id="att-group" required>
-            <option value="" disabled selected>Selecciona tu horario...</option>
-            <option value="Mañana">Mañana</option>
-            <option value="Tarde">Tarde</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="att-teacher">Docente a Cargo</label>
-          <select id="att-teacher" required>
-            <option value="" disabled selected>Selecciona tu docente...</option>
-            <option value="Docente 1">Docente 1</option>
-            <option value="Docente 2">Docente 2</option>
-          </select>
-        </div>
-
-        <button type="submit" id="btn-submit-attendance" class="btn btn-accent">⚡ Enviar Asistencia</button>
-      </form>
-      <button class="btn btn-outline btn-back" onclick="regresarAlMenu()">⬅️ Volver al Menú</button>
-    </div>
-
-    <div id="view-generate-key" class="view-section">
-      <form id="form-gen-key" onsubmit="procesarNuevaClave(event)">
-        <div class="form-group">
-          <label for="gen-name">Tu Nombre Completo</label>
-          <input type="text" id="gen-name" placeholder="Ej: Juan Perez" required>
-          <small style="display:block; margin-top:5px; font-size:0.75rem; font-weight:700; color:#555;">
-            * Usa mayúscula inicial en cada palabra (mínimo nombre y apellido).
-          </small>
-        </div>
-
-        <div class="form-group">
-          <label for="gen-teacher">Docente Asignado</label>
-          <select id="gen-teacher" required>
-            <option value="" disabled selected>Selecciona tu docente...</option>
-            <option value="Docente 1">Docente 1</option>
-            <option value="Docente 2">Docente 2</option>
-          </select>
-        </div>
-
-        <button type="submit" id="btn-submit-key" class="btn btn-accent">🎯 Crear mi Clave Alfanumérica</button>
-      </form>
-
-      <div id="key-result-box" class="key-display-box" style="display: none;">
-        <div class="key-title">¡Guarda tu clave, es única!</div>
-        <div id="key-value-dest" class="key-value">----</div>
-        <p style="font-size:0.8rem; font-weight:700;">Úsala a partir de ahora para marcar asistencia.</p>
-      </div>
-
-      <button class="btn btn-outline btn-back" onclick="regresarAlMenu()">⬅️ Volver al Menú</button>
-    </div>
-
-    <div id="view-teacher-auth" class="view-section">
-      <form id="form-auth" onsubmit="validarAccesoDocente(event)">
-        <div class="form-group">
-          <label for="auth-pass">Contraseña de Administrador</label>
-          <input type="password" id="auth-pass" placeholder="••••••••" required>
-        </div>
-        <button type="submit" id="btn-login-teacher" class="btn" style="background-color: #000;">🔓 Entrar al Panel</button>
-      </form>
-      <button class="btn btn-outline btn-back" onclick="regresarAlMenu()">⬅️ Volver al Menú</button>
-    </div>
-
-    <div id="view-teacher-dashboard" class="view-section">
-      <div class="stats-strip">
-        <div class="stat-card">
-          <div id="statManana" class="stat-num">0</div>
-          <div class="stat-label">Grupo Mañana</div>
-        </div>
-        <div class="stat-card">
-          <div id="statTarde" class="stat-num">0</div>
-          <div class="stat-label">Grupo Tarde</div>
-        </div>
-      </div>
-
-      <label>Asistencias del Día de Hoy:</label>
-      <div id="listaRegistros" class="registros-container">
-        </div>
-
-      <div class="menu-grid">
-        <button class="btn btn-outline mb-10" onclick="cargarRegistrosDesdeServidor()">🔄 Refrescar Listado</button>
-        <button class="btn btn-danger" onclick="ejecutarLimpiezaHoy()">🚨 Archivar y Limpiar Día</button>
-      </div>
-      
-      <button class="btn btn-outline btn-back" onclick="cerrarSesionDocente()">🔒 Cerrar Sesión</button>
-    </div>
-
-  </div>
-
-  <footer>
-    &copy; 2026 Grupo Cented Technical School.
-  </footer>
-
-  <script>
-    // Configuración Base de Producción
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxk0kH_w9q-dzutc0NMoKhZwJJdNyqIWbzd4KZrqJZqFbeSHKINTNIHYEVFmqlrv9Ys/exec";
-    const CLAVE_MAESTRA = "CENTED2000";
-
-    // Cambiadores de títulos dinámicos para consistencia visual V5
-    const TITULOS_VISTAS = {
-      'view-menu': { t: "Asistencia", s: "Grupo Cented — Control de Alumnos" },
-      'view-attendance': { t: "Registro", s: "Ingresa tu clave para marcar entrada" },
-      'view-generate-key': { t: "Nueva Clave", s: "Regístrate en el sistema del grupo" },
-      'view-teacher-auth': { t: "Acceso", s: "Área restringida para instructores" },
-      'view-teacher-dashboard': { t: "Docente", s: "Panel de Monitoreo en Tiempo Real" }
-    };
-
-    // Alternar entre pantallas de forma fluida
-    function switchView(viewId) {
-      document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-      ocultarAlerta();
-      
-      const targetView = document.getElementById(viewId);
-      if(targetView) targetView.classList.add('active');
-
-      // Modificar títulos superiores
-      if(TITULOS_VISTAS[viewId]) {
-        document.getElementById('main-title').textContent = TITULOS_VISTAS[viewId].t;
-        document.getElementById('main-subtitle').textContent = TITULOS_VISTAS[viewId].s;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control de Asistencia — Grupo Cented</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-color: #f4f3ef; /* Blanco roto papel periódico retro */
+        --text-color: #0d0d0d; /* Negro profundo puro */
+        --accent-color: #2b46ff; /* Azul eléctrico SpaceX de alta tecnología */
+        --danger-color: #ff3b30; /* Rojo advertencia editorial */
+        --success-color: #00c781; /* Verde de confirmación */
+        --border-width: 2px;
+        --font-heading: "Syne", sans-serif;
+        --font-body: "Space Grotesk", sans-serif;
       }
 
-      // Expandir la caja contenedora si es el dashboard del maestro para mejor visualización
-      const mainCard = document.getElementById('main-card');
-      if (viewId === 'view-teacher-dashboard') {
-        mainCard.classList.add('expanded');
-      } else {
-        mainCard.classList.remove('expanded');
-      }
-    }
-
-    function regresarAlMenu() {
-      document.getElementById('form-attendance').reset();
-      document.getElementById('form-gen-key').reset();
-      document.getElementById('form-auth').reset();
-      document.getElementById('key-result-box').style.display = "none";
-      switchView('view-menu');
-    }
-
-    // Control de alertas internas
-    function mostrarAlerta(texto, tipo) {
-      const alerta = document.getElementById('global-alert');
-      alerta.className = `alert-box ${tipo}`;
-      alerta.textContent = texto;
-    }
-
-    function ocultarAlerta() {
-      document.getElementById('global-alert').style.display = "none";
-    }
-
-    // Validador estricto de RegEx V3 para nombres propios del grupo
-    function validarNombreEstricto(nombre) {
-      const patron = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){1,3}$/;
-      return patron.test(nombre.trim());
-    }
-
-    // Generador aleatorio de códigos únicos de 4 caracteres
-    function generarCodigoAlfanumerico() {
-      const caracteres = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Excluye caracteres ambiguos
-      let codigo = "";
-      for (let i = 0; i < 4; i++) {
-        codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
-      }
-      return codigo;
-    }
-
-    // ==========================================
-    // OPERACIÓN 1: ENVÍO DE ASISTENCIA NATIVA
-    // ==========================================
-    function enviarAsistencia(e) {
-      e.preventDefault();
-      ocultarAlerta();
-
-      const clave = document.getElementById('att-key').value.trim().toUpperCase();
-      const grupo = document.getElementById('att-group').value;
-      const docente = document.getElementById('att-teacher').value;
-      const btn = document.getElementById('btn-submit-attendance');
-
-      if (!clave || !grupo || !docente) {
-        mostrarAlerta("⚠️ Por favor rellena todos los campos requeridos.", "info");
-        return;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      btn.disabled = true;
-      btn.textContent = "⌛ Procesando entrada...";
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: var(--font-body);
+        overflow-x: hidden;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+      }
 
-      const params = new URLSearchParams();
-      params.append("action", "asistencia");
-      params.append("clave", clave);
-      params.append("grupo", grupo);
-      params.append("docente", docente);
+      /* Efecto grano y textura retro superpuesta */
+      .overlay-texture {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image:
+          radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 0),
+          linear-gradient(rgba(13, 13, 13, 0.02) 1px, transparent 0);
+        background-size: 24px 24px;
+        pointer-events: none;
+        z-index: 999;
+      }
 
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        body: params
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.result === "success") {
-          mostrarAlerta("✅ ¡Asistencia registrada con éxito! Ten un excelente día de aprendizaje.", "success");
-          document.getElementById('form-attendance').reset();
-        } else if (data.result === "duplicated") {
-          mostrarAlerta(data.message, "info");
-        } else {
-          mostrarAlerta(data.message || "❌ No se pudo procesar la solicitud.", "error");
+      /* Contenedor Principal (Estilo Revista / Maquetación rígida moderna) */
+      .app-container {
+        width: 100%;
+        max-width: 680px;
+        background: #ffffff;
+        border: var(--border-width) solid var(--text-color);
+        padding: 2.5rem;
+        box-shadow: 12px 12px 0px var(--text-color);
+        position: relative;
+        z-index: 10;
+        transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+      }
+
+      /* Encabezado */
+      .main-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+      }
+
+      .brand .badge {
+        background: var(--text-color);
+        color: var(--bg-color);
+        font-size: 0.75rem;
+        font-weight: bold;
+        padding: 0.2rem 0.6rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      .brand h1 {
+        font-family: var(--font-heading);
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-top: 0.5rem;
+        letter-spacing: -1px;
+      }
+
+      .brand .subtitle {
+        font-size: 0.85rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        opacity: 0.6;
+        margin-top: 0.2rem;
+      }
+
+      .live-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-variant-numeric: tabular-nums;
+        font-weight: bold;
+        border: var(--border-width) solid var(--text-color);
+        padding: 0.4rem 0.8rem;
+        background: var(--bg-color);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background-color: var(--success-color);
+        border-radius: 50%;
+        animation: status-pulse 1.5s infinite;
+      }
+
+      .editorial-line {
+        border: none;
+        height: var(--border-width);
+        background-color: var(--text-color);
+        margin-bottom: 2.5rem;
+      }
+
+      /* Manejo de transiciones entre pantallas */
+      .card-view {
+        display: none;
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.4s ease,
+          transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+      }
+
+      .card-view.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Botones del Menú Principal */
+      .menu-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .btn-retro {
+        background: none;
+        border: var(--border-width) solid var(--text-color);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        text-align: left;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        font-family: var(--font-body);
+        color: var(--text-color);
+        transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+      }
+
+      .btn-retro .btn-num {
+        font-family: var(--font-heading);
+        font-size: 1.2rem;
+        margin-right: 1.5rem;
+        opacity: 0.4;
+        transition: transform 0.3s ease;
+      }
+
+      .btn-retro .btn-text {
+        font-size: 1.2rem;
+        font-weight: 700;
+        flex-grow: 1;
+      }
+
+      .btn-retro .btn-arrow {
+        font-size: 1.5rem;
+        transform: translateX(-10px);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+      }
+
+      .btn-retro:hover {
+        background-color: var(--text-color);
+        color: var(--bg-color);
+        transform: translateX(8px);
+      }
+
+      .btn-retro:hover .btn-num {
+        transform: scale(1.2);
+        opacity: 1;
+        color: var(--accent-color);
+      }
+
+      .btn-retro:hover .btn-arrow {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      /* Formularios e Inputs */
+      .view-title {
+        font-family: var(--font-heading);
+        font-size: 1.4rem;
+        margin-bottom: 2rem;
+        text-transform: uppercase;
+        letter-spacing: -0.5px;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .input-group label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      input[type="text"],
+      input[type="password"],
+      select {
+        width: 100%;
+        padding: 1rem;
+        font-family: var(--font-body);
+        font-size: 1rem;
+        border: var(--border-width) solid var(--text-color);
+        background: var(--bg-color);
+        color: var(--text-color);
+        outline: none;
+        border-radius: 0;
+        transition: all 0.2s ease;
+      }
+
+      input:focus,
+      select:focus {
+        background: #ffffff;
+        box-shadow: 4px 4px 0px var(--accent-color);
+        border-color: var(--accent-color);
+      }
+
+      .helper-text {
+        font-size: 0.8rem;
+        opacity: 0.6;
+        margin-top: 0.2rem;
+      }
+
+      /* Cuadros de Feedback (Alertas Estilo Editorial) */
+      .alert-box {
+        padding: 1rem;
+        border: var(--border-width) solid var(--text-color);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        display: none;
+      }
+      .alert-box.error {
+        background-color: #ffdad9;
+        color: var(--danger-color);
+        display: block;
+      }
+      .alert-box.success {
+        background-color: #d2fbe3;
+        color: #007d4f;
+        display: block;
+      }
+      .alert-box.warning {
+        background-color: #fff3cd;
+        color: #856404;
+        display: block;
+      }
+
+      /* Botones de Acción */
+      .form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-top: 2rem;
+      }
+
+      .form-actions.row-layout {
+        flex-direction: row;
+      }
+
+      .btn-submit,
+      .btn-back,
+      .btn-danger {
+        padding: 1rem;
+        font-family: var(--font-body);
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: var(--border-width) solid var(--text-color);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.2s ease;
+        text-align: center;
+      }
+
+      .btn-submit {
+        background-color: var(--accent-color);
+        color: #ffffff;
+        border-color: var(--accent-color);
+      }
+
+      .btn-submit:hover {
+        background-color: var(--text-color);
+        border-color: var(--text-color);
+        transform: translateY(-2px);
+      }
+
+      .btn-submit:disabled {
+        background-color: #cccccc !important;
+        border-color: #cccccc !important;
+        color: #666666 !important;
+        cursor: not-allowed;
+      }
+
+      .btn-back {
+        background: transparent;
+        color: var(--text-color);
+      }
+
+      .btn-back:hover {
+        background: var(--bg-color);
+        transform: translateY(-2px);
+      }
+
+      .btn-danger {
+        background-color: var(--danger-color);
+        color: white;
+        border-color: var(--danger-color);
+        flex: 1;
+      }
+
+      .btn-danger:hover {
+        background-color: var(--text-color);
+        border-color: var(--text-color);
+      }
+
+      /* Contenedor de Registros en Tiempo Real */
+      .registros-container {
+        max-height: 280px;
+        overflow-y: auto;
+        border: var(--border-width) solid var(--text-color);
+        margin-bottom: 1.5rem;
+        background: var(--bg-color);
+      }
+
+      .registro-item {
+        padding: 1rem;
+        border-bottom: var(--border-width) solid var(--text-color);
+        font-size: 0.9rem;
+      }
+      .registro-item:last-child {
+        border-bottom: none;
+      }
+
+      /* Panel del Docente */
+      .hidden-panel {
+        display: none;
+      }
+      .hidden-panel.visible {
+        display: block;
+        animation: slide-down 0.4s ease forwards;
+      }
+
+      .stats-counter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-box {
+        border: var(--border-width) solid var(--text-color);
+        padding: 2rem 1rem;
+        text-align: center;
+        background: var(--bg-color);
+      }
+
+      .stat-box .stat-num {
+        display: block;
+        font-family: var(--font-heading);
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-box .stat-label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.7;
+      }
+
+      /* Animaciones */
+      @keyframes status-pulse {
+        0% {
+          opacity: 0.4;
         }
-      })
-      .catch(err => {
-        mostrarAlerta("❌ Error crítico de conexión. Revisa tu acceso a internet.", "error");
-      })
-      .finally(() => {
-        btn.disabled = false;
-        btn.textContent = "⚡ Enviar Asistencia";
-      });
-    }
-
-    // ==========================================
-    // OPERACIÓN 2: GUARDADO Y GENERACIÓN DE CLAVE
-    // ==========================================
-    function procesarNuevaClave(e) {
-      e.preventDefault();
-      ocultarAlerta();
-      document.getElementById('key-result-box').style.display = "none";
-
-      const nombre = document.getElementById('gen-name').value.trim();
-      const docente = document.getElementById('gen-teacher').value;
-      const btn = document.getElementById('btn-submit-key');
-
-      // Validación obligatoria RegEx heredada de V3
-      if (!validarNombreEstricto(nombre)) {
-        mostrarAlerta("❌ El formato del nombre es incorrecto. Cada palabra debe iniciar con mayúscula y no contener símbolos numéricos.", "error");
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = "⌛ Registrando cuenta...";
-
-      const claveCreada = generarCodigoAlfanumerico();
-
-      const params = new URLSearchParams();
-      params.append("action", "guardar_clave");
-      params.append("nombre", nombre);
-      params.append("clave", claveCreada);
-      params.append("docente", docente);
-
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        body: params
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.result === "success") {
-          mostrarAlerta("🎉 ¡Cuenta creada con éxito! Tu clave ha sido vinculada en el sistema.", "success");
-          document.getElementById('key-value-dest').textContent = data.clave;
-          document.getElementById('key-result-box').style.display = "block";
-          document.getElementById('form-gen-key').reset();
-        } else if (data.result === "duplicated") {
-          mostrarAlerta(data.message, "info");
-        } else {
-          mostrarAlerta(data.message || "❌ Error desconocido al crear la clave.", "error");
+        50% {
+          opacity: 1;
         }
-      })
-      .catch(err => {
-        mostrarAlerta("❌ Error de red al intentar registrar la clave.", "error");
-      })
-      .finally(() => {
-        btn.disabled = false;
-        btn.textContent = "🎯 Crear mi Clave Alfanumérica";
-      });
-    }
-
-    // ==========================================
-    // OPERACIÓN 3: VALIDACIÓN PORTAL DOCENTE
-    // ==========================================
-    function validarAccesoDocente(e) {
-      e.preventDefault();
-      ocultarAlerta();
-
-      const pass = document.getElementById('auth-pass').value;
-      if (pass === CLAVE_MAESTRA) {
-        switchView('view-teacher-dashboard');
-        cargarRegistrosDesdeServidor();
-      } else {
-        mostrarAlerta("❌ Contraseña incorrecta. Acceso denegado.", "error");
-        document.getElementById('auth-pass').value = "";
+        100% {
+          opacity: 0.4;
+        }
       }
-    }
 
-    // Mapeo e Inyección de Asistencias Directo desde la Hoja
-    function cargarRegistrosDesdeServidor() {
-      const contenedor = document.getElementById('listaRegistros');
-      contenedor.innerHTML = '<div style="padding: 20px; font-weight:700; text-align:center;">⌛ Sincronizando datos con el servidor de Google...</div>';
+      @keyframes slide-down {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-      // Reset de estadísticas en pantalla
-      document.getElementById('statManana').textContent = "0";
-      document.getElementById('statTarde').textContent = "0";
+      @media (max-width: 480px) {
+        .app-container {
+          padding: 1.5rem;
+        }
+        .main-header {
+          flex-direction: column;
+          gap: 1rem;
+        }
+        .live-status {
+          width: 100%;
+          justify-content: center;
+        }
+        .form-actions.row-layout {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="overlay-texture"></div>
 
-      fetch(`${SCRIPT_URL}?action=obtener_registros`)
-      .then(res => res.json())
-      .then(data => {
-        // Capturar fecha de hoy en zona horaria local de El Salvador para el filtro exacto
-        const hoy = new Date().toLocaleDateString("es-SV", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit"
+    <main class="app-container">
+      <header class="main-header">
+        <div class="brand">
+          <span class="badge">SYS v2.6</span>
+          <h1>出席 CONTROL DE ASISTENCIA</h1>
+          <p class="subtitle">SISTEMA GENERAL • GRUPO CENTED</p>
+        </div>
+        <div class="live-status">
+          <span class="status-dot"></span>
+          <span id="live-clock">00:00:00 PM</span>
+        </div>
+      </header>
+
+      <hr class="editorial-line" />
+
+      <!-- PANTALLA 1: MENÚ -->
+      <section id="view-menu" class="card-view active">
+        <div class="menu-grid">
+          <button class="btn-retro" onclick="switchView('view-register')">
+            <span class="btn-num">01</span>
+            <span class="btn-text">Registrar Asistencia</span>
+            <span class="btn-arrow">→</span>
+          </button>
+          <button class="btn-retro" onclick="switchView('view-keygen')">
+            <span class="btn-num">02</span>
+            <span class="btn-text">Generar Mi Clave Única</span>
+            <span class="btn-arrow">→</span>
+          </button>
+          <button class="btn-retro" onclick="switchView('view-teacher')">
+            <span class="btn-num">03</span>
+            <span class="btn-text">Ver Registros (Docente)</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- PANTALLA 2: REGISTRAR ASISTENCIA -->
+      <section id="view-register" class="card-view">
+        <h2 class="view-title">【 登録 】 Registrar Asistencia</h2>
+        <div id="alertRegistro" class="alert-box"></div>
+
+        <form id="form-register" onsubmit="registrarAsistencia(event)">
+          <div class="input-group">
+            <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
+            <input
+              type="text"
+              id="reg-key"
+              maxlength="4"
+              placeholder="Ej: F2BQ"
+              required
+              autocomplete="off"
+              style="text-transform: uppercase"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="reg-teacher">Docente *</label>
+            <select id="reg-teacher" required>
+              <option value="" disabled selected>
+                -- Selecciona tu Docente --
+              </option>
+              <option value="Mauricio Alvarado">Mauricio Alvarado</option>
+              <option value="Wilfredo Pineda">Wilfredo Pineda</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="reg-group">Grupo *</label>
+            <select id="reg-group" required>
+              <option value="" disabled selected>-- Selecciona --</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="reg-token"
+              >Firma del Docente (Clave de Validación) *</label
+            >
+            <input
+              type="password"
+              id="reg-token"
+              placeholder="Código de validación diaria"
+              required
+            />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btnRegistrar" class="btn-submit">
+              ✓ Enviar Asistencia
+            </button>
+            <button
+              type="button"
+              class="btn-back"
+              onclick="switchView('view-menu')"
+            >
+              ← Volver
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- PANTALLA 3: GENERAR CLAVE PERMANENTE -->
+      <section id="view-keygen" class="card-view">
+        <h2 class="view-title">【 鍵作成 】 Generar Mi Clave</h2>
+        <div id="alertGenerarClave" class="alert-box"></div>
+
+        <form id="form-keygen" onsubmit="generarClave(event)">
+          <div class="input-group">
+            <label for="gen-name">Escribe tu Nombre Completo *</label>
+            <input
+              type="text"
+              id="gen-name"
+              placeholder="Ej: Tatiana Abigail Flores Ortiz"
+              required
+              autocomplete="off"
+            />
+            <small class="helper-text"
+              >Usa mayúscula inicial en nombres y apellidos.</small
+            >
+          </div>
+
+          <div class="input-group">
+            <label for="gen-teacher">Asigna tu Docente Principal *</label>
+            <select id="gen-teacher" required>
+              <option value="" disabled selected>
+                -- Selecciona tu Docente --
+              </option>
+              <option value="Mauricio Alvarado">Mauricio Alvarado</option>
+              <option value="Wilfredo Pineda">Wilfredo Pineda</option>
+            </select>
+          </div>
+
+          <!-- Bloque de clave generada con diseño brutalista -->
+          <div
+            id="claveGeneradaContainer"
+            style="display: none; margin-top: 1.5rem; margin-bottom: 1.5rem"
+          >
+            <div
+              class="alert-box success"
+              style="display: block; margin-bottom: 0.5rem"
+            >
+              🎉 ¡Clave creada! Guárdala bien:
+            </div>
+            <div class="stat-box" style="padding: 1rem; background: #ffffff">
+              <span
+                id="codGenerado"
+                style="
+                  font-family: var(--font-heading);
+                  font-size: 2.2rem;
+                  font-weight: 800;
+                  color: var(--accent-color);
+                "
+              ></span>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btnGenerar" class="btn-submit">
+              🔒 Generar Mi Clave Permanente
+            </button>
+            <button
+              type="button"
+              class="btn-back"
+              onclick="switchView('view-menu')"
+            >
+              ← Volver
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- PANTALLA 4: PANEL DE CONTROL DOCENTE -->
+      <section id="view-teacher" class="card-view">
+        <h2 class="view-title">【 管理 】 Panel del Docente</h2>
+        <div id="alertVerRegistros" class="alert-box"></div>
+
+        <div id="teacher-auth">
+          <div class="input-group">
+            <label for="teacher-password">Clave de Validación *</label>
+            <input
+              type="password"
+              id="teacher-password"
+              placeholder="••••••••••••"
+              required
+            />
+          </div>
+          <div class="form-actions">
+            <button
+              type="button"
+              id="btnAccederRegistros"
+              class="btn-submit"
+              onclick="unlockTeacherPanel()"
+            >
+              🔓 Entrar
+            </button>
+            <button
+              type="button"
+              class="btn-back"
+              onclick="switchView('view-menu')"
+            >
+              ← Volver
+            </button>
+          </div>
+        </div>
+
+        <div id="teacher-dashboard" class="hidden-panel">
+          <div class="stats-counter-grid">
+            <div class="stat-box">
+              <span class="stat-num" id="count-morning">0</span>
+              <span class="stat-label">Mañana</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num" id="count-afternoon">0</span>
+              <span class="stat-label">Tarde</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Registros de Hoy:</label>
+            <div class="registros-container" id="listaRegistros">
+              <!-- Cargados dinámicamente -->
+            </div>
+          </div>
+
+          <div class="form-actions row-layout">
+            <button
+              type="button"
+              class="btn-danger"
+              onclick="triggerClearAll()"
+            >
+              🗑 Limpiar Todo
+            </button>
+            <button type="button" class="btn-back" onclick="lockAndReturn()">
+              ← Volver
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // ==========================================
+      // CONFIGURACIÓN GLOBAL
+      // ==========================================
+      const CLAVE_MAESTRA = "CENTED2000";
+      const SCRIPT_URL =
+        "https://script.google.com/macros/s/AKfycbxk0kH_w9q-dzutc0NMoKhZwJJdNyqIWbzd4KZrqJZqFbeSHKINTNIHYEVFmqlrv9Ys/exec";
+
+      // Reloj En Vivo
+      function updateClock() {
+        const clockElement = document.getElementById("live-clock");
+        if (!clockElement) return;
+        const now = new Date();
+        let hours = now.getHours();
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        clockElement.textContent = `${String(hours).padStart(2, "0")}:${minutes}:${seconds} ${ampm}`;
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      // Control de Navegación entre Pantallas
+      function switchView(viewId) {
+        const activeView = document.querySelector(".card-view.active");
+        const targetView = document.getElementById(viewId);
+
+        // Resetear alertas al cambiar de vista
+        document.querySelectorAll(".alert-box").forEach((el) => {
+          el.className = "alert-box";
+          el.style.display = "none";
         });
 
-        // Filtrar exclusivamente los registros creados hoy
-        const filtrados = data.filter(r => r.fecha === hoy);
+        if (activeView) {
+          activeView.style.opacity = "0";
+          activeView.style.transform = "translateY(-15px)";
+          setTimeout(() => {
+            activeView.classList.remove("active");
+            targetView.classList.add("active");
+            setTimeout(() => {
+              targetView.style.opacity = "1";
+              targetView.style.transform = "translateY(0)";
+            }, 50);
+          }, 300);
+        }
+      }
 
-        // Actualizar contadores dinámicos brutales
-        document.getElementById('statManana').textContent = filtrados.filter(r => r.grupo === "Mañana").length;
-        document.getElementById('statTarde').textContent = filtrados.filter(r => r.grupo === "Tarde").length;
+      function validarNombreEstricto(n) {
+        // Regex que valida Capitalización Correcta en Nombres y Apellidos
+        const regex =
+          /^[A-ZÁÉÍÓÚÑ][a-zzáéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-zzáéíóúñ]+){1,4}$/;
+        return regex.test(n.trim());
+      }
 
-        contenedor.innerHTML = "";
+      // ==========================================
+      // ACCIÓN 1: ACCIONAR ASISTENCIA
+      // ==========================================
+      function registrarAsistencia(event) {
+        event.preventDefault();
 
-        if (filtrados.length === 0) {
-          contenedor.innerHTML = '<div style="padding:20px; text-align:center; font-weight:700; color:#555;">No hay asistencias registradas el día de hoy.</div>';
+        const claveInput = document
+          .getElementById("reg-key")
+          .value.trim()
+          .toUpperCase();
+        const docenteInput = document.getElementById("reg-teacher").value;
+        const grupoInput = document.getElementById("reg-group").value;
+        const tokenInput = document.getElementById("reg-token").value.trim();
+
+        const alertBox = document.getElementById("alertRegistro");
+        const btn = document.getElementById("btnRegistrar");
+
+        if (tokenInput !== CLAVE_MAESTRA) {
+          alertBox.textContent = "❌ LA FIRMA DEL DOCENTE ES INCORRECTA.";
+          alertBox.className = "alert-box error";
           return;
         }
 
-        // Renderizado limpio inyectando las propiedades mapeadas de V3
-        filtrados.forEach(r => {
-          const item = document.createElement('div');
-          item.className = "registro-item";
-          item.innerHTML = `
-            <strong>${r.nombre}</strong> — Horario: ${r.grupo}
-            <small>🔑 Clave: ${r.clave} | 👨‍🏫 Instructor: ${r.docente || "N/A"} | ⏰ Registrado a las: ${r.hora}</small>
-          `;
-          contenedor.appendChild(item);
-        });
-      })
-      .catch(err => {
-        contenedor.innerHTML = '<div style="padding:20px; text-align:center; font-weight:700; color:var(--danger-color);">❌ Error al recuperar los datos del Excel.</div>';
-        mostrarAlerta("❌ Imposible conectar con la API de Google Sheets.", "error");
-      });
-    }
+        btn.disabled = true;
+        btn.innerHTML = `⚡ ENVIANDO REGISTRO...`;
 
-    // Ejecución de limpieza y pase de histórico automatizado
-    function ejecutarLimpiezaHoy() {
-      if (!confirm("🚨 ADVERTENCIA CRÍTICA:\n¿Estás completamente seguro de archivar y limpiar todos los registros del día de hoy?\nEsta acción moverá las filas a la hoja 'Historial_Asistencias'. El cambio es irreversible.")) return;
+        const params = new URLSearchParams();
+        params.append("action", "asistencia");
+        params.append("clave", claveInput);
+        params.append("docente", docenteInput);
+        params.append("grupo", grupoInput);
 
-      ocultarAlerta();
-      const params = new URLSearchParams();
-      params.append("action", "limpiar_asistencias");
+        fetch(SCRIPT_URL, { method: "POST", body: params })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.result === "success") {
+              alertBox.textContent = "✓ ¡ASISTENCIA PROCESADA CON ÉXITO!";
+              alertBox.className = "alert-box success";
+              document.getElementById("form-register").reset();
+              setTimeout(() => {
+                switchView("view-menu");
+              }, 2000);
+            } else {
+              alertBox.textContent = data.message;
+              alertBox.className = "alert-box error";
+            }
+          })
+          .catch((err) => {
+            alertBox.textContent = "❌ ERROR DE RED O CONEXIÓN.";
+            alertBox.className = "alert-box error";
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = `✓ Enviar Asistencia`;
+          });
+      }
 
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        body: params
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.result === "success") {
-          alert("📦 Éxito: Los registros de hoy fueron guardados en el historial y la tabla activa fue limpiada.");
-          cargarRegistrosDesdeServidor();
-        } else {
-          mostrarAlerta("❌ Hubo un inconveniente al vaciar la hoja.", "error");
+      // ==========================================
+      // ACCIÓN 2: GENERAR CLAVE ÚNICA
+      // ==========================================
+      function generarClave(event) {
+        event.preventDefault();
+
+        const nombreInput = document.getElementById("gen-name").value.trim();
+        const docenteInput = document.getElementById("gen-teacher").value;
+        const alertBox = document.getElementById("alertGenerarClave");
+        const btn = document.getElementById("btnGenerar");
+        const containerClave = document.getElementById(
+          "claveGeneradaContainer",
+        );
+
+        if (!validarNombreEstricto(nombreInput)) {
+          alertBox.textContent =
+            "❌ FORMÁTO ERRÓNEO. USA MAYÚSCULAS INICIALES (EJ: Carlos David).";
+          alertBox.className = "alert-box error";
+          return;
         }
-      })
-      .catch(err => {
-        mostrarAlerta("❌ Falló la comunicación post-back de vaciado.", "error");
-      });
-    }
 
-    function cerrarSesionDocente() {
-      document.getElementById('form-auth').reset();
-      switchView('view-menu');
-    }
-  </script>
-</body>
+        btn.disabled = true;
+        btn.innerHTML = `⚡ CREANDO CREDENCIAL...`;
+        containerClave.style.display = "none";
+
+        // Generar clave aleatoria de 4 dígitos
+        let claveNueva = "";
+        const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        for (let i = 0; i < 4; i++) {
+          claveNueva += caracteres.charAt(
+            Math.floor(Math.random() * caracteres.length),
+          );
+        }
+
+        const params = new URLSearchParams();
+        params.append("action", "guardar_clave");
+        params.append("nombre", nombreInput);
+        params.append("clave", claveNueva);
+        params.append("docente", docenteInput);
+
+        fetch(SCRIPT_URL, { method: "POST", body: params })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.result === "success") {
+              document.getElementById("codGenerado").textContent = claveNueva;
+              containerClave.style.display = "block";
+              alertBox.style.display = "none";
+              document.getElementById("form-keygen").reset();
+            } else {
+              alertBox.textContent = data.message;
+              alertBox.className = "alert-box error";
+            }
+          })
+          .catch((err) => {
+            alertBox.textContent = "❌ NO SE PUDO GUARDAR EN LA BASE DE DATOS.";
+            alertBox.className = "alert-box error";
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = `🔒 Generar Mi Clave Permanente`;
+          });
+      }
+
+      // ==========================================
+      // ACCIÓN 3: PANEL DEL DOCENTE Y CARGA DE DATOS
+      // ==========================================
+      function unlockTeacherPanel() {
+        const passwordInput = document.getElementById("teacher-password");
+        const authSection = document.getElementById("teacher-auth");
+        const dashboardSection = document.getElementById("teacher-dashboard");
+        const alertBox = document.getElementById("alertVerRegistros");
+
+        if (passwordInput.value.trim() !== CLAVE_MAESTRA) {
+          alertBox.textContent = "❌ CREDENCIAL DE ACCESO DENEGADA.";
+          alertBox.className = "alert-box error";
+          passwordInput.focus();
+          return;
+        }
+
+        alertBox.style.display = "none";
+        document.getElementById("btnAccederRegistros").disabled = true;
+        document.getElementById("btnAccederRegistros").innerHTML =
+          "⚡ CARGANDO PANEL...";
+
+        // Realizar consulta GET al Excel
+        fetch(`${SCRIPT_URL}?action=obtener_registros`)
+          .then((res) => res.json())
+          .then((data) => {
+            authSection.style.display = "none";
+            dashboardSection.classList.add("visible");
+
+            // Obtener fecha de hoy formateada de forma idéntica a El Salvador (dd/mm/yyyy)
+            const hoy = new Date().toLocaleDateString("es-SV", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            });
+
+            // Filtrar registros del día de hoy
+            const filtrados = data.filter((r) => r.fecha === hoy);
+
+            // Actualizar Contadores Estatales Brutalistas
+            document.getElementById("count-morning").textContent =
+              filtrados.filter((r) => r.grupo === "Mañana").length;
+            document.getElementById("count-afternoon").textContent =
+              filtrados.filter((r) => r.grupo === "Tarde").length;
+
+            // Renderizar la lista
+            const contenedor = document.getElementById("listaRegistros");
+            contenedor.innerHTML = "";
+
+            if (filtrados.length === 0) {
+              contenedor.innerHTML = `<div class="registro-item" style="text-align:center; opacity:0.5;">No hay asistencias registradas este día.</div>`;
+            } else {
+              filtrados.forEach((r) => {
+                const item = document.createElement("div");
+                item.className = "registro-item";
+                item.innerHTML = `<strong>${r.nombre}</strong> — ${r.grupo}<br>
+                                  <small style="opacity: 0.7;">Clave: ${r.clave} | Docente: ${r.docente} | Hora: ${r.hora}</small>`;
+                contenedor.appendChild(item);
+              });
+            }
+          })
+          .catch((err) => {
+            alertBox.textContent =
+              "❌ ERROR AL TRAER LOS REGISTROS DESDE EL SERVIDOR.";
+            alertBox.className = "alert-box error";
+          })
+          .finally(() => {
+            document.getElementById("btnAccederRegistros").disabled = false;
+            document.getElementById("btnAccederRegistros").innerHTML =
+              "🔓 Entrar";
+            passwordInput.value = "";
+          });
+      }
+
+      function lockAndReturn() {
+        document
+          .getElementById("teacher-dashboard")
+          .classList.remove("visible");
+        document.getElementById("teacher-auth").style.display = "block";
+        switchView("view-menu");
+      }
+
+      function triggerClearAll() {
+        if (
+          confirm(
+            "🚨 ¿Estás completamente seguro de que deseas limpiar y archivar todos los registros del día?",
+          )
+        ) {
+          const params = new URLSearchParams();
+          params.append("action", "limpiar_asistencias");
+
+          fetch(SCRIPT_URL, { method: "POST", body: params })
+            .then(() => {
+              alert(
+                "Registros guardados en Historial y limpiados correctamente.",
+              );
+              lockAndReturn();
+            })
+            .catch(() => alert("Error al reiniciar el día."));
+        }
+      }
+    </script>
+  </body>
 </html>
-
-```
