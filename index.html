@@ -4,16 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <!-- ==========================================
-         SEGURIDAD: META TAGS SSL/TLS/HTTPS
-         ========================================== -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://script.google.com https://www.google.com https://www.gstatic.com https://fonts.googleapis.com; script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
-    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
-    
     <!-- Título cargado de palabras clave de búsqueda directa -->
     <title>Control de Asistencia — Grupo Cented | AULA VIRTUAL SISTEMAS INFORMATICOS</title>
     
@@ -44,11 +34,6 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
-    
-    <!-- ==========================================
-         reCAPTCHA v3 (Invisible - Validación Anti-Bot)
-         ========================================== -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
     <!-- Estilos de tu aplicación -->
     <style>
@@ -253,104 +238,102 @@
         font-size: 1.4rem;
         margin-bottom: 2rem;
         text-transform: uppercase;
+        letter-spacing: -0.5px;
       }
 
       .input-group {
-        margin-bottom: 1.5rem;
         display: flex;
         flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
       }
 
       .input-group label {
-        font-weight: 700;
-        margin-bottom: 0.5rem;
         font-size: 0.9rem;
-        letter-spacing: 0.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
       }
 
-      .input-group input,
-      .input-group select {
-        border: var(--border-width) solid var(--text-color);
-        padding: 0.8rem;
+      input[type="text"],
+      input[type="password"],
+      select {
+        width: 100%;
+        padding: 1rem;
         font-family: var(--font-body);
         font-size: 1rem;
-        background: #ffffff;
+        border: var(--border-width) solid var(--text-color);
+        background: var(--bg-color);
         color: var(--text-color);
-        transition: all 0.3s ease;
-      }
-
-      .input-group input:focus,
-      .input-group select:focus {
         outline: none;
-        background-color: var(--accent-color);
-        color: #ffffff;
-        border-color: var(--accent-color);
+        border-radius: 0;
+        transition: all 0.2s ease;
       }
 
-      .input-group input::placeholder {
-        opacity: 0.5;
-        color: var(--text-color);
+      input:focus,
+      select:focus {
+        background: #ffffff;
+        box-shadow: 4px 4px 0px var(--accent-color);
+        border-color: var(--accent-color);
       }
 
       .helper-text {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         opacity: 0.6;
-        margin-top: 0.3rem;
-        letter-spacing: 0.5px;
+        margin-top: 0.2rem;
       }
 
-      /* Alertas */
+      /* Cuadros de Feedback (Alertas Estilo Editorial) */
       .alert-box {
         padding: 1rem;
+        border: var(--border-width) solid var(--text-color);
+        font-weight: 700;
         margin-bottom: 1.5rem;
-        border: var(--border-width) solid transparent;
-        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
         display: none;
       }
-
-      .alert-box.success {
-        border-color: var(--success-color);
-        background-color: rgba(0, 199, 129, 0.1);
-        color: var(--success-color);
-        display: block;
-      }
-
       .alert-box.error {
-        border-color: var(--danger-color);
-        background-color: rgba(255, 59, 48, 0.1);
+        background-color: #ffdad9;
         color: var(--danger-color);
         display: block;
       }
-
-      .alert-box.info {
-        border-color: var(--accent-color);
-        background-color: rgba(43, 70, 255, 0.1);
-        color: var(--accent-color);
+      .alert-box.success {
+        background-color: #d2fbe3;
+        color: #007d4f;
+        display: block;
+      }
+      .alert-box.warning {
+        background-color: #fff3cd;
+        color: #856404;
         display: block;
       }
 
-      /* Botones de acción */
+      /* Botones de Acción */
       .form-actions {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
         margin-top: 2rem;
       }
 
       .form-actions.row-layout {
-        grid-template-columns: 1fr 1fr;
+        flex-direction: row;
       }
 
-      button {
+      .btn-submit,
+      .btn-back,
+      .btn-danger {
         padding: 1rem;
-        border: var(--border-width) solid var(--text-color);
         font-family: var(--font-body);
         font-size: 1rem;
         font-weight: 700;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        border: var(--border-width) solid var(--text-color);
         text-transform: uppercase;
         letter-spacing: 1px;
+        transition: all 0.2s ease;
+        text-align: center;
       }
 
       .btn-submit {
@@ -360,230 +343,250 @@
       }
 
       .btn-submit:hover {
-        background-color: #1a2fbf;
+        background-color: var(--text-color);
+        border-color: var(--text-color);
+        transform: translateY(-2px);
       }
 
       .btn-submit:disabled {
-        opacity: 0.6;
+        background-color: #cccccc !important;
+        border-color: #cccccc !important;
+        color: #666666 !important;
         cursor: not-allowed;
       }
 
       .btn-back {
-        background-color: transparent;
+        background: transparent;
         color: var(--text-color);
       }
 
       .btn-back:hover {
-        background-color: var(--text-color);
-        color: #ffffff;
+        background: var(--bg-color);
+        transform: translateY(-2px);
       }
 
       .btn-danger {
         background-color: var(--danger-color);
-        color: #ffffff;
+        color: white;
         border-color: var(--danger-color);
+        flex: 1;
       }
 
       .btn-danger:hover {
-        background-color: #ff1f0f;
+        background-color: var(--text-color);
+        border-color: var(--text-color);
       }
 
-      /* Toast Notifications */
-      #toast-box-container {
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .toast-card {
-        background: var(--text-color);
-        color: #ffffff;
-        padding: 1rem 1.5rem;
-        border-radius: 4px;
-        font-weight: 600;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        animation: toast-slide-in 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-      }
-
-      .toast-card.success {
-        background: var(--success-color);
-      }
-
-      .toast-card.warning {
-        background: #ff9500;
-      }
-
-      .toast-card.info {
-        background: var(--accent-color);
-      }
-
-      @keyframes toast-slide-in {
-        from {
-          transform: translateX(400px);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-
-      @keyframes toast-fade-out {
-        from {
-          opacity: 1;
-          transform: translateX(0);
-        }
-        to {
-          opacity: 0;
-          transform: translateX(400px);
-        }
-      }
-
-      @keyframes status-pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.5;
-        }
-      }
-
-      /* Panel del Docente */
-      .hidden-panel {
-        display: none;
-      }
-
-      .hidden-panel.visible {
-        display: block;
-      }
-
-      .stats-counter-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .stat-box {
-        border: var(--border-width) solid var(--text-color);
-        padding: 1.5rem;
-        text-align: center;
-      }
-
-      .stat-num {
-        display: block;
-        font-size: 2.4rem;
-        font-weight: 800;
-        color: var(--accent-color);
-      }
-
-      .stat-label {
-        display: block;
-        font-size: 0.9rem;
-        opacity: 0.6;
-        margin-top: 0.5rem;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
-
+      /* Contenedor de Registros en Tiempo Real */
       .registros-container {
-        border: var(--border-width) solid var(--text-color);
-        max-height: 300px;
+        max-height: 220px;
         overflow-y: auto;
+        border: var(--border-width) solid var(--text-color);
+        margin-bottom: 1.5rem;
         background: var(--bg-color);
       }
 
       .registro-item {
         padding: 1rem;
-        border-bottom: 1px solid var(--text-color);
-        font-size: 0.95rem;
+        border-bottom: var(--border-width) solid var(--text-color);
+        font-size: 0.9rem;
       }
-
       .registro-item:last-child {
         border-bottom: none;
       }
 
-      .registro-item strong {
-        color: var(--accent-color);
+      /* Panel del Docente e Incrustación de Excel */
+      .hidden-panel {
+        display: none;
+      }
+      .hidden-panel.visible {
+        display: block;
+        animation: slide-down 0.4s ease forwards;
       }
 
-      /* Excel Embed Container (PROTEGIDO - NO PÚBLICAMENTE EXPUESTO) */
       .excel-embed-container {
-        border: var(--border-width) solid #cccccc;
-        padding: 1rem;
-        background: #f9f9f9;
-        text-align: center;
-        color: #999;
-        font-size: 0.9rem;
+        width: 100%;
+        height: 380px;
+        border: var(--border-width) solid var(--text-color);
+        box-shadow: 4px 4px 0px var(--text-color);
+        margin-bottom: 1.5rem;
+        background: #ffffff;
       }
 
       .excel-embed-container iframe {
-        display: none; /* OCULTO - Usar API privada en lugar de iframe público */
+        width: 100%;
+        height: 100%;
+        border: none;
       }
 
-      /* Aula Digital Link */
+      .stats-counter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .stat-box {
+        border: var(--border-width) solid var(--text-color);
+        padding: 1.5rem 1rem;
+        text-align: center;
+        background: var(--bg-color);
+      }
+
+      .stat-box .stat-num {
+        display: block;
+        font-family: var(--font-heading);
+        font-size: 2.8rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-box .stat-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.7;
+      }
+
+      /* MENSAJES EMERGENTES (TOASTS RETRO BRUTALISTAS) */
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 320px;
+      }
+
+      .toast-card {
+        background: #ffffff;
+        color: var(--text-color);
+        border: var(--border-width) solid var(--text-color);
+        box-shadow: 4px 4px 0px var(--text-color);
+        padding: 1rem;
+        font-family: var(--font-body);
+        font-size: 0.9rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        animation: toast-slide-in 0.3s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        position: relative;
+      }
+
+      .toast-card.success {
+        border-color: var(--success-color);
+        box-shadow: 4px 4px 0px var(--success-color);
+      }
+      .toast-card.info {
+        border-color: var(--accent-color);
+        box-shadow: 4px 4px 0px var(--accent-color);
+      }
+      .toast-card.warning {
+        border-color: #ff9500;
+        box-shadow: 4px 4px 0px #ff9500;
+      }
+
+      @keyframes toast-slide-in {
+        from {
+          transform: translateX(120%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes toast-fade-out {
+        to {
+          transform: translateX(120%);
+          opacity: 0;
+        }
+      }
+
+      /* Animaciones generales */
+      @keyframes status-pulse {
+        0% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.4;
+        }
+      }
+
+      @keyframes slide-down {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .app-container {
+          padding: 1.5rem;
+        }
+        .main-header {
+          flex-direction: column;
+          gap: 1rem;
+        }
+        .live-status {
+          width: 100%;
+          justify-content: center;
+        }
+        .form-actions.row-layout {
+          flex-direction: column;
+        }
+        .toast-container {
+          left: 20px;
+          right: 20px;
+          max-width: none;
+        }
+      }
       .aula-iframe-container {
-        margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: var(--border-width) solid var(--text-color);
+        width: 100%; /* Ocupa el 100% del ancho disponible */
+        height: 80vh; /* Altura adaptativa (80% de la ventana), puedes cambiarlo a px si prefieres (ej. 600px) */
+        overflow: hidden; /* Evita desbordamientos extraños */
+        border-radius: 8px; /* Opcional: para que combine con las esquinas redondeadas de tu diseño */
       }
 
       .aula-iframe-container iframe {
-        display: none; /* OCULTO - Los estudiantes acceden directamente al portal */
-      }
-
-      /* Responsive */
-      @media (max-width: 640px) {
-        .app-container {
-          padding: 1.5rem;
-          box-shadow: 8px 8px 0px var(--text-color);
-        }
-
-        .form-actions {
-          grid-template-columns: 1fr;
-        }
-
-        #toast-box-container {
-          left: 1rem;
-          right: 1rem;
-        }
-
-        .toast-card {
-          padding: 0.8rem 1rem;
-        }
+        width: 100%; /* Se estira al ancho completo del contenedor */
+        height: 100%; /* Se estira al alto completo del contenedor */
+        border: none; /* Quita el borde por defecto del iframe */
       }
     </style>
   </head>
-
   <body>
     <div class="overlay-texture"></div>
+    <div id="toast-box-container" class="toast-container"></div>
 
-    <!-- CONTENEDOR DE TOAST NOTIFICATIONS -->
-    <div id="toast-box-container"></div>
-
-    <!-- APLICACIÓN PRINCIPAL -->
     <main class="app-container">
-      <!-- ENCABEZADO -->
       <header class="main-header">
         <div class="brand">
-          <span class="badge">🔒 SEGURO</span>
-          <h1>出席 v5.2</h1>
-          <p class="subtitle">SISTEMA ENCRIPTADO</p>
+          <span class="badge">出席 v5.1</span>
+          <h1>CONTROL DE ASISTENCIA</h1>
+          <p class="subtitle">GRUPO CENTED • DEPARTAMENTO DE SISTEMAS INFORMATICOS</p>
         </div>
         <div class="live-status">
           <span class="status-dot"></span>
-          <span id="live-clock">00:00:00 AM</span>
+          <span id="live-clock">00:00:00 PM</span>
         </div>
       </header>
 
       <hr class="editorial-line" />
 
-      <!-- PANTALLA 1: MENÚ PRINCIPAL -->
+      <!-- PANTALLA 1: MENÚ -->
       <section id="view-menu" class="card-view active">
         <div class="menu-grid">
           <button class="btn-retro" onclick="switchView('view-register')">
@@ -591,20 +594,21 @@
             <span class="btn-text">Registrar Asistencia</span>
             <span class="btn-arrow">→</span>
           </button>
-
           <button class="btn-retro" onclick="switchView('view-keygen')">
             <span class="btn-num">02</span>
             <span class="btn-text">Generar Mi Clave Única</span>
             <span class="btn-arrow">→</span>
           </button>
-
           <button class="btn-retro" onclick="switchView('view-teacher')">
             <span class="btn-num">03</span>
             <span class="btn-text">Ver Registros (Docente)</span>
             <span class="btn-arrow">→</span>
           </button>
-
-          <a href="https://maualv1101.wixsite.com/my-site" class="btn-retro" style="text-decoration: none">
+          <a
+            class="btn-retro"
+            href="https://maualv1101.wixsite.com/my-site"
+            target="_blank"
+          >
             <span class="btn-num">04</span>
             <span class="btn-text">Ir al Aula Digital</span>
             <span class="btn-arrow">↗</span>
@@ -612,12 +616,13 @@
         </div>
 
         <div class="aula-iframe-container">
-          <!-- IFRAME OCULTO - Acceso directo en lugar de expuesto -->
+          <iframe src="https://maualv1101.wixsite.com/my-site">
+            <p>Tu navegador no soporta iframes.</p>
+          </iframe>
         </div>
     <br>
 <div><p>© 2027 por Tec. Mauricio Alvarado<br>
-Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUPO CENTED<br>
-<small>🔐 Conexión segura con encriptación SSL/TLS y validación reCAPTCHA</small></p>
+Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUPO CENTED</p>
       </section>
 
       <!-- PANTALLA 2: REGISTRAR ASISTENCIA -->
@@ -797,13 +802,30 @@ Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUP
         </div>
 
         <div id="teacher-dashboard" class="hidden-panel">
-          <!-- CONTENEDOR EN VIVO DE DATOS (PROTEGIDO - SIN IFRAME PÚBLICO) -->
+          <!-- CONTENEDOR EN VIVO DE GOOGLE SHEETS (HOJA VER ASISTENCIA) -->
+          <!-- VISTA SEGURA PROTEGIDA POR API PRIVADA (SIN IFRAME PÚBLICO) -->
           <div class="input-group">
-            <label>Vista de Registros (Protegida por API Privada):</label>
-            <div class="excel-embed-container">
-              ✅ Los datos se obtienen de forma segura mediante servidor privado<br>
-              <small>No se expone la hoja de Google Sheets públicamente</small>
+            <label>Base de Datos Asegurada (Matrícula y Asistencias Generales):</label>
+            <div class="excel-embed-container" style="overflow-y: auto; background: #ffffff; padding: 0.5rem;">
+              <table id="tabla-api-privada" style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+                <thead>
+                  <tr style="background: var(--text-color); color: var(--bg-color); text-transform: uppercase; font-family: var(--font-heading);">
+                    <th style="padding: 0.6rem; border: 1px solid var(--text-color);">Nombre</th>
+                    <th style="padding: 0.6rem; border: 1px solid var(--text-color);">Clave</th>
+                    <th style="padding: 0.6rem; border: 1px solid var(--text-color);">Grupo</th>
+                    <th style="padding: 0.6rem; border: 1px solid var(--text-color);">Docente</th>
+                    <th style="padding: 0.6rem; border: 1px solid var(--text-color);">Hora</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-api-cuerpo">
+                  <!-- Los registros generales se inyectan dinámicamente desde el servidor -->
+                  <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; opacity: 0.5;">Cargando base de datos del servidor...</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
+          </div>
           </div>
 
           <div class="stats-counter-grid">
@@ -839,8 +861,6 @@ Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUP
         </div>
       </section>
     </main>
-    
-    <!-- Script con ENCRIPTACIÓN, CAPTCHA Y PRIVACIDAD -->
     <script src="script.js"></script>
   </body>
 </html>
