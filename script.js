@@ -3,7 +3,7 @@
       // ==========================================
       const CLAVE_MAESTRA = "CENTED2000";
       const SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbxk0kH_w9q-dzutc0NMoKhZwJJdNyqIWbzd4KZrqJZqFbeSHKINTNIHYEVFmqlrv9Ys/exec";
+        "https://script.google.com/macros/s/AKfycbw9FhLVXWetdUWkY76C66OnqC-zzveGzPgOpv3A9UAd3PD-k4CwaatXBTTcJV4jfr6V/exec";
 
       // LÓGICA DE MENSAJES EMERGENTES (TOASTS)
       function showToast(message, type = "success") {
@@ -150,15 +150,15 @@
         btn.innerHTML = `⚡ CONSULTANDO BASE DE DATOS...`;
         containerClave.style.display = "none";
 
-        // Primero consultamos si el usuario ya existe en el servidor
-        fetch(`${SCRIPT_URL}?action=obtener_registros`)
+        // CORRECCIÓN: Apunta a obtener_claves para buscar en la pestaña correcta de Claves permanentes
+        fetch(`${SCRIPT_URL}?action=obtener_claves`)
           .then((res) => res.json())
           .then((data) => {
             // Buscamos si el nombre exacto ya tiene una clave asignada
             const alumnoExistente = data.find(r => r.nombre && r.nombre.trim().toLowerCase() === nombreInput.toLowerCase());
 
             if (alumnoExistente && alumnoExistente.clave) {
-              // SI EXISTE: Recordamos la clave que ya tenía asignada
+              // SI EXISTE: Recordamos e inyectamos la clave que ya tenía asignada
               document.getElementById("codGenerado").textContent = alumnoExistente.clave;
               containerClave.style.display = "block";
               alertBox.style.display = "none";
