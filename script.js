@@ -127,8 +127,8 @@
           });
       }
 
-      // ==========================================
-      // ACCIÓN 2: GENERAR CLAVE ÚNICA
+       // ==========================================
+      // ACCIÓN 2: GENERAR O RECORDAR CLAVE ÚNICA (CORREGIDO)
       // ==========================================
       function generarClave(event) {
         event.preventDefault();
@@ -147,41 +147,68 @@
         }
 
         btn.disabled = true;
-        btn.innerHTML = `⚡ CREANDO CREDENCIAL...`;
+        btn.innerHTML = `⚡ CONSULTANDO BASE DE DATOS...`;
         containerClave.style.display = "none";
 
-        let claveNueva = "";
-        const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        for (let i = 0; i < 4; i++) {
-          claveNueva += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
-        }
-
-        const params = new URLSearchParams();
-        params.append("action", "guardar_clave");
-        params.append("nombre", nombreInput);
-        params.append("clave", claveNueva);
-        params.append("docente", docenteInput);
-
-        fetch(SCRIPT_URL, { method: "POST", body: params })
+        // Primero consultamos si el usuario ya existe en el servidor
+        fetch(`${SCRIPT_URL}?action=obtener_registros`)
           .then((res) => res.json())
           .then((data) => {
-            if (data.result === "success") {
-              document.getElementById("codGenerado").textContent = claveNueva;
+            // Buscamos si el nombre exacto ya tiene una clave asignada
+            const alumnoExistente = data.find(r => r.nombre && r.nombre.trim().toLowerCase() === nombreInput.toLowerCase());
+
+            if (alumnoExistente && alumnoExistente.clave) {
+              // SI EXISTE: Recordamos la clave que ya tenía asignada
+              document.getElementById("codGenerado").textContent = alumnoExistente.clave;
               containerClave.style.display = "block";
               alertBox.style.display = "none";
-              showToast("🎉 ¡Tu nueva clave permanente fue creada!", "success");
+              showToast("🔍 Clave recuperada con éxito.", "info");
               document.getElementById("form-keygen").reset();
+              btn.disabled = false;
+              btn.innerHTML = `🔒 Generar Mi Clave Permanente`;
             } else {
-              alertBox.textContent = data.message;
-              alertBox.className = "alert-box error";
-              showToast("⚠️ Clave duplicada o error.", "warning");
+              // NO EXISTE: Procedemos a crear una nueva de forma normal
+              btn.innerHTML = `⚡ CREANDO CREDENCIAL...`;
+              let claveNueva = "";
+              const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+              for (let i = 0; i < 4; i++) {
+                claveNueva += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+              }
+
+              const params = new URLSearchParams();
+              params.append("action", "guardar_clave");
+              params.append("nombre", nombreInput);
+              params.append("clave", claveNueva);
+              params.append("docente", docenteInput);
+
+              fetch(SCRIPT_URL, { method: "POST", body: params })
+                .then((res) => res.json())
+                .then((dataPost) => {
+                  if (dataPost.result === "success") {
+                    document.getElementById("codGenerado").textContent = claveNueva;
+                    containerClave.style.display = "block";
+                    alertBox.style.display = "none";
+                    showToast("🎉 ¡Tu nueva clave permanente fue creada!", "success");
+                    document.getElementById("form-keygen").reset();
+                  } else {
+                    alertBox.textContent = dataPost.message;
+                    alertBox.className = "alert-box error";
+                    showToast("⚠️ Error al registrar.", "warning");
+                  }
+                })
+                .catch(() => {
+                  alertBox.textContent = "❌ NO SE PUDO GUARDAR EN LA BASE DE DATOS.";
+                  alertBox.className = "alert-box error";
+                })
+                .finally(() => {
+                  btn.disabled = false;
+                  btn.innerHTML = `🔒 Generar Mi Clave Permanente`;
+                });
             }
           })
           .catch((err) => {
-            alertBox.textContent = "❌ NO SE PUDO GUARDAR EN LA BASE DE DATOS.";
+            alertBox.textContent = "❌ ERROR AL CONSULTAR EL SERVIDOR.";
             alertBox.className = "alert-box error";
-          })
-          .finally(() => {
             btn.disabled = false;
             btn.innerHTML = `🔒 Generar Mi Clave Permanente`;
           });
