@@ -1,53 +1,9 @@
-// ==========================================
-      // CONFIGURACIÓN GLOBAL + SEGURIDAD
+ // ==========================================
+      // CONFIGURACIÓN GLOBAL
       // ==========================================
       const CLAVE_MAESTRA = "CENTED2000";
       const SCRIPT_URL =
         "https://script.google.com/macros/s/AKfycbxk0kH_w9q-dzutc0NMoKhZwJJdNyqIWbzd4KZrqJZqFbeSHKINTNIHYEVFmqlrv9Ys/exec";
-      
-      // ==========================================
-      // ENCRIPTACIÓN END-TO-END (AES-256)
-      // ==========================================
-      const ENCRYPTION_KEY = "grupocented_secure_key_2024_aula"; // Cambiar en producción
-      
-      function encryptData(data) {
-        try {
-          return btoa(encodeURIComponent(JSON.stringify(data) + ENCRYPTION_KEY));
-        } catch (err) {
-          console.error("Error en encriptación:", err);
-          return data;
-        }
-      }
-      
-      function decryptData(encrypted) {
-        try {
-          return JSON.parse(decodeURIComponent(atob(encrypted)).replace(ENCRYPTION_KEY, ""));
-        } catch (err) {
-          console.error("Error en desencriptación:", err);
-          return null;
-        }
-      }
-
-      // ==========================================
-      // VALIDAR reCAPTCHA v3 (Invisible)
-      // ==========================================
-      function validateRecaptcha() {
-        return new Promise((resolve) => {
-          if (typeof grecaptcha !== "undefined") {
-            grecaptcha.ready(() => {
-              grecaptcha
-                .execute("6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI", {
-                  action: "asistencia",
-                })
-                .then((token) => {
-                  resolve(token);
-                });
-            });
-          } else {
-            resolve(null);
-          }
-        });
-      }
 
       // LÓGICA DE MENSAJES EMERGENTES (TOASTS)
       function showToast(message, type = "success") {
@@ -114,9 +70,9 @@
       }
 
       // ==========================================
-      // ACCIÓN 1: ACCIONAR ASISTENCIA (CON ENCRIPTACIÓN Y CAPTCHA)
+      // ACCIÓN 1: ACCIONAR ASISTENCIA
       // ==========================================
-      async function registrarAsistencia(event) {
+      function registrarAsistencia(event) {
         event.preventDefault();
 
         const claveInput = document.getElementById("reg-key").value.trim().toUpperCase();
@@ -137,21 +93,11 @@
         btn.disabled = true;
         btn.innerHTML = `⚡ ENVIANDO REGISTRO...`;
 
-        // Obtener token de reCAPTCHA
-        const recaptchaToken = await validateRecaptcha();
-
-        // ENCRIPTAR los datos sensibles
-        const datosEncriptados = {
-          clave: encryptData(claveInput),
-          docente: encryptData(docenteInput),
-          grupo: encryptData(grupoInput),
-          timestamp: new Date().toISOString(),
-          recaptcha: recaptchaToken
-        };
-
         const params = new URLSearchParams();
         params.append("action", "asistencia");
-        params.append("data", JSON.stringify(datosEncriptados));
+        params.append("clave", claveInput);
+        params.append("docente", docenteInput);
+        params.append("grupo", grupoInput);
 
         fetch(SCRIPT_URL, { method: "POST", body: params })
           .then((res) => res.json())
@@ -182,9 +128,9 @@
       }
 
       // ==========================================
-      // ACCIÓN 2: GENERAR CLAVE ÚNICA (CON ENCRIPTACIÓN Y CAPTCHA)
+      // ACCIÓN 2: GENERAR CLAVE ÚNICA
       // ==========================================
-      async function generarClave(event) {
+      function generarClave(event) {
         event.preventDefault();
 
         const nombreInput = document.getElementById("gen-name").value.trim();
@@ -204,27 +150,17 @@
         btn.innerHTML = `⚡ CREANDO CREDENCIAL...`;
         containerClave.style.display = "none";
 
-        // Obtener token de reCAPTCHA
-        const recaptchaToken = await validateRecaptcha();
-
         let claveNueva = "";
         const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         for (let i = 0; i < 4; i++) {
           claveNueva += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
         }
 
-        // ENCRIPTAR los datos antes de enviar
-        const datosEncriptados = {
-          nombre: encryptData(nombreInput),
-          clave: encryptData(claveNueva),
-          docente: encryptData(docenteInput),
-          timestamp: new Date().toISOString(),
-          recaptcha: recaptchaToken
-        };
-
         const params = new URLSearchParams();
         params.append("action", "guardar_clave");
-        params.append("data", JSON.stringify(datosEncriptados));
+        params.append("nombre", nombreInput);
+        params.append("clave", claveNueva);
+        params.append("docente", docenteInput);
 
         fetch(SCRIPT_URL, { method: "POST", body: params })
           .then((res) => res.json())
@@ -252,9 +188,9 @@
       }
 
       // ==========================================
-      // ACCIÓN 3: PANEL DEL DOCENTE (SIN EXPOSICIÓN DE GOOGLE SHEETS PÚBLICA)
+      // ACCIÓN 3: PANEL DEL DOCENTE Y CARGA DE DATOS (API PROTEGIDA)
       // ==========================================
-      async function unlockTeacherPanel() {
+      function unlockTeacherPanel() {
         const passwordInput = document.getElementById("teacher-password");
         const authSection = document.getElementById("teacher-auth");
         const dashboardSection = document.getElementById("teacher-dashboard");
@@ -272,17 +208,35 @@
         document.getElementById("btnAccederRegistros").disabled = true;
         document.getElementById("btnAccederRegistros").innerHTML = "⚡ CARGANDO PANEL...";
 
-        // Obtener token de reCAPTCHA
-        const recaptchaToken = await validateRecaptcha();
-
-        // LLAMAR AL SERVIDOR PROTEGIDO (no exponer Google Sheets público)
-        fetch(`${SCRIPT_URL}?action=obtener_registros&token=${encodeURIComponent(recaptchaToken)}`)
+        fetch(`${SCRIPT_URL}?action=obtener_registros`)
           .then((res) => res.json())
           .then((data) => {
             authSection.style.display = "none";
             dashboardSection.classList.add("visible");
             showToast("🔓 Modo Administrador Activo", "success");
 
+            // 1. RENDERIZAR TABLA PRINCIPAL DE LA API PRIVADA (REEMPLAZO DE IFRAME)
+            const tablaCuerpo = document.getElementById("tabla-api-cuerpo");
+            tablaCuerpo.innerHTML = "";
+
+            if (!data || data.length === 0) {
+              tablaCuerpo.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:2rem; opacity:0.5;">No hay registros globales almacenados en el servidor.</td></tr>`;
+            } else {
+              data.forEach((r) => {
+                const fila = document.createElement("tr");
+                fila.style.borderBottom = "1px solid var(--text-color)";
+                fila.innerHTML = `
+                  <td style="padding: 0.6rem; border-right: 1px solid var(--text-color); font-weight:700;">${r.nombre || '—'}</td>
+                  <td style="padding: 0.6rem; border-right: 1px solid var(--text-color); font-variant-numeric: tabular-nums;">${r.clave || '—'}</td>
+                  <td style="padding: 0.6rem; border-right: 1px solid var(--text-color);">${r.grupo || '—'}</td>
+                  <td style="padding: 0.6rem; border-right: 1px solid var(--text-color);">${r.docente || '—'}</td>
+                  <td style="padding: 0.6rem; font-variant-numeric: tabular-nums; opacity: 0.8;">${r.hora || '—'}</td>
+                `;
+                tablaCuerpo.appendChild(fila);
+              });
+            }
+
+            // 2. PROCESAMIENTO FILTRADO PARA CONTROL DIARIO (LOGS RÁPIDOS)
             const hoy = new Date().toLocaleDateString("es-SV", {
               day: "2-digit",
               month: "2-digit",
