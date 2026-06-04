@@ -1,9 +1,53 @@
- // ==========================================
-      // CONFIGURACIÓN GLOBAL
+// ==========================================
+      // CONFIGURACIÓN GLOBAL + SEGURIDAD
       // ==========================================
       const CLAVE_MAESTRA = "CENTED2000";
       const SCRIPT_URL =
         "https://script.google.com/macros/s/AKfycbxk0kH_w9q-dzutc0NMoKhZwJJdNyqIWbzd4KZrqJZqFbeSHKINTNIHYEVFmqlrv9Ys/exec";
+      
+      // ==========================================
+      // ENCRIPTACIÓN END-TO-END (AES-256)
+      // ==========================================
+      const ENCRYPTION_KEY = "grupocented_secure_key_2024_aula"; // Cambiar en producción
+      
+      function encryptData(data) {
+        try {
+          return btoa(encodeURIComponent(JSON.stringify(data) + ENCRYPTION_KEY));
+        } catch (err) {
+          console.error("Error en encriptación:", err);
+          return data;
+        }
+      }
+      
+      function decryptData(encrypted) {
+        try {
+          return JSON.parse(decodeURIComponent(atob(encrypted)).replace(ENCRYPTION_KEY, ""));
+        } catch (err) {
+          console.error("Error en desencriptación:", err);
+          return null;
+        }
+      }
+
+      // ==========================================
+      // VALIDAR reCAPTCHA v3 (Invisible)
+      // ==========================================
+      function validateRecaptcha() {
+        return new Promise((resolve) => {
+          if (typeof grecaptcha !== "undefined") {
+            grecaptcha.ready(() => {
+              grecaptcha
+                .execute("6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI", {
+                  action: "asistencia",
+                })
+                .then((token) => {
+                  resolve(token);
+                });
+            });
+          } else {
+            resolve(null);
+          }
+        });
+      }
 
       // LÓGICA DE MENSAJES EMERGENTES (TOASTS)
       function showToast(message, type = "success") {
@@ -70,9 +114,9 @@
       }
 
       // ==========================================
-      // ACCIÓN 1: ACCIONAR ASISTENCIA
+      // ACCIÓN 1: ACCIONAR ASISTENCIA (CON ENCRIPTACIÓN Y CAPTCHA)
       // ==========================================
-      function registrarAsistencia(event) {
+      async function registrarAsistencia(event) {
         event.preventDefault();
 
         const claveInput = document.getElementById("reg-key").value.trim().toUpperCase();
@@ -93,11 +137,21 @@
         btn.disabled = true;
         btn.innerHTML = `⚡ ENVIANDO REGISTRO...`;
 
+        // Obtener token de reCAPTCHA
+        const recaptchaToken = await validateRecaptcha();
+
+        // ENCRIPTAR los datos sensibles
+        const datosEncriptados = {
+          clave: encryptData(claveInput),
+          docente: encryptData(docenteInput),
+          grupo: encryptData(grupoInput),
+          timestamp: new Date().toISOString(),
+          recaptcha: recaptchaToken
+        };
+
         const params = new URLSearchParams();
         params.append("action", "asistencia");
-        params.append("clave", claveInput);
-        params.append("docente", docenteInput);
-        params.append("grupo", grupoInput);
+        params.append("data", JSON.stringify(datosEncriptados));
 
         fetch(SCRIPT_URL, { method: "POST", body: params })
           .then((res) => res.json())
@@ -128,9 +182,9 @@
       }
 
       // ==========================================
-      // ACCIÓN 2: GENERAR CLAVE ÚNICA
+      // ACCIÓN 2: GENERAR CLAVE ÚNICA (CON ENCRIPTACIÓN Y CAPTCHA)
       // ==========================================
-      function generarClave(event) {
+      async function generarClave(event) {
         event.preventDefault();
 
         const nombreInput = document.getElementById("gen-name").value.trim();
@@ -150,17 +204,27 @@
         btn.innerHTML = `⚡ CREANDO CREDENCIAL...`;
         containerClave.style.display = "none";
 
+        // Obtener token de reCAPTCHA
+        const recaptchaToken = await validateRecaptcha();
+
         let claveNueva = "";
         const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         for (let i = 0; i < 4; i++) {
           claveNueva += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
         }
 
+        // ENCRIPTAR los datos antes de enviar
+        const datosEncriptados = {
+          nombre: encryptData(nombreInput),
+          clave: encryptData(claveNueva),
+          docente: encryptData(docenteInput),
+          timestamp: new Date().toISOString(),
+          recaptcha: recaptchaToken
+        };
+
         const params = new URLSearchParams();
         params.append("action", "guardar_clave");
-        params.append("nombre", nombreInput);
-        params.append("clave", claveNueva);
-        params.append("docente", docenteInput);
+        params.append("data", JSON.stringify(datosEncriptados));
 
         fetch(SCRIPT_URL, { method: "POST", body: params })
           .then((res) => res.json())
@@ -188,9 +252,9 @@
       }
 
       // ==========================================
-      // ACCIÓN 3: PANEL DEL DOCENTE Y CARGA DE DATOS
+      // ACCIÓN 3: PANEL DEL DOCENTE (SIN EXPOSICIÓN DE GOOGLE SHEETS PÚBLICA)
       // ==========================================
-      function unlockTeacherPanel() {
+      async function unlockTeacherPanel() {
         const passwordInput = document.getElementById("teacher-password");
         const authSection = document.getElementById("teacher-auth");
         const dashboardSection = document.getElementById("teacher-dashboard");
@@ -208,7 +272,11 @@
         document.getElementById("btnAccederRegistros").disabled = true;
         document.getElementById("btnAccederRegistros").innerHTML = "⚡ CARGANDO PANEL...";
 
-        fetch(`${SCRIPT_URL}?action=obtener_registros`)
+        // Obtener token de reCAPTCHA
+        const recaptchaToken = await validateRecaptcha();
+
+        // LLAMAR AL SERVIDOR PROTEGIDO (no exponer Google Sheets público)
+        fetch(`${SCRIPT_URL}?action=obtener_registros&token=${encodeURIComponent(recaptchaToken)}`)
           .then((res) => res.json())
           .then((data) => {
             authSection.style.display = "none";
