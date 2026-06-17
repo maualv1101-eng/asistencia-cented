@@ -576,9 +576,57 @@
         height: 100%; /* Se estira al alto completo del contenedor */
         border: none; /* Quita el borde por defecto del iframe */
       }
+      /* --- Estilos para el aviso de Zoom en Celulares --- */
+      .mobile-zoom-warning {
+        display: none; /* Oculto por defecto en PC */
+        background-color: #fff3cd; /* Amarillo de advertencia retro */
+        border: var(--border-width) solid var(--text-color);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        gap: 0.8rem;
+        align-items: center;
+        box-shadow: 4px 4px 0px var(--text-color);
+      }
+
+      /* Mostrar solo en pantallas pequeñas (Celulares) */
+      @media (max-width: 480px) {
+        .mobile-zoom-warning {
+          display: flex;
+        }
+        
+        /* Corrección extra: Evita que el contenedor se rompa por zoom forzado */
+        .app-container {
+          max-width: 100%;
+          box-shadow: 6px 6px 0px var(--text-color);
+        }
+      }
+
+      @media (max-width: 480px) {
+  .aula-iframe-container {
+    height: 50vh; /* Más pequeño en celular para que no desplace todo */
+    -webkit-overflow-scrolling: touch;
+    overflow-y: scroll;
+  }
+}
     </style>
   </head>
   <body>
+    <body>
+    <div class="overlay-texture"></div>
+    <div id="toast-box-container" class="toast-container"></div>
+
+    <main class="app-container">
+      
+      <!-- ========================================== -->
+      <!-- NUEVO: AVISO DE AJUSTE DE ZOOM PARA MÓVILES -->
+      <!-- ========================================== -->
+      <div class="mobile-zoom-warning">
+        <span class="warning-icon">📱</span>
+        <p><strong>¿Se ve muy grande?</strong> Si el diseño se distorsiona o se corta, ajusta el <strong>Zoom de tu navegador</strong> al 100% o activa la <strong>"Vista de computadora"</strong> en los 3 puntos de tu navegador.</p>
+      </div>
+
     <div class="overlay-texture"></div>
     <div id="toast-box-container" class="toast-container"></div>
 
