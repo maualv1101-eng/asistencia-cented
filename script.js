@@ -1,7 +1,7 @@
 // ==========================================
 // CONFIGURACIÓN GLOBAL
 // ==========================================
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyOLRhIzVzK_vrr8GhIIgZvVo2b3NUy_X2JZaVSTFy-TL4pb0rQeBjWocyYeGfVFZ1x/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZbYGeNZXsgiw56Q3rk-vBQMCThOMI2qvVxLCTzO2QKG8YHebTlfQEegL2Lk2sDTC5/exec";
 
 // Generador de Clave Dinámica Diaria (Sincronizado matemáticamente con tu Apps Script)
 function obtenerClaveDinamica() {
