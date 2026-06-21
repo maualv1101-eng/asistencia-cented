@@ -56,6 +56,7 @@
         --danger-color: #ff3b30; /* Rojo advertencia editorial */
         --success-color: #00c781; /* Verde de confirmación */
         --border-width: 2px;
+        --border-radius: 12px; /* ¡NUEVO: Controla el redondeado de todo el sitio! */
         --font-heading: "Syne", sans-serif;
         --font-body: "Space Grotesk", sans-serif;
       }
@@ -93,17 +94,35 @@
         z-index: 999;
       }
 
-      /* Contenedor Principal (Estilo Revista / Maquetación rígida moderna) */
+      /* Contenedor Principal con bordes suaves */
       .app-container {
         width: 100%;
         max-width: 720px;
         background: #ffffff;
         border: var(--border-width) solid var(--text-color);
+        border-radius: var(--border-radius);
         padding: 2.5rem;
         box-shadow: 12px 12px 0px var(--text-color);
         position: relative;
         z-index: 10;
         transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+      }
+
+      /* Aplicar redondeado automático a botones, inputs, cuadros de alerta y estadísticas */
+      .btn-retro, 
+      .live-status, 
+      input[type="text"], 
+      input[type="password"], 
+      select, 
+      .alert-box, 
+      .stat-box, 
+      .registros-container, 
+      .toast-card,
+      .btn-submit,
+      .btn-back,
+      .btn-danger,
+      .mobile-zoom-warning {
+        border-radius: calc(var(--border-radius) - 4px) !important;
       }
 
       /* Encabezado */
@@ -610,27 +629,19 @@
     overflow-y: scroll;
   }
 }
-    </style>
+ </style>
   </head>
   <body>
-    <body>
     <div class="overlay-texture"></div>
     <div id="toast-box-container" class="toast-container"></div>
 
     <main class="app-container">
       
-      <!-- ========================================== -->
-      <!-- NUEVO: AVISO DE AJUSTE DE ZOOM PARA MÓVILES -->
-      <!-- ========================================== -->
       <div class="mobile-zoom-warning">
         <span class="warning-icon">📱</span>
         <p><strong>¿Se ve muy grande?</strong> Si el diseño se distorsiona o se corta, ajusta el <strong>Zoom de tu navegador</strong> o activa la <strong>"Vista de computadora"</strong> en los 3 puntos de tu navegador.</p>
       </div>
 
-    <div class="overlay-texture"></div>
-    <div id="toast-box-container" class="toast-container"></div>
-
-    <main class="app-container">
       <header class="main-header">
         <div class="brand">
           <span class="badge">出席</span>
