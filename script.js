@@ -1,7 +1,8 @@
 // ==========================================
 // CONFIGURACIÓN GLOBAL
 // ==========================================
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZbYGeNZXsgiw56Q3rk-vBQMCThOMI2qvVxLCTzO2QKG8YHebTlfQEegL2Lk2sDTC5/exec";
+// PON AQUÍ TU NUEVA URL DE EXEC QUE COPIASTE DEL PASO ANTERIOR
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2if5N3UbbocyBF3l4STF9FVR1oddT6Ye4kAaWCk13PI8wCDUIlIqBQtxRC47qYmBF/exec";
 
 // Generador de Clave Dinámica Diaria (Sincronizado matemáticamente con tu Apps Script)
 function obtenerClaveDinamica() {
@@ -130,8 +131,8 @@ function accederRegistros() {
   const passwordInput = document.getElementById("teacher-password");
   const alertBox = document.getElementById("teacher-alert");
   const password = passwordInput.value.trim();
-  
-  // Validación matemática con la clave dinámica del día
+
+  // Cambiado: Ahora valida dinámicamente usando el algoritmo matemático diario
   const claveCorrecta = obtenerClaveDinamica();
 
   if (password !== claveCorrecta) {
@@ -141,7 +142,6 @@ function accederRegistros() {
     return;
   }
 
-  // Si la contraseña coincide localmente, desbloquea la interfaz y hace el fetch
   alertBox.textContent = "🔓 Acceso correcto. Cargando registros...";
   alertBox.className = "alert-box success";
   
@@ -151,7 +151,6 @@ function accederRegistros() {
   fetch(`${SCRIPT_URL}?action=obtener_asistencias`)
     .then((res) => res.json())
     .then((data) => {
-      // Activar vista del dashboard docente
       document.getElementById("teacher-auth").style.display = "none";
       document.getElementById("teacher-dashboard").classList.add("visible");
       showToast("📊 Panel de control actualizado en tiempo real.", "success");
@@ -162,7 +161,6 @@ function accederRegistros() {
       tbody.innerHTML = "";
       contenedor.innerHTML = "";
 
-      // Contadores de turnos
       let mañana = 0;
       let tarde = 0;
 
@@ -172,15 +170,12 @@ function accederRegistros() {
         document.getElementById("count-morning").textContent = "0";
         document.getElementById("count-afternoon").textContent = "0";
       } else {
-        // Ordenar del más reciente al más antiguo
         data.reverse();
 
         data.forEach((r) => {
-          // Filtrar contadores por grupo
           if (r.grupo === "MAÑANA") mañana++;
           if (r.grupo === "TARDE") tarde++;
 
-          // Inyectar en tabla principal
           const fila = document.createElement("tr");
           fila.innerHTML = `
             <td><strong>${r.hora}</strong></td>
@@ -192,7 +187,6 @@ function accederRegistros() {
           `;
           tbody.appendChild(fila);
 
-          // Inyectar en lista rápida/logs de abajo
           const item = document.createElement("div");
           item.className = "registro-item";
           item.innerHTML = `<p><strong>${r.nombre}</strong></p>
@@ -200,7 +194,6 @@ function accederRegistros() {
           contenedor.appendChild(item);
         });
 
-        // Actualizar contadores visuales
         document.getElementById("count-morning").textContent = mañana;
         document.getElementById("count-afternoon").textContent = tarde;
       }
