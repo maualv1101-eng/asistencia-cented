@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpzqZKnaNmliRaE9K_RcsYCMNgPtRn70awUdq5JGm6ncKaWWeX4OvZQfh2-FxiD7Eh/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0-bv8xoXvzvuTiyPoUTit8xatUtYlmY8nmCtVnRC86vVe5_yrnZ8_Vi2PWMB0wS6I/exec";
 
 function fetchConTimeout(url, opciones = {}, ms = 10000) {
   const controller = new AbortController();
@@ -20,6 +20,7 @@ function crearCeldaSegura(texto, estiloExtra = "") {
 
 function showToast(message, type = "success") {
   const container = document.getElementById("toast-box-container");
+  if (!container) return;
   const toast = document.createElement("div");
   toast.className = `toast-card ${type}`;
   toast.textContent = message;
@@ -56,10 +57,12 @@ function switchView(viewId) {
   document.querySelectorAll(".alert-box").forEach((el) => {
     el.className = "alert-box";
     el.style.display = "none";
+    el.textContent = "";
   });
 
   document.querySelectorAll(".card-view").forEach((v) => v.classList.remove("active"));
   targetView.classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function validarNombreEstricto(n) {
@@ -68,7 +71,7 @@ function validarNombreEstricto(n) {
 }
 
 function registrarAsistencia(event) {
-  event.preventDefault();
+  if (event) event.preventDefault();
 
   const claveInput = document.getElementById("reg-key").value.trim().toUpperCase();
   const docenteInput = document.getElementById("reg-teacher").value;
@@ -142,7 +145,7 @@ function registrarAsistencia(event) {
 }
 
 function generarClave(event) {
-  event.preventDefault();
+  if (event) event.preventDefault();
 
   const nombreInput = sanitizarTexto(document.getElementById("gen-name").value.trim());
   const docenteInput = document.getElementById("gen-teacher").value;
@@ -193,9 +196,9 @@ function generarClave(event) {
         params.append("docente", docenteInput);
 
         fetchConTimeout(SCRIPT_URL, { method: "POST", body: params })
-          .then((res) => {
-            if (!res.ok) throw new Error("HTTP " + res.status);
-            return res.json();
+          .then((resPost) => {
+            if (!resPost.ok) throw new Error("HTTP " + resPost.status);
+            return resPost.json();
           })
           .then((dataPost) => {
             if (dataPost.result === "success") {
@@ -236,7 +239,9 @@ function generarClave(event) {
     });
 }
 
-function unlockTeacherPanel() {
+function unlockTeacherPanel(event) {
+  if (event) event.preventDefault();
+
   const passwordInput = document.getElementById("teacher-password");
   const authSection = document.getElementById("teacher-auth");
   const dashboardSection = document.getElementById("teacher-dashboard");
@@ -298,15 +303,15 @@ function unlockTeacherPanel() {
         });
       }
 
-      const hoy = new Date().toLocaleDateString("es-SV", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).replace(/-/g, '/');
+      // Generar string de fecha exacta de El Salvador (DD/MM/YYYY)
+      const nowTz = new Date(new Date().toLocaleString("en-US", { timeZone: "America/El_Salvador" }));
+      const d = String(nowTz.getDate()).padStart(2, '0');
+      const m = String(nowTz.getMonth() + 1).padStart(2, '0');
+      const y = nowTz.getFullYear();
+      const hoyExacto = `${d}/${m}/${y}`;
 
       const filtrados = data.filter((r) => {
-        const fechaRegistro = r.fecha ? r.fecha.replace(/-/g, '/') : '';
-        return fechaRegistro === hoy;
+        return (r.fecha || '').trim() === hoyExacto;
       });
 
       document.getElementById("count-morning").textContent = filtrados.filter((r) => r.grupo === "Mañana").length;
@@ -348,6 +353,7 @@ function unlockTeacherPanel() {
         alertBox.textContent = "❌ ERROR AL TRAER LOS REGISTROS DESDE EL SERVIDOR.";
       }
       alertBox.className = "alert-box error";
+      showToast("❌ Error al cargar datos.", "warning");
     })
     .finally(() => {
       document.getElementById("btnAccederRegistros").disabled = false;
@@ -397,3 +403,11 @@ function triggerClearAll() {
       }
     });
 }
+
+// Anclaje explícito al alcance global (Garantía de ejecución DOM inline)
+window.switchView = switchView;
+window.registrarAsistencia = registrarAsistencia;
+window.generarClave = generarClave;
+window.unlockTeacherPanel = unlockTeacherPanel;
+window.lockAndReturn = lockAndReturn;
+window.triggerClearAll = triggerClearAll;
