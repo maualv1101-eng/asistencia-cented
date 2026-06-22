@@ -2,23 +2,17 @@
 // CONFIGURACIÓN GLOBAL (SIN CLAVE ESTÁTICA)
 // ==========================================
 const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbxqSMrESYRMdNSXouRGH5bTvwiA1-d0rkHwMUY3rkMwG5dvIancOIOJkTLNvBMbgVM1/exec";
+  "https://script.google.com/macros/s/AKfycbzA0_bDCDpO79PwSg5kBHZXrrvnJWV90Mb7Kk11WliD-OPg7KmUC_A-H21Mew7sDf7o/exec";
 
-/**
- * Calcula de manera idéntica la clave dinámica de 6 dígitos en el Frontend
- * basándose exclusivamente en la fecha vigente en El Salvador (GMT-6).
- */
-function obtenerClaveMaestraDinamica() {
-  const fechaTz = new Date(new Date().toLocaleString("en-US", { timeZone: "America/El_Salvador" }));
-  
-  const day = fechaTz.getDate();
-  const month = fechaTz.getMonth() + 1;
-  const year = fechaTz.getFullYear();
-  
-  const val = (day * 8321) + (month * 9413) + (year * 7123);
-  const code = (val * 1543) % 900000 + 100000;
-  
-  return String(code);
+
+// ==========================================
+// FIX #12: Fetch con timeout usando AbortController
+// ==========================================
+function fetchConTimeout(url, opciones = {}, ms = 10000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return fetch(url, { ...opciones, signal: controller.signal })
+    .finally(() => clearTimeout(timer));
 }
 
 // LÓGICA DE MENSAJES EMERGENTES (TOASTS)
@@ -27,9 +21,7 @@ function showToast(message, type = "success") {
   const toast = document.createElement("div");
   toast.className = `toast-card ${type}`;
   toast.textContent = message;
-
   container.appendChild(toast);
-
   setTimeout(() => {
     toast.style.animation = "toast-fade-out 0.4s cubic-bezier(0.19, 1, 0.22, 1) forwards";
     toast.addEventListener("animationend", () => {
@@ -83,8 +75,21 @@ function validarNombreEstricto(n) {
   return regex.test(n.trim());
 }
 
+// FIX #20: Sanitizar caracteres HTML peligrosos
+function sanitizarTexto(str) {
+  return str.replace(/[<>&"']/g, "");
+}
+
+// FIX #13: Crear celda de tabla de forma segura sin innerHTML
+function crearCeldaSegura(texto, estiloExtra = "") {
+  const td = document.createElement("td");
+  td.style.cssText = "padding: 0.6rem; border-right: 1px solid var(--text-color);" + estiloExtra;
+  td.textContent = texto || "—";
+  return td;
+}
+
 // ==========================================
-// ACCIÓN 1: ACCIONAR ASISTENCIA
+// ACCIÓN 1: REGISTRAR ASISTENCIA
 // ==========================================
 function registrarAsistencia(event) {
   event.preventDefault();
@@ -93,17 +98,32 @@ function registrarAsistencia(event) {
   const docenteInput = document.getElementById("reg-teacher").value;
   const grupoInput = document.getElementById("reg-group").value;
   const tokenInput = document.getElementById("reg-token").value.trim();
-
   const alertBox = document.getElementById("alertRegistro");
   const btn = document.getElementById("btnRegistrar");
 
-  // VALIDACIÓN DE FIRMA CONTRA EL ALGORITMO DINÁMICO
-  if (tokenInput !== obtenerClaveMaestraDinamica()) {
-    alertBox.textContent = "❌ LA FIRMA DEL DOCENTE ES INCORRECTA.";
+  // FIX #16: Validar formato de clave antes de enviar
+  // FIX #16: Exactamente 4 caracteres alfanuméricos en mayúsculas
+  if (!/^[A-Z0-9]{4}$/.test(claveInput)) {
+    alertBox.textContent = "❌ LA CLAVE DEBE SER EXACTAMENTE 4 CARACTERES ALFANUMÉRICOS.";
     alertBox.className = "alert-box error";
-    showToast("❌ Firma denegada.", "warning");
+    showToast("❌ Formato de clave inválido.", "warning");
     return;
   }
+
+  // FIX #4: Rate limiting con localStorage (cooldown de 30 segundos)
+  const ultimoEnvio = localStorage.getItem("ultimo_envio_asistencia");
+  const ahora = Date.now();
+  if (ultimoEnvio && ahora - parseInt(ultimoEnvio) < 30000) {
+    const restante = Math.ceil((30000 - (ahora - parseInt(ultimoEnvio))) / 1000);
+    alertBox.textContent = `⏳ Espera ${restante} segundos antes de volver a registrar.`;
+    alertBox.className = "alert-box warning";
+    showToast(`⏳ Espera ${restante}s.`, "warning");
+    return;
+  }
+
+  // FIX #1: La firma ya NO se valida aquí en el frontend.
+  // Se envía al backend junto con el registro y el Apps Script la verifica.
+  // El algoritmo de la firma fue eliminado del cliente.
 
   btn.disabled = true;
   btn.innerHTML = `⚡ ENVIANDO REGISTRO...`;
@@ -113,18 +133,24 @@ function registrarAsistencia(event) {
   params.append("clave", claveInput);
   params.append("docente", docenteInput);
   params.append("grupo", grupoInput);
+  params.append("firma", tokenInput); // FIX #1: firma viaja al backend para verificación
 
-  fetch(SCRIPT_URL, { method: "POST", body: params })
-    .then((res) => res.json())
+  // FIX #12: Usar fetchConTimeout
+  fetchConTimeout(SCRIPT_URL, { method: "POST", body: params })
+    .then((res) => {
+      // FIX #21: Verificar HTTP status
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
     .then((data) => {
       if (data.result === "success") {
         alertBox.textContent = "✓ ¡ASISTENCIA PROCESADA CON ÉXITO!";
         alertBox.className = "alert-box success";
         showToast("✓ ¡Asistencia registrada exitosamente!", "success");
         document.getElementById("form-register").reset();
-        setTimeout(() => {
-          switchView("view-menu");
-        }, 2000);
+        // FIX #4: Guardar timestamp del último envío exitoso
+        localStorage.setItem("ultimo_envio_asistencia", Date.now());
+        setTimeout(() => { switchView("view-menu"); }, 2000);
       } else {
         alertBox.textContent = data.message;
         alertBox.className = "alert-box error";
@@ -132,7 +158,11 @@ function registrarAsistencia(event) {
       }
     })
     .catch((err) => {
-      alertBox.textContent = "❌ ERROR DE RED O CONEXIÓN.";
+      if (err.name === "AbortError") {
+        alertBox.textContent = "❌ TIEMPO DE ESPERA AGOTADO. Intenta de nuevo.";
+      } else {
+        alertBox.textContent = "❌ ERROR DE RED O CONEXIÓN.";
+      }
       alertBox.className = "alert-box error";
       showToast("❌ Error crítico de red.", "warning");
     })
@@ -148,7 +178,8 @@ function registrarAsistencia(event) {
 function generarClave(event) {
   event.preventDefault();
 
-  const nombreInput = document.getElementById("gen-name").value.trim();
+  // FIX #20: Sanitizar el nombre antes de usarlo
+  const nombreInput = sanitizarTexto(document.getElementById("gen-name").value.trim());
   const docenteInput = document.getElementById("gen-teacher").value;
   const alertBox = document.getElementById("alertGenerarClave");
   const btn = document.getElementById("btnGenerar");
@@ -165,13 +196,18 @@ function generarClave(event) {
   btn.innerHTML = `⚡ CONSULTANDO BASE DE DATOS...`;
   containerClave.style.display = "none";
 
-  fetch(`${SCRIPT_URL}?action=obtener_claves`)
-    .then((res) => res.json())
+  // FIX #18: Enviar el nombre al backend para que devuelva solo la clave de ese alumno
+  // En lugar de obtener_claves (que devuelve todo), usamos obtener_clave_alumno
+  fetchConTimeout(`${SCRIPT_URL}?action=obtener_clave_alumno&nombre=${encodeURIComponent(nombreInput)}`)
+    .then((res) => {
+      // FIX #21: Verificar HTTP status
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
     .then((data) => {
-      const alumnoExistente = data.find(r => r.nombre && r.nombre.trim().toLowerCase() === nombreInput.toLowerCase());
-
-      if (alumnoExistente && alumnoExistente.clave) {
-        document.getElementById("codGenerado").textContent = alumnoExistente.clave;
+      if (data.clave) {
+        // Alumno ya existe, mostrar su clave
+        document.getElementById("codGenerado").textContent = data.clave;
         containerClave.style.display = "block";
         alertBox.style.display = "none";
         showToast("🔍 Clave recuperada con éxito.", "info");
@@ -179,11 +215,16 @@ function generarClave(event) {
         btn.disabled = false;
         btn.innerHTML = `🔒 Generar Mi Clave Permanente`;
       } else {
+        // Alumno no existe, crear nueva clave
         btn.innerHTML = `⚡ CREANDO CREDENCIAL...`;
+
+        // FIX #6: Usar crypto.getRandomValues en lugar de Math.random
         let claveNueva = "";
         const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        const array = new Uint32Array(4);
+        crypto.getRandomValues(array);
         for (let i = 0; i < 4; i++) {
-          claveNueva += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+          claveNueva += caracteres.charAt(array[i] % caracteres.length);
         }
 
         const params = new URLSearchParams();
@@ -192,8 +233,12 @@ function generarClave(event) {
         params.append("clave", claveNueva);
         params.append("docente", docenteInput);
 
-        fetch(SCRIPT_URL, { method: "POST", body: params })
-          .then((res) => res.json())
+        fetchConTimeout(SCRIPT_URL, { method: "POST", body: params })
+          .then((res) => {
+            // FIX #21: Verificar HTTP status
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.json();
+          })
           .then((dataPost) => {
             if (dataPost.result === "success") {
               document.getElementById("codGenerado").textContent = claveNueva;
@@ -207,8 +252,12 @@ function generarClave(event) {
               showToast("⚠️ Error al registrar.", "warning");
             }
           })
-          .catch(() => {
-            alertBox.textContent = "❌ NO SE PUDO GUARDAR EN LA BASE DE DATOS.";
+          .catch((err) => {
+            if (err.name === "AbortError") {
+              alertBox.textContent = "❌ TIEMPO DE ESPERA AGOTADO. Intenta de nuevo.";
+            } else {
+              alertBox.textContent = "❌ NO SE PUDO GUARDAR EN LA BASE DE DATOS.";
+            }
             alertBox.className = "alert-box error";
           })
           .finally(() => {
@@ -218,7 +267,11 @@ function generarClave(event) {
       }
     })
     .catch((err) => {
-      alertBox.textContent = "❌ ERROR AL CONSULTAR EL SERVIDOR.";
+      if (err.name === "AbortError") {
+        alertBox.textContent = "❌ TIEMPO DE ESPERA AGOTADO. Intenta de nuevo.";
+      } else {
+        alertBox.textContent = "❌ ERROR AL CONSULTAR EL SERVIDOR.";
+      }
       alertBox.className = "alert-box error";
       btn.disabled = false;
       btn.innerHTML = `🔒 Generar Mi Clave Permanente`;
@@ -234,77 +287,121 @@ function unlockTeacherPanel() {
   const dashboardSection = document.getElementById("teacher-dashboard");
   const alertBox = document.getElementById("alertVerRegistros");
 
-  // VALIDACIÓN DE ACCESO AL PANEL CONTRA EL ALGORITMO DINÁMICO
-  if (passwordInput.value.trim() !== obtenerClaveMaestraDinamica()) {
-    alertBox.textContent = "❌ CREDENCIAL DE ACCESO DENEGADA.";
+  const firmaIngresada = passwordInput.value.trim();
+
+  if (!firmaIngresada) {
+    alertBox.textContent = "❌ INGRESA LA CLAVE DE VALIDACIÓN.";
     alertBox.className = "alert-box error";
-    showToast("❌ Acceso Incorrecto.", "warning");
-    passwordInput.focus();
     return;
   }
 
   alertBox.style.display = "none";
   document.getElementById("btnAccederRegistros").disabled = true;
-  document.getElementById("btnAccederRegistros").innerHTML = "⚡ CARGANDO PANEL...";
+  document.getElementById("btnAccederRegistros").innerHTML = "⚡ VERIFICANDO...";
 
-  fetch(`${SCRIPT_URL}?action=obtener_registros`)
-    .then((res) => res.json())
+  // FIX #1 + #7: La verificación de la firma ahora la hace el backend
+  // Se manda la firma al Apps Script junto con obtener_registros
+  // El backend verifica si es válida antes de devolver los datos
+  fetchConTimeout(`${SCRIPT_URL}?action=obtener_registros&firma=${encodeURIComponent(firmaIngresada)}`)
+    .then((res) => {
+      // FIX #21: Verificar HTTP status
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
     .then((data) => {
+      // Si el backend rechaza la firma
+      if (data.error) {
+        alertBox.textContent = "❌ CREDENCIAL DE ACCESO DENEGADA.";
+        alertBox.className = "alert-box error";
+        showToast("❌ Acceso Incorrecto.", "warning");
+        passwordInput.focus();
+        return;
+      }
+
       authSection.style.display = "none";
       dashboardSection.classList.add("visible");
       showToast("🔓 Modo Administrador Activo", "success");
 
+      // FIX #13: Construir tabla sin innerHTML para evitar XSS
       const tablaCuerpo = document.getElementById("tabla-api-cuerpo");
       tablaCuerpo.innerHTML = "";
 
       if (!data || data.length === 0) {
-        tablaCuerpo.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:2rem; opacity:0.5;">No hay registros globales almacenados en el servidor.</td></tr>`;
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 5;
+        td.style.cssText = "text-align:center; padding:2rem; opacity:0.5;";
+        td.textContent = "No hay registros globales almacenados en el servidor.";
+        tr.appendChild(td);
+        tablaCuerpo.appendChild(tr);
       } else {
         data.forEach((r) => {
           const fila = document.createElement("tr");
           fila.style.borderBottom = "1px solid var(--text-color)";
-          fila.innerHTML = `
-            <td style="padding: 0.6rem; border-right: 1px solid var(--text-color); font-weight:700;">${r.nombre || '—'}</td>
-            <td style="padding: 0.6rem; border-right: 1px solid var(--text-color); font-variant-numeric: tabular-nums;">${r.clave || '—'}</td>
-            <td style="padding: 0.6rem; border-right: 1px solid var(--text-color);">${r.grupo || '—'}</td>
-            <td style="padding: 0.6rem; border-right: 1px solid var(--text-color);">${r.docente || '—'}</td>
-            <td style="padding: 0.6rem; font-variant-numeric: tabular-nums; opacity: 0.8;">${r.hora || '—'}</td>
-          `;
+          fila.appendChild(crearCeldaSegura(r.nombre, "font-weight:700;"));
+          fila.appendChild(crearCeldaSegura(r.clave, "font-variant-numeric:tabular-nums;"));
+          fila.appendChild(crearCeldaSegura(r.grupo));
+          fila.appendChild(crearCeldaSegura(r.docente));
+          const tdHora = crearCeldaSegura(r.hora, "font-variant-numeric:tabular-nums; opacity:0.8;");
+          tdHora.style.borderRight = "none";
+          fila.appendChild(tdHora);
           tablaCuerpo.appendChild(fila);
         });
       }
 
       const hoy = new Date().toLocaleDateString("es-SV", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).replace(/-/g, '/');
+        day: "2-digit", month: "2-digit", year: "numeric",
+      }).replace(/-/g, "/");
 
       const filtrados = data.filter((r) => {
-        const fechaRegistro = r.fecha ? r.fecha.replace(/-/g, '/') : '';
+        const fechaRegistro = r.fecha ? r.fecha.replace(/-/g, "/") : "";
         return fechaRegistro === hoy;
       });
 
       document.getElementById("count-morning").textContent = filtrados.filter((r) => r.grupo === "Mañana").length;
       document.getElementById("count-afternoon").textContent = filtrados.filter((r) => r.grupo === "Tarde").length;
 
+      // FIX #13: Construir logs sin innerHTML
       const contenedor = document.getElementById("listaRegistros");
       contenedor.innerHTML = "";
 
       if (filtrados.length === 0) {
-        contenedor.innerHTML = `<div class="registro-item" style="text-align:center; opacity:0.5;">No hay asistencias registradas este día.</div>`;
+        const div = document.createElement("div");
+        div.className = "registro-item";
+        div.style.cssText = "text-align:center; opacity:0.5;";
+        div.textContent = "No hay asistencias registradas este día.";
+        contenedor.appendChild(div);
       } else {
         filtrados.forEach((r) => {
           const item = document.createElement("div");
           item.className = "registro-item";
-          item.innerHTML = `<strong>${r.nombre}</strong> — ${r.grupo}<br>
-                            <small style="opacity: 0.7;">Clave: ${r.clave} | Docente: ${r.docente} | Hora: ${r.hora}</small>`;
+
+          const strong = document.createElement("strong");
+          strong.textContent = r.nombre || "—";
+
+          const span = document.createElement("span");
+          span.textContent = ` — ${r.grupo || "—"}`;
+
+          const br = document.createElement("br");
+
+          const small = document.createElement("small");
+          small.style.opacity = "0.7";
+          small.textContent = `Clave: ${r.clave || "—"} | Docente: ${r.docente || "—"} | Hora: ${r.hora || "—"}`;
+
+          item.appendChild(strong);
+          item.appendChild(span);
+          item.appendChild(br);
+          item.appendChild(small);
           contenedor.appendChild(item);
         });
       }
     })
     .catch((err) => {
-      alertBox.textContent = "❌ ERROR AL TRAER LOS REGISTROS DESDE EL SERVIDOR.";
+      if (err.name === "AbortError") {
+        alertBox.textContent = "❌ TIEMPO DE ESPERA AGOTADO. Intenta de nuevo.";
+      } else {
+        alertBox.textContent = "❌ ERROR AL TRAER LOS REGISTROS DESDE EL SERVIDOR.";
+      }
       alertBox.className = "alert-box error";
     })
     .finally(() => {
@@ -315,22 +412,45 @@ function unlockTeacherPanel() {
 }
 
 function lockAndReturn() {
+  // FIX #17: Limpiar el dashboard al salir para no dejar datos visibles
+  document.getElementById("tabla-api-cuerpo").innerHTML = "";
+  document.getElementById("listaRegistros").innerHTML = "";
+  document.getElementById("count-morning").textContent = "0";
+  document.getElementById("count-afternoon").textContent = "0";
+
   document.getElementById("teacher-dashboard").classList.remove("visible");
   document.getElementById("teacher-auth").style.display = "block";
   switchView("view-menu");
 }
 
+// FIX #8: Borrado protegido con firma en lugar de confirm() simple
 function triggerClearAll() {
-  if (confirm("🚨 ¿Estás completamente seguro de que deseas limpiar y archivar todos los registros del día?")) {
-    const params = new URLSearchParams();
-    params.append("action", "limpiar_asistencias");
+  const firmaConfirm = prompt("⚠️ ACCIÓN IRREVERSIBLE\nIngresa la Firma del Docente de hoy para confirmar el borrado:");
+  if (!firmaConfirm) return;
 
-    fetch(SCRIPT_URL, { method: "POST", body: params })
-      .then(() => {
+  const params = new URLSearchParams();
+  params.append("action", "limpiar_asistencias");
+  params.append("firma", firmaConfirm.trim()); // FIX #8: el backend verifica la firma antes de limpiar
+
+  fetchConTimeout(SCRIPT_URL, { method: "POST", body: params })
+    .then((res) => {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
+    .then((data) => {
+      if (data.result === "success") {
         showToast("🗑 Registros archivados con éxito.", "success");
         alert("Registros guardados en Historial y limpiados correctamente.");
         lockAndReturn();
-      })
-      .catch(() => showToast("❌ Error al reiniciar el día.", "warning"));
-  }
+      } else {
+        showToast("❌ " + (data.message || "Firma incorrecta o error al limpiar."), "warning");
+      }
+    })
+    .catch((err) => {
+      if (err.name === "AbortError") {
+        showToast("❌ Tiempo de espera agotado.", "warning");
+      } else {
+        showToast("❌ Error al reiniciar el día.", "warning");
+      }
+    });
 }
