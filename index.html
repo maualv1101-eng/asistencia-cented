@@ -167,24 +167,27 @@
         margin-bottom: 2.5rem;
       }
 
+      /* ==========================================
+         SISTEMA DE VISUALIZACIÓN POR KEYFRAMES (100% ESTABLE)
+         ========================================== */
       .card-view {
-        display: block;
-        visibility: hidden;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.19, 1, 0.22, 1);
-        position: absolute;
-        width: calc(100% - 5rem);
-        pointer-events: none;
+        display: none;
       }
 
       .card-view.active {
-        visibility: visible;
-        opacity: 1;
-        transform: translateY(0);
-        position: relative;
-        pointer-events: auto;
-        width: 100%;
+        display: block;
+        animation: fadeInView 0.35s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+      }
+
+      @keyframes fadeInView {
+        from {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .menu-grid {
@@ -206,6 +209,7 @@
         font-family: var(--font-body);
         color: var(--text-color);
         transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        width: 100%;
       }
 
       .btn-retro .btn-num {
@@ -331,6 +335,8 @@
         letter-spacing: 1px;
         transition: all 0.2s ease;
         text-align: center;
+        width: 100%;
+        display: block;
       }
 
       .btn-submit { background-color: var(--accent-color); color: #ffffff; border-color: var(--accent-color); }
@@ -490,20 +496,19 @@
 
       <hr class="editorial-line" />
 
-      <!-- PANTALLA 1: MENÚ -->
       <section id="view-menu" class="card-view active">
         <div class="menu-grid">
-          <button class="btn-retro" onclick="switchView('view-register')">
+          <button type="button" class="btn-retro" onclick="switchView('view-register')">
             <span class="btn-num">01</span>
             <span class="btn-text">Registrar Asistencia</span>
             <span class="btn-arrow">→</span>
           </button>
-          <button class="btn-retro" onclick="switchView('view-keygen')">
+          <button type="button" class="btn-retro" onclick="switchView('view-keygen')">
             <span class="btn-num">02</span>
             <span class="btn-text">Generar Mi Clave Única</span>
             <span class="btn-arrow">→</span>
           </button>
-          <button class="btn-retro" onclick="switchView('view-teacher')">
+          <button type="button" class="btn-retro" onclick="switchView('view-teacher')">
             <span class="btn-num">03</span>
             <span class="btn-text">Ver Registros (Docente)</span>
             <span class="btn-arrow">→</span>
@@ -530,7 +535,6 @@
         </div>
       </section>
 
-      <!-- PANTALLA 2: REGISTRAR ASISTENCIA -->
       <section id="view-register" class="card-view">
         <h2 class="view-title">【 登録 】 Registrar Asistencia</h2>
         <div id="alertRegistro" class="alert-box"></div>
@@ -571,7 +575,6 @@
         </form>
       </section>
 
-      <!-- PANTALLA 3: GENERAR CLAVE PERMANENTE -->
       <section id="view-keygen" class="card-view">
         <h2 class="view-title">【 鍵作成 】 Generar Mi Clave</h2>
         <div id="alertGenerarClave" class="alert-box"></div>
@@ -606,21 +609,20 @@
         </form>
       </section>
 
-      <!-- PANTALLA 4: PANEL DE CONTROL DOCENTE -->
       <section id="view-teacher" class="card-view">
         <h2 class="view-title">【 管理 】 Panel del Docente</h2>
         <div id="alertVerRegistros" class="alert-box"></div>
 
-        <div id="teacher-auth">
+        <form id="teacher-auth" onsubmit="unlockTeacherPanel(event); return false;">
           <div class="input-group">
             <label for="teacher-password">Clave de Validación *</label>
             <input type="password" id="teacher-password" placeholder="••••••••••••" required autocomplete="off" />
           </div>
           <div class="form-actions">
-            <button type="button" id="btnAccederRegistros" class="btn-submit" onclick="unlockTeacherPanel()">🔓 Entrar</button>
+            <button type="submit" id="btnAccederRegistros" class="btn-submit">🔓 Entrar</button>
             <button type="button" class="btn-back" onclick="switchView('view-menu')">← Volver</button>
           </div>
-        </div>
+        </form>
 
         <div id="teacher-dashboard" class="hidden-panel">
           <div class="input-group">
@@ -668,6 +670,6 @@
         </div>
       </section>
     </main>
-    <script src="script.js" defer></script>
+    <script src="script.js"></script>
   </body>
 </html>
