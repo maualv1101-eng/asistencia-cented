@@ -1,34 +1,26 @@
 <!doctype html>
 <html lang="es">
- <head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <!-- Título cargado de palabras clave de búsqueda directa -->
-    <title> Grupo Cented | AULA DIGITAL - SISTEMAS INFORMATICOS - GRUPO CENTED</title>
-    
-    <!-- SEO Estándar saturado de intenciones de búsqueda de alumnos -->
+    <title>Grupo Cented | AULA DIGITAL - SISTEMAS INFORMATICOS - GRUPO CENTED</title>
     <meta name="description" content="Portal oficial para el Control de Asistencia en el Aula de Sistemas Informáticos de Grupo Cented. Registro rápido para alumnos, estudiantes y docentes de cnetes cented altavista." />
-    
-    <!-- Diccionario ULTRA MASIVO para SEO (Cubre variaciones en Mayúsculas, Minúsculas y Errores de dedo exactos) -->
     <meta name="keywords" content="CENTED, cented, cnetes, grupo cented, CENTED AULA, cented aula, aula cented, asistencia cented, asistancia, asistencia grupo centes, cneted, asistencia aula, aula virtual cented, informatica cented, INFROAMTICA, sistemas informaticos cented, clase cented, registro cented, docente cented, alumnos cented, estudiantes cented, control de asistencia cented, asistencia fyi, cented fyi, aula digital cented, AULA DIGITAL CENTED, Aula Digital Cented, grupo cnete, GRUPO CNETE, Grupo Cnete, cented grupo aula centes, CENTED GRUPO AULA CENTES, Cented Grupo Aula Centes, grupo aula centes, GRUPO AULA CENTES, Grupo Aula Centes, cnete cented, CNETE CENTED, cnete" />
     <meta name="author" content="Departamento de Sistemas Informáticos - Grupo Cented" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://grupocented.fyi/" />
 
-    <!-- METADATOS TÉCNICOS ADICIONALES PARA POTENCIAR EL SEO -->
     <meta name="theme-color" content="#000000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="CENTED AULA" />
 
-    <!-- REDIMENSIONAMIENTO FORZADO DEL LOGO ORIGINAL A LAS MEDIDAS ESTÁNDAR CORRECTAS -->
     <link rel="icon" href="https://grupocented.fyi/LOGO.png" type="image/png" sizes="16x16" />
     <link rel="icon" href="https://grupocented.fyi/LOGO.png" type="image/png" sizes="32x32" />
     <link rel="icon" href="https://grupocented.fyi/LOGO.png" type="image/png" sizes="192x192" />
     <link rel="apple-touch-icon" href="https://grupocented.fyi/LOGO.png" sizes="180x180" />
     <link rel="shortcut icon" href="https://grupocented.fyi/LOGO.png" type="image/png" sizes="48x48" />
 
-    <!-- Open Graph / WhatsApp / Facebook (Sin etiquetas de imagen para evitar fallos) -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Control de Asistencia — Grupo Cented AULA INFROAMTICA" />
     <meta property="og:description" content="Ingresa al sistema de asistencia oficial de Grupo Cented. Registro rápido para el Aula de Sistemas Informáticos y soporte técnico estudiantil." />
@@ -36,27 +28,21 @@
     <meta property="og:site_name" content="CENTED AULA VIRTUAL" />
     <meta property="og:locale" content="es_SV" />
 
-    <!-- Twitter / X Meta Tags (Limpias de imágenes) -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Control de Asistencia — CENTED AULA" />
     <meta name="twitter:description" content="Portal de asistencia para las clases y laboratorios del Departamento de Sistemas de Grupo Cented." />
 
-    <!-- Fuentes Tipográficas -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap"
-      rel="stylesheet"
-    />
-    <!-- Estilos de tu aplicación -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+    
     <style>
-      /* Aquí abajo siguen tus estilos CSS originales tal y como los tienes */
       :root {
-        --bg-color: #f4f3ef; /* Blanco roto papel periódico retro */
-        --text-color: #0d0d0d; /* Negro profundo puro */
-        --accent-color: #2b46ff; /* Azul eléctrico SpaceX de alta tecnología */
-        --danger-color: #ff3b30; /* Rojo advertencia editorial */
-        --success-color: #00c781; /* Verde de confirmación */
+        --bg-color: #f4f3ef;
+        --text-color: #0d0d0d;
+        --accent-color: #2b46ff;
+        --danger-color: #ff3b30;
+        --success-color: #00c781;
         --border-width: 2px;
-        --border-radius: 12px; /* ¡NUEVO: Controla el redondeado de todo el sitio! */
+        --border-radius: 12px;
         --font-heading: "Syne", sans-serif;
         --font-body: "Space Grotesk", sans-serif;
       }
@@ -79,22 +65,18 @@
         padding: 2rem;
       }
 
-      /* Efecto grano y textura retro superpuesta */
       .overlay-texture {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-image:
-          radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 0),
-          linear-gradient(rgba(13, 13, 13, 0.02) 1px, transparent 0);
+        background-image: radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 0), linear-gradient(rgba(13, 13, 13, 0.02) 1px, transparent 0);
         background-size: 24px 24px;
         pointer-events: none;
         z-index: 999;
       }
 
-      /* Contenedor Principal con bordes suaves */
       .app-container {
         width: 100%;
         max-width: 720px;
@@ -108,7 +90,6 @@
         transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1);
       }
 
-      /* Aplicar redondeado automático a botones, inputs, cuadros de alerta y estadísticas */
       .btn-retro, 
       .live-status, 
       input[type="text"], 
@@ -125,7 +106,6 @@
         border-radius: calc(var(--border-radius) - 4px) !important;
       }
 
-      /* Encabezado */
       .main-header {
         display: flex;
         justify-content: space-between;
@@ -186,14 +166,11 @@
         margin-bottom: 2.5rem;
       }
 
-      /* Manejo de transiciones entre pantallas */
       .card-view {
         display: none;
         opacity: 0;
         transform: translateY(20px);
-        transition:
-          opacity 0.4s ease,
-          transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
       }
 
       .card-view.active {
@@ -202,7 +179,6 @@
         transform: translateY(0);
       }
 
-      /* Botones del Menú Principal */
       .menu-grid {
         display: flex;
         flex-direction: column;
@@ -262,7 +238,6 @@
         opacity: 1;
       }
 
-      /* Formularios e Inputs */
       .view-title {
         font-family: var(--font-heading);
         font-size: 1.4rem;
@@ -313,7 +288,6 @@
         margin-top: 0.2rem;
       }
 
-      /* Cuadros de Feedback (Alertas Estilo Editorial) */
       .alert-box {
         padding: 1rem;
         border: var(--border-width) solid var(--text-color);
@@ -323,23 +297,10 @@
         font-size: 0.9rem;
         display: none;
       }
-      .alert-box.error {
-        background-color: #ffdad9;
-        color: var(--danger-color);
-        display: block;
-      }
-      .alert-box.success {
-        background-color: #d2fbe3;
-        color: #007d4f;
-        display: block;
-      }
-      .alert-box.warning {
-        background-color: #fff3cd;
-        color: #856404;
-        display: block;
-      }
+      .alert-box.error { background-color: #ffdad9; color: var(--danger-color); display: block; }
+      .alert-box.success { background-color: #d2fbe3; color: #007d4f; display: block; }
+      .alert-box.warning { background-color: #fff3cd; color: #856404; display: block; }
 
-      /* Botones de Acción */
       .form-actions {
         display: flex;
         flex-direction: column;
@@ -347,9 +308,7 @@
         margin-top: 2rem;
       }
 
-      .form-actions.row-layout {
-        flex-direction: row;
-      }
+      .form-actions.row-layout { flex-direction: row; }
 
       .btn-submit,
       .btn-back,
@@ -366,48 +325,16 @@
         text-align: center;
       }
 
-      .btn-submit {
-        background-color: var(--accent-color);
-        color: #ffffff;
-        border-color: var(--accent-color);
-      }
+      .btn-submit { background-color: var(--accent-color); color: #ffffff; border-color: var(--accent-color); }
+      .btn-submit:hover { background-color: var(--text-color); border-color: var(--text-color); transform: translateY(-2px); }
+      .btn-submit:disabled { background-color: #cccccc !important; border-color: #cccccc !important; color: #666666 !important; cursor: not-allowed; }
 
-      .btn-submit:hover {
-        background-color: var(--text-color);
-        border-color: var(--text-color);
-        transform: translateY(-2px);
-      }
+      .btn-back { background: transparent; color: var(--text-color); }
+      .btn-back:hover { background: var(--bg-color); transform: translateY(-2px); }
 
-      .btn-submit:disabled {
-        background-color: #cccccc !important;
-        border-color: #cccccc !important;
-        color: #666666 !important;
-        cursor: not-allowed;
-      }
+      .btn-danger { background-color: var(--danger-color); color: white; border-color: var(--danger-color); flex: 1; }
+      .btn-danger:hover { background-color: var(--text-color); border-color: var(--text-color); }
 
-      .btn-back {
-        background: transparent;
-        color: var(--text-color);
-      }
-
-      .btn-back:hover {
-        background: var(--bg-color);
-        transform: translateY(-2px);
-      }
-
-      .btn-danger {
-        background-color: var(--danger-color);
-        color: white;
-        border-color: var(--danger-color);
-        flex: 1;
-      }
-
-      .btn-danger:hover {
-        background-color: var(--text-color);
-        border-color: var(--text-color);
-      }
-
-      /* Contenedor de Registros en Tiempo Real */
       .registros-container {
         max-height: 220px;
         overflow-y: auto;
@@ -421,18 +348,10 @@
         border-bottom: var(--border-width) solid var(--text-color);
         font-size: 0.9rem;
       }
-      .registro-item:last-child {
-        border-bottom: none;
-      }
+      .registro-item:last-child { border-bottom: none; }
 
-      /* Panel del Docente e Incrustación de Excel */
-      .hidden-panel {
-        display: none;
-      }
-      .hidden-panel.visible {
-        display: block;
-        animation: slide-down 0.4s ease forwards;
-      }
+      .hidden-panel { display: none; }
+      .hidden-panel.visible { display: block; animation: slide-down 0.4s ease forwards; }
 
       .excel-embed-container {
         width: 100%;
@@ -443,11 +362,7 @@
         background: #ffffff;
       }
 
-      .excel-embed-container iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-      }
+      .excel-embed-container iframe { width: 100%; height: 100%; border: none; }
 
       .stats-counter-grid {
         display: grid;
@@ -472,15 +387,8 @@
         margin-bottom: 0.5rem;
       }
 
-      .stat-box .stat-label {
-        font-size: 0.85rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        opacity: 0.7;
-      }
+      .stat-box .stat-label { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
 
-      /* MENSAJES EMERGENTES (TOASTS RETRO BRUTALISTAS) */
       .toast-container {
         position: fixed;
         top: 20px;
@@ -508,97 +416,26 @@
         position: relative;
       }
 
-      .toast-card.success {
-        border-color: var(--success-color);
-        box-shadow: 4px 4px 0px var(--success-color);
-      }
-      .toast-card.info {
-        border-color: var(--accent-color);
-        box-shadow: 4px 4px 0px var(--accent-color);
-      }
-      .toast-card.warning {
-        border-color: #ff9500;
-        box-shadow: 4px 4px 0px #ff9500;
-      }
+      .toast-card.success { border-color: var(--success-color); box-shadow: 4px 4px 0px var(--success-color); }
+      .toast-card.info { border-color: var(--accent-color); box-shadow: 4px 4px 0px var(--accent-color); }
+      .toast-card.warning { border-color: #ff9500; box-shadow: 4px 4px 0px #ff9500; }
 
-      @keyframes toast-slide-in {
-        from {
-          transform: translateX(120%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-      @keyframes toast-fade-out {
-        to {
-          transform: translateX(120%);
-          opacity: 0;
-        }
-      }
+      @keyframes toast-slide-in { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+      @keyframes toast-fade-out { to { transform: translateX(120%); opacity: 0; } }
+      @keyframes status-pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+      @keyframes slide-down { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-      /* Animaciones generales */
-      @keyframes status-pulse {
-        0% {
-          opacity: 0.4;
-        }
-        50% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0.4;
-        }
-      }
-
-      @keyframes slide-down {
-        from {
-          opacity: 0;
-          transform: translateY(-10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      @media (max-width: 480px) {
-        .app-container {
-          padding: 1.5rem;
-        }
-        .main-header {
-          flex-direction: column;
-          gap: 1rem;
-        }
-        .live-status {
-          width: 100%;
-          justify-content: center;
-        }
-        .form-actions.row-layout {
-          flex-direction: column;
-        }
-        .toast-container {
-          left: 20px;
-          right: 20px;
-          max-width: none;
-        }
-      }
       .aula-iframe-container {
-        width: 100%; /* Ocupa el 100% del ancho disponible */
-        height: 80vh; /* Altura adaptativa (80% de la ventana), puedes cambiarlo a px si prefieres (ej. 600px) */
-        overflow: hidden; /* Evita desbordamientos extraños */
-        border-radius: 8px; /* Opcional: para que combine con las esquinas redondeadas de tu diseño */
+        width: 100%;
+        height: 80vh;
+        overflow: hidden;
+        border-radius: 8px;
       }
+      .aula-iframe-container iframe { width: 100%; height: 100%; border: none; }
 
-      .aula-iframe-container iframe {
-        width: 100%; /* Se estira al ancho completo del contenedor */
-        height: 100%; /* Se estira al alto completo del contenedor */
-        border: none; /* Quita el borde por defecto del iframe */
-      }
-      /* --- Estilos para el aviso de Zoom en Celulares --- */
       .mobile-zoom-warning {
-        display: none; /* Oculto por defecto en PC */
-        background-color: #fff3cd; /* Amarillo de advertencia retro */
+        display: none;
+        background-color: #fff3cd;
         border: var(--border-width) solid var(--text-color);
         padding: 1rem;
         margin-bottom: 1.5rem;
@@ -609,27 +446,16 @@
         box-shadow: 4px 4px 0px var(--text-color);
       }
 
-      /* Mostrar solo en pantallas pequeñas (Celulares) */
       @media (max-width: 480px) {
-        .mobile-zoom-warning {
-          display: flex;
-        }
-        
-        /* Corrección extra: Evita que el contenedor se rompa por zoom forzado */
-        .app-container {
-          max-width: 100%;
-          box-shadow: 6px 6px 0px var(--text-color);
-        }
+        .app-container { padding: 1.5rem; max-width: 100%; box-shadow: 6px 6px 0px var(--text-color); }
+        .main-header { flex-direction: column; gap: 1rem; }
+        .live-status { width: 100%; justify-content: center; }
+        .form-actions.row-layout { flex-direction: column; }
+        .toast-container { left: 20px; right: 20px; max-width: none; }
+        .mobile-zoom-warning { display: flex; }
+        .aula-iframe-container { height: 50vh; -webkit-overflow-scrolling: touch; overflow-y: scroll; }
       }
-
-      @media (max-width: 480px) {
-  .aula-iframe-container {
-    height: 50vh; /* Más pequeño en celular para que no desplace todo */
-    -webkit-overflow-scrolling: touch;
-    overflow-y: scroll;
-  }
-}
- </style>
+    </style>
   </head>
   <body>
     <div class="overlay-texture"></div>
@@ -674,25 +500,24 @@
             <span class="btn-text">Ver Registros (Docente)</span>
             <span class="btn-arrow">→</span>
           </button>
-          <a
-            class="btn-retro"
-            href="https://maualv1101.wixsite.com/my-site"
-            target="_blank"
-          >
+          <a class="btn-retro" href="https://maualv1101.wixsite.com/my-site" target="_blank">
             <span class="btn-num">04</span>
             <span class="btn-text">Ir al Aula Digital</span>
             <span class="btn-arrow">↗</span>
           </a>
         </div>
 
-        <div class="aula-iframe-container">
+        <div class="aula-iframe-container" style="margin-top: 1.5rem;">
           <iframe src="https://maualv1101.wixsite.com/my-site">
             <p>Tu navegador no soporta iframes.</p>
           </iframe>
         </div>
-    <br>
-<div><p>© 2027 por Tec. Mauricio Alvarado<br>
-Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUPO CENTED</p>
+        <br>
+        
+        <!-- CORRECCIÓN 1: Contenedor div del footer ahora debidamente cerrado -->
+        <div>
+          <p>© 2027 por Tec. Mauricio Alvarado<br>Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUPO CENTED</p>
+        </div>
       </section>
 
       <!-- PANTALLA 2: REGISTRAR ASISTENCIA -->
@@ -703,23 +528,13 @@ Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUP
         <form id="form-register" onsubmit="registrarAsistencia(event)">
           <div class="input-group">
             <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
-            <input
-              type="text"
-              id="reg-key"
-              maxlength="4"
-              placeholder="Ej: F2BQ"
-              required
-              autocomplete="off"
-              style="text-transform: uppercase"
-            />
+            <input type="text" id="reg-key" maxlength="4" placeholder="Ej: F2BQ" required autocomplete="off" style="text-transform: uppercase" />
           </div>
 
           <div class="input-group">
             <label for="reg-teacher">Docente *</label>
             <select id="reg-teacher" required>
-              <option value="" disabled selected>
-                -- Selecciona tu Docente --
-              </option>
+              <option value="" disabled selected>-- Selecciona tu Docente --</option>
               <option value="Mauricio Alvarado">Mauricio Alvarado</option>
               <option value="Wilfredo Pineda">Wilfredo Pineda</option>
             </select>
@@ -735,28 +550,13 @@ Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUP
           </div>
 
           <div class="input-group">
-            <label for="reg-token"
-              >Firma del Docente (Clave de Validación) *</label
-            >
-            <input
-              type="password"
-              id="reg-token"
-              placeholder="Código de validación diaria"
-              required
-            />
+            <label for="reg-token">Firma del Docente (Clave de Validación) *</label>
+            <input type="password" id="reg-token" placeholder="Código de validación diaria" required />
           </div>
 
           <div class="form-actions">
-            <button type="submit" id="btnRegistrar" class="btn-submit">
-              ✓ Enviar Asistencia
-            </button>
-            <button
-              type="button"
-              class="btn-back"
-              onclick="switchView('view-menu')"
-            >
-              ← Volver
-            </button>
+            <button type="submit" id="btnRegistrar" class="btn-submit">✓ Enviar Asistencia</button>
+            <button type="button" class="btn-back" onclick="switchView('view-menu')">← Volver</button>
           </div>
         </form>
       </section>
@@ -769,70 +569,29 @@ Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUP
         <form id="form-keygen" onsubmit="generarClave(event)">
           <div class="input-group">
             <label for="gen-name">Escribe tu Nombre Completo *</label>
-            <input
-              type="text"
-              id="gen-name"
-              placeholder="Ej: Tatiana Abigail Flores Ortiz"
-              required
-              autocomplete="off"
-              onfocus="
-                showToast(
-                  '💡 Recuerda: Usa Mayúscula Inicial en nombres y apellidos.',
-                  'info',
-                )
-              "
-            />
-            <small class="helper-text"
-              >Usa mayúscula inicial en nombres y apellidos.</small
-            >
+            <input type="text" id="gen-name" placeholder="Ej: Tatiana Abigail Flores Ortiz" required autocomplete="off" onfocus="showToast('💡 Recuerda: Usa Mayúscula Inicial en nombres y apellidos.', 'info')" />
+            <small class="helper-text">Usa mayúscula inicial en nombres y apellidos.</small>
           </div>
 
           <div class="input-group">
             <label for="gen-teacher">Asigna tu Docente Principal *</label>
             <select id="gen-teacher" required>
-              <option value="" disabled selected>
-                -- Selecciona tu Docente --
-              </option>
+              <option value="" disabled selected>-- Selecciona tu Docente --</option>
               <option value="Mauricio Alvarado">Mauricio Alvarado</option>
               <option value="Wilfredo Pineda">Wilfredo Pineda</option>
             </select>
           </div>
 
-          <!-- Bloque de clave generada con diseño brutalista -->
-          <div
-            id="claveGeneradaContainer"
-            style="display: none; margin-top: 1.5rem; margin-bottom: 1.5rem"
-          >
-            <div
-              class="alert-box success"
-              style="display: block; margin-bottom: 0.5rem"
-            >
-              🎉 ¡Clave creada! Guárdala bien:
-            </div>
+          <div id="claveGeneradaContainer" style="display: none; margin-top: 1.5rem; margin-bottom: 1.5rem">
+            <div class="alert-box success" style="display: block; margin-bottom: 0.5rem">🎉 ¡Clave creada! Guárdala bien:</div>
             <div class="stat-box" style="padding: 1rem; background: #ffffff">
-              <span
-                id="codGenerado"
-                style="
-                  font-family: var(--font-heading);
-                  font-size: 2.2rem;
-                  font-weight: 800;
-                  color: var(--accent-color);
-                "
-              ></span>
+              <span id="codGenerado" style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; color: var(--accent-color);"></span>
             </div>
           </div>
 
           <div class="form-actions">
-            <button type="submit" id="btnGenerar" class="btn-submit">
-              🔒 Generar Mi Clave Permanente
-            </button>
-            <button
-              type="button"
-              class="btn-back"
-              onclick="switchView('view-menu')"
-            >
-              ← Volver
-            </button>
+            <button type="submit" id="btnGenerar" class="btn-submit">🔒 Generar Mi Clave Permanente</button>
+            <button type="button" class="btn-back" onclick="switchView('view-menu')">← Volver</button>
           </div>
         </form>
       </section>
@@ -845,35 +604,15 @@ Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUP
         <div id="teacher-auth">
           <div class="input-group">
             <label for="teacher-password">Clave de Validación *</label>
-            <input
-              type="password"
-              id="teacher-password"
-              placeholder="••••••••••••"
-              required
-            />
+            <input type="password" id="teacher-password" placeholder="••••••••••••" required />
           </div>
           <div class="form-actions">
-            <button
-              type="button"
-              id="btnAccederRegistros"
-              class="btn-submit"
-              onclick="unlockTeacherPanel()"
-            >
-              🔓 Entrar
-            </button>
-            <button
-              type="button"
-              class="btn-back"
-              onclick="switchView('view-menu')"
-            >
-              ← Volver
-            </button>
+            <button type="button" id="btnAccederRegistros" class="btn-submit" onclick="unlockTeacherPanel()">🔓 Entrar</button>
+            <button type="button" class="btn-back" onclick="switchView('view-menu')">← Volver</button>
           </div>
         </div>
 
         <div id="teacher-dashboard" class="hidden-panel">
-          <!-- CONTENEDOR EN VIVO DE GOOGLE SHEETS (HOJA VER ASISTENCIA) -->
-          <!-- VISTA SEGURA PROTEGIDA POR API PRIVADA (SIN IFRAME PÚBLICO) -->
           <div class="input-group">
             <label>Base de Datos Asegurada (Matrícula y Asistencias Generales):</label>
             <div class="excel-embed-container" style="overflow-y: auto; background: #ffffff; padding: 0.5rem;">
@@ -888,7 +627,6 @@ Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUP
                   </tr>
                 </thead>
                 <tbody id="tabla-api-cuerpo">
-                  <!-- Los registros generales se inyectan dinámicamente desde el servidor -->
                   <tr>
                     <td colspan="5" style="text-align: center; padding: 2rem; opacity: 0.5;">Cargando base de datos del servidor...</td>
                   </tr>
@@ -896,7 +634,8 @@ Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUP
               </table>
             </div>
           </div>
-          </div>
+
+          <!-- CORRECCIÓN 2: Eliminado el div de cierre erróneo que rompía la estructura -->
 
           <div class="stats-counter-grid">
             <div class="stat-box">
@@ -911,22 +650,12 @@ Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUP
 
           <div class="input-group">
             <label>Logs Rápidos Filtrados (Hoy):</label>
-            <div class="registros-container" id="listaRegistros">
-              <!-- Cargados dinámicamente -->
-            </div>
+            <div class="registros-container" id="listaRegistros"></div>
           </div>
 
           <div class="form-actions row-layout">
-            <button
-              type="button"
-              class="btn-danger"
-              onclick="triggerClearAll()"
-            >
-              🗑 Limpiar Todo
-            </button>
-            <button type="button" class="btn-back" onclick="lockAndReturn()">
-              ← Volver
-            </button>
+            <button type="button" class="btn-danger" onclick="triggerClearAll()">🗑 Limpiar Todo</button>
+            <button type="button" class="btn-back" onclick="lockAndReturn()">← Volver</button>
           </div>
         </div>
       </section>
