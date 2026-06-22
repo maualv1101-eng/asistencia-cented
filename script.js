@@ -1,13 +1,12 @@
 // ==========================================
 // CONFIGURACIÓN GLOBAL
 // ==========================================
-// REEMPLAZA ESTA URL CON TU NUEVA URL DE DEPLOY (EXEC) DEL PASO ANTERIOR
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyOxXHDn4CXXHD8KU0Ww7uu-zWD7IUvaW3XMwjdgH9BpFgr0W0dEvvZu3-iRhsEu6gR/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwI9jGpQ3SzxzQz914jUX4nPazP4FCGad1mf8BoBRSubqxzowPXJaHjWyppW8zbi1Zh/exec";
 
 // Generador de Clave Dinámica Diaria (Sincronizado matemáticamente con tu Apps Script)
 function obtenerClaveDinamica() {
   const hoy = new Date();
-  const anio = hoy.getFullYear();``
+  const anio = hoy.getFullYear();
   const mes = hoy.getMonth() + 1;
   const dia = hoy.getDate();
   
@@ -18,6 +17,8 @@ function obtenerClaveDinamica() {
 // LÓGICA DE MENSAJES EMERGENTES (TOASTS)
 function showToast(message, type = "success") {
   const container = document.getElementById("toast-box-container");
+  if (!container) return;
+  
   const toast = document.createElement("div");
   toast.className = `toast-card ${type}`;
   toast.textContent = message;
@@ -39,161 +40,149 @@ function updateClock() {
   if (!clockElement) return;
   const now = new Date();
   let hours = now.getHours();
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  const seconds = String(now.getSeconds()).padStart(2, "0");
+  const minutes = now.getMinutes().toString().padStart(2, "0");
+  const seconds = now.getSeconds().toString().padStart(2, "0");
   const ampm = hours >= 12 ? "PM" : "AM";
   
   hours = hours % 12;
-  hours = hours ? hours : 12; // El número '0' se transforma en '12'
-  const hoursStr = String(hours).padStart(2, "0");
-
-  clockElement.textContent = `${hoursStr}:${minutes}:${seconds} ${ampm}`;
+  hours = hours ? hours : 12; // Formato 12 horas
+  
+  clockElement.textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-// Gestión de Navegación entre Pantallas
+// Gestión de Vistas (Tabs / Secciones)
 function switchView(viewId) {
-  // Ocultar todas las vistas removiendo la clase activa
-  document.querySelectorAll(".form-section").forEach((section) => {
+  document.querySelectorAll(".view-section").forEach((section) => {
     section.classList.remove("active");
   });
-  // Mostrar la vista seleccionada
-  const targetView = document.getElementById(viewId);
-  if (targetView) {
-    targetView.classList.add("active");
-  }
+  const target = document.getElementById(viewId);
+  if (target) target.classList.add("active");
 }
 
 // ==========================================
-// CONTROL DE ASISTENCIA (ALUMNOS)
+// ACCIÓN: REGISTRO DE ASISTENCIA (ALUMNOS)
 // ==========================================
-function enviarAsistencia() {
-  const btn = document.getElementById("btnEnviarAsistencia");
-  const alertBox = document.getElementById("alumno-alert");
-  const claveInput = document.getElementById("alumno-clave");
-  const grupoInput = document.getElementById("alumno-grupo");
-  const docenteInput = document.getElementById("alumno-docente");
+document.getElementById("formAsistencia").addEventListener("submit", function (e) {
+  e.preventDefault();
 
-  const clave = claveInput.value.trim();
-  const grupo = grupoInput.value;
-  const docente = docenteInput.value;
+  const claveInput = document.getElementById("student-id").value.trim();
+  const grupoInput = document.getElementById("student-group").value;
+  const docenteInput = document.getElementById("student-teacher").value;
+  const btnSubmit = document.getElementById("btnEnviarAsistencia");
 
-  if (!clave || !grupo || !docente) {
-    alertBox.textContent = "⚠️ POR FAVOR, LLENA TODOS LOS CAMPOS REQUERIDOS.";
-    alertBox.className = "alert-box error";
+  if (!claveInput || !grupoInput || !docenteInput) {
+    showToast("⚠️ Por favor, completa todos los campos requeridos.", "warning");
     return;
   }
 
-  // Bloquear botón y mostrar estado de carga
-  btn.disabled = true;
-  btn.innerHTML = `<span>⏳ Procesando...</span>`;
-  alertBox.textContent = "📡 Verificando credenciales con el servidor...";
-  alertBox.className = "alert-box info";
+  btnSubmit.disabled = true;
+  btnSubmit.innerHTML = `<span class="spinner"></span> Registrando...`;
 
   const params = new URLSearchParams();
   params.append("action", "asistencia");
-  params.append("clave", clave);
-  params.append("grupo", grupo);
-  params.append("docente", docente);
+  params.append("clave", claveInput);
+  params.append("grupo", grupoInput);
+  params.append("docente", docenteInput);
 
   fetch(SCRIPT_URL, {
     method: "POST",
     body: params,
-    headers: { "Content-Type": "application/x-www-form-urlencoded" }
   })
     .then((response) => response.json())
     .then((data) => {
       if (data.status === "success") {
-        showToast(`🎉 ¡Perfecto! ${data.nombre}, asistencia registrada.`, "success");
-        alertBox.textContent = `✅ REGISTRO EXITOSO: ¡Bienvenido(a), ${data.nombre}!`;
-        alertBox.className = "alert-box success";
-        claveInput.value = "";
+        showToast(`🎉 ¡Perfecto! Asistencia registrada para: ${data.nombre}`, "success");
+        document.getElementById("student-id").value = "";
       } else {
-        alertBox.textContent = `❌ ERROR: ${data.message}`;
-        alertBox.className = "alert-box error";
+        showToast(`❌ Error: ${data.message}`, "warning");
       }
     })
     .catch((err) => {
-      alertBox.textContent = "❌ ERROR CRÍTICO DE CONEXIÓN CON EL SERVIDOR.";
-      alertBox.className = "alert-box error";
+      showToast("❌ Hubo un fallo en la conexión con el servidor.", "warning");
     })
     .finally(() => {
-      btn.disabled = false;
-      btn.innerHTML = "✓ Enviar Asistencia";
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = "✅ Registrar Mi Entrada";
     });
-}
+});
 
 // ==========================================
-// PANEL DE CONTROL (DOCENTE)
+// PANEL DE CONTROL (DOCENTES) - VALIDACIÓN DINÁMICA
 // ==========================================
-function accederRegistros() {
-  const passwordInput = document.getElementById("teacher-password");
-  const alertBox = document.getElementById("teacher-alert");
-  const password = passwordInput.value.trim();
+document.getElementById("btnAccederRegistros").addEventListener("click", function () {
+  const passwordInput = document.getElementById("password-teacher");
+  const alertBox = document.getElementById("alert-teacher-auth");
+  
+  const claveIngresada = passwordInput.value.trim();
+  const claveCorrectaValida = obtenerClaveDinamica();
 
-  // IMPLEMENTACIÓN DE CLAVE DINÁMICA DE 6 DÍGITOS
-  const claveCorrecta = obtenerClaveDinamica();
-
-  if (password !== claveCorrecta) {
-    alertBox.textContent = "❌ CLAVE DE ACCESO INCORRECTA O EXPIRADA.";
+  // Validar directamente contra el generador matemático de 6 dígitos
+  if (claveIngresada !== claveCorrectaValida) {
+    alertBox.textContent = "❌ CLAVE DE ACCESO INCORRECTA.";
     alertBox.className = "alert-box error";
     passwordInput.value = "";
     return;
   }
 
-  alertBox.textContent = "🔓 Acceso correcto. Cargando registros...";
+  // Si pasa la validación, procesar acceso y traer datos
+  alertBox.textContent = "🔓 Acceso concedido de forma segura. Cargando...";
   alertBox.className = "alert-box success";
-  
   document.getElementById("btnAccederRegistros").disabled = true;
-  document.getElementById("btnAccederRegistros").innerHTML = "⏳ Cargando...";
+  document.getElementById("btnAccederRegistros").innerHTML = "Cargando...";
 
-  fetch(`${SCRIPT_URL}?action=obtener_asistencias`)
-    .then((res) => res.json())
+  const params = new URLSearchParams();
+  params.append("action", "obtener_asistencias");
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    body: params,
+  })
+    .then((response) => response.json())
     .then((data) => {
       document.getElementById("teacher-auth").style.display = "none";
       document.getElementById("teacher-dashboard").classList.add("visible");
-      showToast("📊 Panel de control actualizado en tiempo real.", "success");
+      alertBox.textContent = "";
+      alertBox.className = "alert-box";
 
-      const tbody = document.getElementById("tablaAsistenciasBody");
+      const tablaBody = document.querySelector("#tablaAsistencias tbody");
       const contenedor = document.getElementById("listaRegistros");
-      
-      tbody.innerHTML = "";
+      tablaBody.innerHTML = "";
       contenedor.innerHTML = "";
 
-      let mañana = 0;
-      let tarde = 0;
-
       if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; opacity:0.5;">No hay registros el día de hoy.</td></tr>`;
-        contenedor.innerHTML = `<p style="opacity:0.5; font-size:13px;">No hay actividades registradas aún.</p>`;
+        tablaBody.innerHTML = `<tr><td colspan="5" style="text-align:center; opacity:0.6;">No hay registros para este día.</td></tr>`;
+        contenedor.innerHTML = `<p style="opacity:0.5; font-size:0.9rem;">Sin logs disponibles hoy.</p>`;
         document.getElementById("count-morning").textContent = "0";
         document.getElementById("count-afternoon").textContent = "0";
       } else {
-        data.reverse();
+        let mañana = 0;
+        let tarde = 0;
 
         data.forEach((r) => {
-          if (r.grupo === "MAÑANA") mañana++;
-          if (r.grupo === "TARDE") tarde++;
+          if (r.grupo === "Mañana") mañana++;
+          if (r.grupo === "Tarde") tarde++;
 
+          // Inyectar en tabla estructural
           const fila = document.createElement("tr");
           fila.innerHTML = `
-            <td><strong>${r.hora}</strong></td>
-            <td>${r.nombre}</td>
-            <td><span class="badge-nie">${r.clave}</span></td>
-            <td>${r.grupo}</td>
-            <td>${r.docente}</td>
-            <td><span class="status-indicator active"></span> En clase</td>
+            <td><strong>${r.fecha}</strong></td>
+            <td><span class="badge-time">${r.hora}</span></td>
+            <td><strong>${r.nombre}</strong></td>
+            <td><small class="text-muted">${r.clave}</small></td>
+            <td><span class="badge-group ${r.grupo === "Mañana" ? "morning" : "afternoon"}">${r.grupo}</span></td>
           `;
-          tbody.appendChild(fila);
+          tablaBody.appendChild(fila);
 
+          // Inyectar en logs rápidos inferiores
           const item = document.createElement("div");
           item.className = "registro-item";
-          item.innerHTML = `<p><strong>${r.nombre}</strong></p>
-                            <small>Clave: ${r.clave} | Docente: ${r.docente} | Hora: ${r.hora}</small>`;
+          item.innerHTML = `🌟 <strong>${r.nombre}</strong> <br> <small class="text-muted">ID: ${r.clave} | Docente: ${r.docente} | Hora: ${r.hora}</small>`;
           contenedor.appendChild(item);
         });
 
+        // Actualizar contadores visuales
         document.getElementById("count-morning").textContent = mañana;
         document.getElementById("count-afternoon").textContent = tarde;
       }
@@ -207,7 +196,7 @@ function accederRegistros() {
       document.getElementById("btnAccederRegistros").innerHTML = "🔓 Entrar";
       passwordInput.value = "";
     });
-}
+});
 
 function lockAndReturn() {
   document.getElementById("teacher-dashboard").classList.remove("visible");
