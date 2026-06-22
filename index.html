@@ -3,8 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- FIX #10: Content Security Policy — sin fuentes externas adicionales -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; connect-src https://script.google.com; frame-src https://maualv1101.wixsite.com; img-src 'self' https://grupocented.fyi;" />
     
     <title>Grupo Cented | AULA DIGITAL - SISTEMAS INFORMATICOS - GRUPO CENTED</title>
@@ -518,7 +516,6 @@
         </div>
 
         <div class="aula-iframe-container" style="margin-top: 1.5rem;">
-          <!-- FIX #9: sandbox para aislar el iframe de Wix -->
           <iframe src="https://maualv1101.wixsite.com/my-site"
             sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
             loading="lazy"
@@ -528,7 +525,6 @@
         </div>
         <br>
         
-        <!-- CORRECCIÓN 1: Contenedor div del footer ahora debidamente cerrado -->
         <div>
           <p>© 2027 por Tec. Mauricio Alvarado<br>Desarrollado por Departamento de sistemas informáticos y protegido por Wix-GRUPO CENTED</p>
         </div>
@@ -542,7 +538,6 @@
         <form id="form-register" onsubmit="registrarAsistencia(event); return false;">
           <div class="input-group">
             <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
-            <!-- FIX #19: type="password" para ocultar la clave al escribirla -->
             <input type="password" id="reg-key" maxlength="4" placeholder="Ej: F2BQ" required autocomplete="off" style="text-transform: uppercase" />
           </div>
 
@@ -566,7 +561,6 @@
 
           <div class="input-group">
             <label for="reg-token">Firma del Docente (Clave de Validación) *</label>
-            <!-- FIX #11: autocomplete="off" para evitar autocompletado en campo de firma -->
             <input type="password" id="reg-token" placeholder="Código de validación diaria" required autocomplete="off" />
           </div>
 
@@ -620,7 +614,6 @@
         <div id="teacher-auth">
           <div class="input-group">
             <label for="teacher-password">Clave de Validación *</label>
-            <!-- FIX #11: autocomplete="off" en clave del docente -->
             <input type="password" id="teacher-password" placeholder="••••••••••••" required autocomplete="off" />
           </div>
           <div class="form-actions">
@@ -651,8 +644,6 @@
               </table>
             </div>
           </div>
-
-          <!-- CORRECCIÓN 2: Eliminado el div de cierre erróneo que rompía la estructura -->
 
           <div class="stats-counter-grid">
             <div class="stat-box">
