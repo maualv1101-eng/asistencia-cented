@@ -1,15 +1,5 @@
-// ==========================================
-// CONFIGURACIÓN GLOBAL (SIN CLAVE ESTÁTICA)
-// ==========================================
-const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbwaQ2rD14gF_QeDbEFcdg6uJVzwjkcdqFGrUWliGBj41xrLTWZnYOj877mEdIitdg40/exec";
-// ⚠️ PENDIENTE MANUAL: Redesplegar Apps Script con nueva URL y hacer el repo privado en GitHub.
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpzqZKnaNmliRaE9K_RcsYCMNgPtRn70awUdq5JGm6ncKaWWeX4OvZQfh2-FxiD7Eh/exec";
 
-// FIX #1: obtenerClaveMaestraDinamica() ELIMINADA del frontend.
-// El algoritmo ahora vive SOLO en el Apps Script (backend).
-// La firma viaja como parámetro y el backend la valida.
-
-// FIX #12: Fetch con timeout de 10 segundos usando AbortController
 function fetchConTimeout(url, opciones = {}, ms = 10000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), ms);
@@ -17,12 +7,10 @@ function fetchConTimeout(url, opciones = {}, ms = 10000) {
     .finally(() => clearTimeout(timer));
 }
 
-// FIX #20: Sanitizar caracteres HTML peligrosos en inputs de texto
 function sanitizarTexto(str) {
   return str.replace(/[<>&"']/g, "");
 }
 
-// FIX #13: Crear celda de tabla segura sin innerHTML
 function crearCeldaSegura(texto, estiloExtra = "") {
   const td = document.createElement("td");
   td.style.cssText = "padding: 0.6rem; border-right: 1px solid var(--text-color);" + estiloExtra;
@@ -30,7 +18,6 @@ function crearCeldaSegura(texto, estiloExtra = "") {
   return td;
 }
 
-// LÓGICA DE MENSAJES EMERGENTES (TOASTS)
 function showToast(message, type = "success") {
   const container = document.getElementById("toast-box-container");
   const toast = document.createElement("div");
@@ -47,7 +34,6 @@ function showToast(message, type = "success") {
   }, 4000);
 }
 
-// Reloj En Vivo
 function updateClock() {
   const clockElement = document.getElementById("live-clock");
   if (!clockElement) return;
@@ -63,18 +49,15 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// Control de Navegación entre Pantallas
 function switchView(viewId) {
   const targetView = document.getElementById(viewId);
   if (!targetView) return;
 
-  // Limpiar alertas al cambiar de pantalla
   document.querySelectorAll(".alert-box").forEach((el) => {
     el.className = "alert-box";
     el.style.display = "none";
   });
 
-  // Quitar active de todas y ponerla en la destino — CSS maneja la transición
   document.querySelectorAll(".card-view").forEach((v) => v.classList.remove("active"));
   targetView.classList.add("active");
 }
@@ -84,9 +67,6 @@ function validarNombreEstricto(n) {
   return regex.test(n.trim());
 }
 
-// ==========================================
-// ACCIÓN 1: ACCIONAR ASISTENCIA
-// ==========================================
 function registrarAsistencia(event) {
   event.preventDefault();
 
@@ -98,7 +78,6 @@ function registrarAsistencia(event) {
   const alertBox = document.getElementById("alertRegistro");
   const btn = document.getElementById("btnRegistrar");
 
-  // FIX #16: Validar formato exacto antes de enviar al servidor
   if (!/^[A-Z0-9]{4}$/.test(claveInput)) {
     alertBox.textContent = "❌ LA CLAVE DEBE SER EXACTAMENTE 4 CARACTERES ALFANUMÉRICOS.";
     alertBox.className = "alert-box error";
@@ -106,7 +85,6 @@ function registrarAsistencia(event) {
     return;
   }
 
-  // FIX #4: Rate limiting — cooldown de 30 segundos entre envíos
   const ultimoEnvio = localStorage.getItem("ultimo_envio_asistencia");
   const ahora = Date.now();
   if (ultimoEnvio && ahora - parseInt(ultimoEnvio) < 30000) {
@@ -117,9 +95,6 @@ function registrarAsistencia(event) {
     return;
   }
 
-  // FIX #1: La firma ya NO se valida en el frontend.
-  // Se envía al backend para que el Apps Script la verifique.
-
   btn.disabled = true;
   btn.innerHTML = `⚡ ENVIANDO REGISTRO...`;
 
@@ -128,12 +103,10 @@ function registrarAsistencia(event) {
   params.append("clave", claveInput);
   params.append("docente", docenteInput);
   params.append("grupo", grupoInput);
-  params.append("firma", tokenInput); // FIX #1: firma viaja al backend
+  params.append("firma", tokenInput);
 
-  // FIX #12: fetchConTimeout en lugar de fetch directo
   fetchConTimeout(SCRIPT_URL, { method: "POST", body: params })
     .then((res) => {
-      // FIX #21: Verificar HTTP status antes de parsear
       if (!res.ok) throw new Error("HTTP " + res.status);
       return res.json();
     })
@@ -143,7 +116,6 @@ function registrarAsistencia(event) {
         alertBox.className = "alert-box success";
         showToast("✓ ¡Asistencia registrada exitosamente!", "success");
         document.getElementById("form-register").reset();
-        // FIX #4: Guardar timestamp del envío exitoso
         localStorage.setItem("ultimo_envio_asistencia", Date.now());
         setTimeout(() => {
           switchView("view-menu");
@@ -169,13 +141,9 @@ function registrarAsistencia(event) {
     });
 }
 
-// ==========================================
-// ACCIÓN 2: GENERAR O RECORDAR CLAVE ÚNICA
-// ==========================================
 function generarClave(event) {
   event.preventDefault();
 
-  // FIX #20: Sanitizar nombre antes de usarlo
   const nombreInput = sanitizarTexto(document.getElementById("gen-name").value.trim());
   const docenteInput = document.getElementById("gen-teacher").value;
   const alertBox = document.getElementById("alertGenerarClave");
@@ -193,17 +161,13 @@ function generarClave(event) {
   btn.innerHTML = `⚡ CONSULTANDO BASE DE DATOS...`;
   containerClave.style.display = "none";
 
-  // FIX #18: Ya no se pide obtener_claves (lista completa).
-  // Se consulta obtener_clave_alumno con el nombre específico.
   fetchConTimeout(`${SCRIPT_URL}?action=obtener_clave_alumno&nombre=${encodeURIComponent(nombreInput)}`)
     .then((res) => {
-      // FIX #21: Verificar HTTP status
       if (!res.ok) throw new Error("HTTP " + res.status);
       return res.json();
     })
     .then((data) => {
       if (data.clave) {
-        // Alumno ya existe → mostrar su clave
         document.getElementById("codGenerado").textContent = data.clave;
         containerClave.style.display = "block";
         alertBox.style.display = "none";
@@ -212,10 +176,8 @@ function generarClave(event) {
         btn.disabled = false;
         btn.innerHTML = `🔒 Generar Mi Clave Permanente`;
       } else {
-        // FIX #23: claveNueva se declara aquí en el else, no antes
         btn.innerHTML = `⚡ CREANDO CREDENCIAL...`;
 
-        // FIX #6: crypto.getRandomValues en lugar de Math.random
         let claveNueva = "";
         const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         const array = new Uint32Array(4);
@@ -230,10 +192,8 @@ function generarClave(event) {
         params.append("clave", claveNueva);
         params.append("docente", docenteInput);
 
-        // FIX #12: fetchConTimeout en el POST interno también
         fetchConTimeout(SCRIPT_URL, { method: "POST", body: params })
           .then((res) => {
-            // FIX #21: Verificar HTTP status
             if (!res.ok) throw new Error("HTTP " + res.status);
             return res.json();
           })
@@ -276,9 +236,6 @@ function generarClave(event) {
     });
 }
 
-// ==========================================
-// ACCIÓN 3: PANEL DEL DOCENTE Y CARGA DE DATOS
-// ==========================================
 function unlockTeacherPanel() {
   const passwordInput = document.getElementById("teacher-password");
   const authSection = document.getElementById("teacher-auth");
@@ -293,21 +250,16 @@ function unlockTeacherPanel() {
     return;
   }
 
-  // FIX #1 + #7: La validación de la firma la hace el backend.
-  // Se manda la firma en el GET y el Apps Script responde si es válida o error.
   alertBox.style.display = "none";
   document.getElementById("btnAccederRegistros").disabled = true;
   document.getElementById("btnAccederRegistros").innerHTML = "⚡ CARGANDO PANEL...";
 
-  // FIX #12: fetchConTimeout
   fetchConTimeout(`${SCRIPT_URL}?action=obtener_registros&firma=${encodeURIComponent(firmaIngresada)}`)
     .then((res) => {
-      // FIX #21: Verificar HTTP status
       if (!res.ok) throw new Error("HTTP " + res.status);
       return res.json();
     })
     .then((data) => {
-      // Si el backend rechaza la firma
       if (data.error) {
         alertBox.textContent = "❌ CREDENCIAL DE ACCESO DENEGADA.";
         alertBox.className = "alert-box error";
@@ -320,7 +272,6 @@ function unlockTeacherPanel() {
       dashboardSection.classList.add("visible");
       showToast("🔓 Modo Administrador Activo", "success");
 
-      // FIX #13: Construir tabla con crearCeldaSegura (sin innerHTML con datos del servidor)
       const tablaCuerpo = document.getElementById("tabla-api-cuerpo");
       tablaCuerpo.innerHTML = "";
 
@@ -361,7 +312,6 @@ function unlockTeacherPanel() {
       document.getElementById("count-morning").textContent = filtrados.filter((r) => r.grupo === "Mañana").length;
       document.getElementById("count-afternoon").textContent = filtrados.filter((r) => r.grupo === "Tarde").length;
 
-      // FIX #13: Construir logs con textContent, sin innerHTML con datos del servidor
       const contenedor = document.getElementById("listaRegistros");
       contenedor.innerHTML = "";
 
@@ -407,7 +357,6 @@ function unlockTeacherPanel() {
 }
 
 function lockAndReturn() {
-  // FIX #17: Limpiar dashboard al salir para no dejar datos visibles
   document.getElementById("tabla-api-cuerpo").innerHTML = "";
   document.getElementById("listaRegistros").innerHTML = "";
   document.getElementById("count-morning").textContent = "0";
@@ -418,19 +367,16 @@ function lockAndReturn() {
   switchView("view-menu");
 }
 
-// FIX #8: Borrado protegido con firma en lugar de confirm() simple
 function triggerClearAll() {
   const firmaConfirm = prompt("⚠️ ACCIÓN IRREVERSIBLE\nIngresa la Firma del Docente de hoy para confirmar el borrado:");
   if (!firmaConfirm) return;
 
   const params = new URLSearchParams();
   params.append("action", "limpiar_asistencias");
-  params.append("firma", firmaConfirm.trim()); // FIX #8: backend verifica firma antes de limpiar
+  params.append("firma", firmaConfirm.trim());
 
-  // FIX #12: fetchConTimeout
   fetchConTimeout(SCRIPT_URL, { method: "POST", body: params })
     .then((res) => {
-      // FIX #21: Verificar HTTP status
       if (!res.ok) throw new Error("HTTP " + res.status);
       return res.json();
     })
