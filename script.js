@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0-bv8xoXvzvuTiyPoUTit8xatUtYlmY8nmCtVnRC86vVe5_yrnZ8_Vi2PWMB0wS6I/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzNo8M0doHnbGsm3S9yCfN6tzUSkrG9WUABdRQbnZn3mXUbsIfdqVBXVdDEgJHDtbI/exec";
 
 function fetchConTimeout(url, opciones = {}, ms = 10000) {
   const controller = new AbortController();
