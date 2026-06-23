@@ -283,7 +283,7 @@
       }
     </style>
       <!-- reCAPTCHA v2 Invisible -->
-    <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js?onload=renderRecaptcha&render=explicit" async defer></script>
     <style>.grecaptcha-badge { visibility: hidden; }</style>
   </head>
   <body>
@@ -508,5 +508,8 @@
     </main>
 
     <script src="script.js"></script>
+  
+    <!-- Contenedor oculto para reCAPTCHA v2 Invisible -->
+    <div id="recaptcha-container" style="position:absolute; left:-9999px;"></div>
   </body>
 </html>
