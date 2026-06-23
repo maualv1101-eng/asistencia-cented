@@ -282,6 +282,9 @@
         .stats-counter-grid { gap: 0.8rem; }
       }
     </style>
+      <!-- reCAPTCHA v2 Invisible -->
+    <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
+    <style>.grecaptcha-badge { visibility: hidden; }</style>
   </head>
   <body>
     <div class="overlay-texture"></div>
@@ -341,6 +344,12 @@
           </iframe>
         </div>
         <br>
+        
+        <p style="font-size:0.75rem; opacity:0.5; margin-top:1rem; text-align:center;">
+          Este sitio está protegido por reCAPTCHA y se aplican las 
+          <a href="https://policies.google.com/privacy" target="_blank" style="color:var(--accent-color);">Políticas de Privacidad</a> y 
+          <a href="https://policies.google.com/terms" target="_blank" style="color:var(--accent-color);">Términos de Servicio</a> de Google.
+        </p>
         <p style="font-size:0.8rem; opacity:0.5;">© 2027 Tec. Mauricio Alvarado · Depto. Sistemas Informáticos · Grupo Cented</p>
       </section>
 
