@@ -1,23 +1,49 @@
 // ==========================================
-// CONFIGURACIÓN GLOBAL
+// FRONTEND — Sistema de Asistencia CENTED v2.0
+// SEGURIDAD MEJORADA: Sin algoritmo expuesto + reCAPTCHA
 // ==========================================
+
 const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyC6MxEdmWYLn4opzniRV958AHWFizwUgIfKXIjulW4wp-suDcWW8hJxvl_T4Nwto_b/exec";
+  "https://script.google.com/macros/s/AKfycbxz-s-GcCEjju-139Z8qUVM5swwPckwjofalfbBs1PfraMoFG50u0E3-BrhL315Bmus/exec";
+
+// ── CONFIGURACIÓN reCAPTCHA v2 Invisible ──
+// Registra tu sitio en https://www.google.com/recaptcha/admin
+// Selecciona "reCAPTCHA v2" → "Invisible reCAPTCHA badge"
+// Copia el SITE KEY aquí:
+const RECAPTCHA_SITE_KEY = "6LfOsy4tAAAAABgO5ehK1cf7aphG-NzPShd2SkT_"; // ← REEMPLAZA CON TU SITE KEY
 
 /**
- * Genera la clave dinámica del día basada en la fecha de El Salvador (GMT-6).
- * Algoritmo idéntico al del backend en Apps Script.
+ * Carga el script de reCAPTCHA de forma asíncrona.
+ * Se llama automáticamente al inicio.
  */
-function obtenerClaveMaestraDinamica() {
-  const fechaTz = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "America/El_Salvador" })
-  );
-  const day   = fechaTz.getDate();
-  const month = fechaTz.getMonth() + 1;
-  const year  = fechaTz.getFullYear();
-  const val   = (day * 8321) + (month * 9413) + (year * 7123);
-  const code  = (val * 1543) % 900000 + 100000;
-  return String(code);
+function cargarRecaptcha() {
+  if (document.getElementById("recaptcha-script")) return;
+  var script = document.createElement("script");
+  script.id = "recaptcha-script";
+  script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+  script.async = true;
+  script.defer = true;
+  document.head.appendChild(script);
+}
+
+/**
+ * Ejecuta reCAPTCHA invisible y devuelve el token.
+ * @returns {Promise<string>} Token de reCAPTCHA.
+ */
+function ejecutarRecaptcha() {
+  return new Promise((resolve, reject) => {
+    if (typeof grecaptcha === "undefined") {
+      reject("reCAPTCHA no cargado aún. Intenta de nuevo en unos segundos.");
+      return;
+    }
+    grecaptcha.ready(function() {
+      grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: "submit" }).then(function(token) {
+        resolve(token);
+      }).catch(function(err) {
+        reject("Error de reCAPTCHA: " + err);
+      });
+    });
+  });
 }
 
 // ==========================================
@@ -54,11 +80,11 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
+// Cargar reCAPTCHA al iniciar
+cargarRecaptcha();
+
 // ==========================================
 // NAVEGACIÓN ENTRE VISTAS
-// FIX: se eliminó la manipulación de opacity/transform sobre elementos
-//      con display:none que no tenía efecto. La transición queda 100%
-//      en la animación CSS @keyframes fadeInView.
 // ==========================================
 function switchView(viewId) {
   const current = document.querySelector(".card-view.active");
@@ -85,28 +111,17 @@ function validarNombreEstricto(n) {
 
 // ==========================================
 // ACCIÓN 1: REGISTRAR ASISTENCIA
-// FIX: la firma se valida localmente (el backend actual en codigo_apps_script.gs
-//      no requiere firma en el POST de asistencia). Si usas el backend con
-//      seguridad completa (DEPLY_EXCEL.txt), descomenta params.append("firma",...).
+// SEGURIDAD: Firma validada 100% en backend + reCAPTCHA
 // ==========================================
 function registrarAsistencia(event) {
   event.preventDefault();
 
-  const claveInput  = document.getElementById("reg-key").value.trim().toUpperCase();
+  const claveInput   = document.getElementById("reg-key").value.trim().toUpperCase();
   const docenteInput = document.getElementById("reg-teacher").value;
-  const grupoInput  = document.getElementById("reg-group").value;
-  const tokenInput  = document.getElementById("reg-token").value.trim();
-  const alertBox    = document.getElementById("alertRegistro");
-  const btn         = document.getElementById("btnRegistrar");
-
-  // ── Validación local de firma ──
-  if (tokenInput !== obtenerClaveMaestraDinamica()) {
-    alertBox.textContent   = "❌ LA FIRMA DEL DOCENTE ES INCORRECTA.";
-    alertBox.className     = "alert-box error";
-    alertBox.style.display = "block";
-    showToast("❌ Firma denegada.", "warning");
-    return;
-  }
+  const grupoInput   = document.getElementById("reg-group").value;
+  const tokenInput   = document.getElementById("reg-token").value.trim();
+  const alertBox     = document.getElementById("alertRegistro");
+  const btn          = document.getElementById("btnRegistrar");
 
   if (!claveInput) {
     alertBox.textContent   = "❌ Ingresa tu Clave Única de estudiante.";
@@ -116,48 +131,62 @@ function registrarAsistencia(event) {
   }
 
   btn.disabled  = true;
-  btn.innerHTML = "⚡ ENVIANDO REGISTRO...";
+  btn.innerHTML = "⚡ VERIFICANDO SEGURIDAD...";
   alertBox.style.display = "none";
 
-  const params = new URLSearchParams();
-  params.append("action",  "asistencia");
-  params.append("clave",   claveInput);
-  params.append("docente", docenteInput);
-  params.append("grupo",   grupoInput);
-  // Descomenta si usas backend con firma obligatoria:
-  // params.append("firma", tokenInput);
+  // Ejecutar reCAPTCHA invisible, luego enviar al backend
+  ejecutarRecaptcha()
+    .then((recaptchaToken) => {
+      btn.innerHTML = "⚡ ENVIANDO REGISTRO...";
 
-  fetch(SCRIPT_URL, { method: "POST", body: params })
+      const params = new URLSearchParams();
+      params.append("action",    "asistencia");
+      params.append("clave",     claveInput);
+      params.append("docente",   docenteInput);
+      params.append("grupo",     grupoInput);
+      params.append("firma",     tokenInput);      // ← Validada en backend, NO local
+      params.append("recaptcha", recaptchaToken); // ← Token de seguridad
+
+      return fetch(SCRIPT_URL, { method: "POST", body: params });
+    })
     .then((res) => res.json())
     .then((data) => {
       if (data.result === "success") {
-        alertBox.textContent   = "✓ ¡ASISTENCIA PROCESADA CON ÉXITO!";
+        alertBox.textContent   = "✓ ¡ASISTENCIA PROCESADA CON ÉXITO! Bienvenido/a, " + (data.nombre || "");
         alertBox.className     = "alert-box success";
         alertBox.style.display = "block";
         showToast("✓ ¡Asistencia registrada exitosamente!", "success");
         document.getElementById("form-register").reset();
         setTimeout(() => switchView("view-menu"), 2500);
+      } else if (data.result === "duplicated") {
+        alertBox.textContent   = data.message || "⚠️ Ya registraste hoy.";
+        alertBox.className     = "alert-box warning";
+        alertBox.style.display = "block";
+        showToast("⚠️ " + data.message, "warning");
       } else {
         alertBox.textContent   = data.message || "❌ Ocurrió un error inesperado.";
         alertBox.className     = "alert-box error";
         alertBox.style.display = "block";
-        showToast("⚠️ " + (data.result === "duplicated" ? "Ya registraste hoy." : "Fallo al procesar."), "warning");
+        showToast("❌ " + (data.message || "Fallo al procesar."), "warning");
       }
     })
-    .catch(() => {
-      alertBox.textContent   = "❌ ERROR DE RED O CONEXIÓN. Verifica tu internet e intenta de nuevo.";
+    .catch((err) => {
+      alertBox.textContent   = "❌ ERROR DE RED O SEGURIDAD. Verifica tu internet e intenta de nuevo.";
       alertBox.className     = "alert-box error";
       alertBox.style.display = "block";
-      showToast("❌ Error de red.", "warning");
+      showToast("❌ " + (err.message || "Error de red."), "warning");
     })
     .finally(() => {
       btn.disabled  = false;
       btn.innerHTML = "✓ Enviar Asistencia";
+      // Resetear reCAPTCHA para próximo uso
+      if (typeof grecaptcha !== "undefined") grecaptcha.reset();
     });
 }
 
 // ==========================================
 // ACCIÓN 2: GENERAR O RECUPERAR CLAVE ÚNICA
+// SEGURIDAD: reCAPTCHA en creación de claves
 // ==========================================
 function generarClave(event) {
   event.preventDefault();
@@ -203,22 +232,28 @@ function generarClave(event) {
         btn.disabled  = false;
         btn.innerHTML = "🔒 Generar Mi Clave Permanente";
       } else {
-        // ── Nueva clave → crearla ──
-        btn.innerHTML = "⚡ CREANDO CREDENCIAL...";
+        // ── Nueva clave → crearla (con reCAPTCHA) ──
+        btn.innerHTML = "⚡ VERIFICANDO SEGURIDAD...";
 
-        let claveNueva = "";
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        for (let i = 0; i < 4; i++) {
-          claveNueva += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
+        ejecutarRecaptcha()
+          .then((recaptchaToken) => {
+            btn.innerHTML = "⚡ CREANDO CREDENCIAL...";
 
-        const params = new URLSearchParams();
-        params.append("action",  "guardar_clave");
-        params.append("nombre",  nombreInput);
-        params.append("clave",   claveNueva);
-        params.append("docente", docenteInput);
+            let claveNueva = "";
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            for (let i = 0; i < 4; i++) {
+              claveNueva += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
 
-        fetch(SCRIPT_URL, { method: "POST", body: params })
+            const params = new URLSearchParams();
+            params.append("action",    "guardar_clave");
+            params.append("nombre",    nombreInput);
+            params.append("clave",     claveNueva);
+            params.append("docente",   docenteInput);
+            params.append("recaptcha", recaptchaToken);
+
+            return fetch(SCRIPT_URL, { method: "POST", body: params });
+          })
           .then((res) => res.json())
           .then((dataPost) => {
             if (dataPost.result === "success") {
@@ -227,15 +262,10 @@ function generarClave(event) {
               showToast("🎉 ¡Nueva clave permanente creada!", "success");
               document.getElementById("form-keygen").reset();
             } else {
-              // Puede ser "duplicated" si otro submit llegó al mismo tiempo
-              if (dataPost.result === "duplicated") {
-                alertBox.textContent = dataPost.message;
-              } else {
-                alertBox.textContent = dataPost.message || "❌ No se pudo guardar la clave.";
-              }
+              alertBox.textContent = dataPost.message || "❌ No se pudo guardar la clave.";
               alertBox.className     = "alert-box error";
               alertBox.style.display = "block";
-              showToast("⚠️ Error al registrar.", "warning");
+              showToast("⚠️ " + (dataPost.message || "Error al registrar."), "warning");
             }
           })
           .catch(() => {
@@ -246,6 +276,7 @@ function generarClave(event) {
           .finally(() => {
             btn.disabled  = false;
             btn.innerHTML = "🔒 Generar Mi Clave Permanente";
+            if (typeof grecaptcha !== "undefined") grecaptcha.reset();
           });
       }
     })
@@ -260,12 +291,10 @@ function generarClave(event) {
 
 // ==========================================
 // ACCIÓN 3: PANEL DOCENTE
-// FIX CRÍTICO: la función no tenía el parámetro "event", por lo que el
-//   formulario hacía submit nativo y recargaba la página entera sin
-//   ejecutar ningún código. Ahora recibe event y llama preventDefault().
+// SEGURIDAD: Firma validada en backend + reCAPTCHA
 // ==========================================
 function unlockTeacherPanel(event) {
-  if (event) event.preventDefault(); // ← FIX crítico
+  if (event) event.preventDefault();
 
   const passwordInput    = document.getElementById("teacher-password");
   const authSection      = document.getElementById("teacher-auth");
@@ -273,106 +302,112 @@ function unlockTeacherPanel(event) {
   const alertBox         = document.getElementById("alertVerRegistros");
   const btnAcceder       = document.getElementById("btnAccederRegistros");
 
-  // ── Validación local de clave dinámica ──
-  if (passwordInput.value.trim() !== obtenerClaveMaestraDinamica()) {
-    alertBox.textContent   = "❌ CREDENCIAL DE ACCESO DENEGADA.";
-    alertBox.className     = "alert-box error";
-    alertBox.style.display = "block";
-    showToast("❌ Acceso incorrecto.", "warning");
-    passwordInput.focus();
-    return;
-  }
-
   alertBox.style.display = "none";
   btnAcceder.disabled    = true;
-  btnAcceder.innerHTML   = "⚡ CARGANDO PANEL...";
+  btnAcceder.innerHTML   = "⚡ VERIFICANDO CREDENCIALES...";
 
-  fetch(`${SCRIPT_URL}?action=obtener_registros`)
+  // ── VALIDACIÓN EN BACKEND: Enviar firma al servidor para validar ──
+  const firma = passwordInput.value.trim();
+
+  fetch(`${SCRIPT_URL}?action=validar_firma&firma=${encodeURIComponent(firma)}`)
     .then((res) => res.json())
-    .then((data) => {
-      authSection.style.display = "none";
-      dashboardSection.classList.add("visible");
-      showToast("🔓 Modo Administrador Activo", "success");
-
-      // ── Tabla global ──
-      const tablaCuerpo = document.getElementById("tabla-api-cuerpo");
-      tablaCuerpo.innerHTML = "";
-
-      if (!Array.isArray(data) || data.length === 0) {
-        tablaCuerpo.innerHTML = `
-          <tr>
-            <td colspan="5" style="text-align:center; padding:2rem; opacity:0.5;">
-              No hay registros globales en el servidor.
-            </td>
-          </tr>`;
-      } else {
-        data.forEach((r) => {
-          const fila = document.createElement("tr");
-          fila.style.borderBottom = "1px solid var(--text-color)";
-          fila.innerHTML = `
-            <td style="padding:0.6rem; border-right:1px solid var(--text-color); font-weight:700;">${r.nombre  || "—"}</td>
-            <td style="padding:0.6rem; border-right:1px solid var(--text-color); font-variant-numeric:tabular-nums;">${r.clave   || "—"}</td>
-            <td style="padding:0.6rem; border-right:1px solid var(--text-color);">${r.grupo   || "—"}</td>
-            <td style="padding:0.6rem; border-right:1px solid var(--text-color);">${r.docente || "—"}</td>
-            <td style="padding:0.6rem; font-variant-numeric:tabular-nums; opacity:0.8;">${r.hora    || "—"}</td>
-          `;
-          tablaCuerpo.appendChild(fila);
-        });
+    .then((validacion) => {
+      if (!validacion.valido) {
+        alertBox.textContent   = "❌ CREDENCIAL DE ACCESO DENEGADA.";
+        alertBox.className     = "alert-box error";
+        alertBox.style.display = "block";
+        showToast("❌ Acceso incorrecto.", "warning");
+        passwordInput.focus();
+        btnAcceder.disabled  = false;
+        btnAcceder.innerHTML = "🔓 Entrar";
+        return;
       }
 
-      // ── Filtrar registros de HOY ──
-      // FIX: normalizamos la fecha para que coincida con el formato dd/MM/yyyy
-      //      que devuelve el backend, independientemente del locale del navegador.
-      const ahora   = new Date(
-        new Date().toLocaleString("en-US", { timeZone: "America/El_Salvador" })
-      );
-      const diaHoy  = String(ahora.getDate()).padStart(2, "0");
-      const mesHoy  = String(ahora.getMonth() + 1).padStart(2, "0");
-      const anioHoy = ahora.getFullYear();
-      const hoyStr  = `${diaHoy}/${mesHoy}/${anioHoy}`;
+      // Firma válida → cargar datos
+      btnAcceder.innerHTML = "⚡ CARGANDO PANEL...";
 
-      const filtrados = (Array.isArray(data) ? data : []).filter((r) => {
-        if (!r.fecha) return false;
-        const partes = r.fecha.replace(/-/g, "/").split("/");
-        if (partes.length !== 3) return false;
-        const norm = `${partes[0].padStart(2,"0")}/${partes[1].padStart(2,"0")}/${partes[2]}`;
-        return norm === hoyStr;
-      });
+      return fetch(`${SCRIPT_URL}?action=obtener_registros`)
+        .then((res) => res.json())
+        .then((data) => {
+          authSection.style.display = "none";
+          dashboardSection.classList.add("visible");
+          showToast("🔓 Modo Administrador Activo", "success");
 
-      document.getElementById("count-morning").textContent   =
-        filtrados.filter((r) => r.grupo === "Mañana").length;
-      document.getElementById("count-afternoon").textContent =
-        filtrados.filter((r) => r.grupo === "Tarde").length;
+          // ── Tabla global ──
+          const tablaCuerpo = document.getElementById("tabla-api-cuerpo");
+          tablaCuerpo.innerHTML = "";
 
-      // ── Lista rápida de hoy ──
-      const contenedor = document.getElementById("listaRegistros");
-      contenedor.innerHTML = "";
+          if (!Array.isArray(data) || data.length === 0) {
+            tablaCuerpo.innerHTML = `
+              <tr>
+                <td colspan="5" style="text-align:center; padding:2rem; opacity:0.5;">
+                  No hay registros globales en el servidor.
+                </td>
+              </tr>`;
+          } else {
+            data.forEach((r) => {
+              const fila = document.createElement("tr");
+              fila.style.borderBottom = "1px solid var(--text-color)";
+              fila.innerHTML = `
+                <td style="padding:0.6rem; border-right:1px solid var(--text-color); font-weight:700;">${r.nombre  || "—"}</td>
+                <td style="padding:0.6rem; border-right:1px solid var(--text-color); font-variant-numeric:tabular-nums;">${r.clave   || "—"}</td>
+                <td style="padding:0.6rem; border-right:1px solid var(--text-color);">${r.grupo   || "—"}</td>
+                <td style="padding:0.6rem; border-right:1px solid var(--text-color);">${r.docente || "—"}</td>
+                <td style="padding:0.6rem; font-variant-numeric:tabular-nums; opacity:0.8;">${r.hora    || "—"}</td>
+              `;
+              tablaCuerpo.appendChild(fila);
+            });
+          }
 
-      if (filtrados.length === 0) {
-        contenedor.innerHTML = `
-          <div class="registro-item" style="text-align:center; opacity:0.5;">
-            No hay asistencias registradas hoy.
-          </div>`;
-      } else {
-        filtrados.forEach((r) => {
-          const item = document.createElement("div");
-          item.className = "registro-item";
-          item.innerHTML = `
-            <strong>${r.nombre}</strong> — ${r.grupo}<br>
-            <small style="opacity:0.7;">
-              Clave: ${r.clave} | Docente: ${r.docente} | Hora: ${r.hora}
-            </small>`;
-          contenedor.appendChild(item);
+          // ── Filtrar registros de HOY ──
+          const ahora   = new Date(
+            new Date().toLocaleString("en-US", { timeZone: "America/El_Salvador" })
+          );
+          const diaHoy  = String(ahora.getDate()).padStart(2, "0");
+          const mesHoy  = String(ahora.getMonth() + 1).padStart(2, "0");
+          const anioHoy = ahora.getFullYear();
+          const hoyStr  = `${diaHoy}/${mesHoy}/${anioHoy}`;
+
+          const filtrados = (Array.isArray(data) ? data : []).filter((r) => {
+            if (!r.fecha) return false;
+            const partes = r.fecha.replace(/-/g, "/").split("/");
+            if (partes.length !== 3) return false;
+            const norm = `${partes[0].padStart(2,"0")}/${partes[1].padStart(2,"0")}/${partes[2]}`;
+            return norm === hoyStr;
+          });
+
+          document.getElementById("count-morning").textContent   =
+            filtrados.filter((r) => r.grupo === "Mañana").length;
+          document.getElementById("count-afternoon").textContent =
+            filtrados.filter((r) => r.grupo === "Tarde").length;
+
+          // ── Lista rápida de hoy ──
+          const contenedor = document.getElementById("listaRegistros");
+          contenedor.innerHTML = "";
+
+          if (filtrados.length === 0) {
+            contenedor.innerHTML = `
+              <div class="registro-item" style="text-align:center; opacity:0.5;">
+                No hay asistencias registradas hoy.
+              </div>`;
+          } else {
+            filtrados.forEach((r) => {
+              const item = document.createElement("div");
+              item.className = "registro-item";
+              item.innerHTML = `
+                <strong>${r.nombre}</strong> — ${r.grupo}<br>
+                <small style="opacity:0.7;">
+                  Clave: ${r.clave} | Docente: ${r.docente} | Hora: ${r.hora}
+                </small>`;
+              contenedor.appendChild(item);
+            });
+          }
         });
-      }
     })
     .catch(() => {
-      alertBox.textContent   = "❌ ERROR AL TRAER LOS REGISTROS DESDE EL SERVIDOR.";
+      alertBox.textContent   = "❌ ERROR AL VALIDAR CREDENCIALES. Intenta de nuevo.";
       alertBox.className     = "alert-box error";
       alertBox.style.display = "block";
-      // Mostrar de nuevo el formulario de auth si falla la carga
-      authSection.style.display = "block";
-      dashboardSection.classList.remove("visible");
     })
     .finally(() => {
       btnAcceder.disabled  = false;
@@ -394,6 +429,7 @@ function lockAndReturn() {
 
 // ==========================================
 // ACCIÓN 4: LIMPIAR Y ARCHIVAR ASISTENCIAS
+// SEGURIDAD: reCAPTCHA obligatorio
 // ==========================================
 function triggerClearAll() {
   if (
@@ -403,10 +439,16 @@ function triggerClearAll() {
   )
     return;
 
-  const params = new URLSearchParams();
-  params.append("action", "limpiar_asistencias");
+  showToast("⚡ Verificando seguridad...", "info");
 
-  fetch(SCRIPT_URL, { method: "POST", body: params })
+  ejecutarRecaptcha()
+    .then((recaptchaToken) => {
+      const params = new URLSearchParams();
+      params.append("action",    "limpiar_asistencias");
+      params.append("recaptcha", recaptchaToken);
+
+      return fetch(SCRIPT_URL, { method: "POST", body: params });
+    })
     .then((res) => res.json())
     .then((data) => {
       if (data.result === "success") {
@@ -417,5 +459,10 @@ function triggerClearAll() {
         showToast("❌ " + (data.message || "Error al limpiar."), "warning");
       }
     })
-    .catch(() => showToast("❌ Error al reiniciar el día. Intenta de nuevo.", "warning"));
+    .catch(() => {
+      showToast("❌ Error al reiniciar el día. Intenta de nuevo.", "warning");
+    })
+    .finally(() => {
+      if (typeof grecaptcha !== "undefined") grecaptcha.reset();
+    });
 }
