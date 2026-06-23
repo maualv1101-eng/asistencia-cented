@@ -1,50 +1,10 @@
 // ==========================================
-// FRONTEND — Sistema de Asistencia CENTED v2.2
-// SEGURIDAD: reCAPTCHA v2 Invisible + Validación 100% backend
+// FRONTEND — Sistema de Asistencia CENTED v2.2 (Sin reCAPTCHA)
+// SEGURIDAD: Validación 100% backend
 // ==========================================
 
 const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbwvb3t3mb9d-S5Cw5C9VpJspLs4atEu8qXlS7AiEa0k-4kfPA3ivjL0JQ9dHjmnhpW9/exec";
-
-// ── CONFIGURACIÓN reCAPTCHA v2 Invisible ──
-// Registra tu sitio en https://www.google.com/recaptcha/admin
-// Selecciona "reCAPTCHA v2" → "Invisible reCAPTCHA badge"
-// Copia el SITE KEY aquí:
-const RECAPTCHA_SITE_KEY = "6LfOsy4tAAAAABgO5ehK1cf7aphG-NzPShd2SkT_";
-
-// Variable global para almacenar el token de reCAPTCHA
-let recaptchaTokenGlobal = "";
-
-/**
- * Callback que reCAPTCHA v2 Invisible llama automáticamente
-cuando el usuario pasa la verificación.
- * @param {string} token - Token de reCAPTCHA generado.
- */
-function onRecaptchaSubmit(token) {
-  recaptchaTokenGlobal = token;
-}
-
-/**
- * Renderiza el widget invisible de reCAPTCHA v2 en un div oculto.
- * Se llama cuando el script de reCAPTCHA termina de cargar.
- */
-function renderRecaptcha() {
-  if (typeof grecaptcha === "undefined" || !document.getElementById("recaptcha-container")) {
-    // Si reCAPTCHA aún no cargó, esperar
-    setTimeout(renderRecaptcha, 500);
-    return;
-  }
-  grecaptcha.render("recaptcha-container", {
-    sitekey: RECAPTCHA_SITE_KEY,
-    size: "invisible",
-    callback: onRecaptchaSubmit
-  });
-}
-
-// Iniciar renderizado cuando el DOM esté listo
-document.addEventListener("DOMContentLoaded", function() {
-  renderRecaptcha();
-});
+  "https://script.google.com/macros/s/AKfycbxBJckry9GW990j_b5FZmA0-OAIFQSKAH9wgurZaf6hH1B8l7rditigKFMzzuyKhd0/exec";
 
 // ==========================================
 // TOASTS (mensajes emergentes)
@@ -107,7 +67,7 @@ function validarNombreEstricto(n) {
 
 // ==========================================
 // ACCIÓN 1: REGISTRAR ASISTENCIA
-// SEGURIDAD: Firma validada 100% en backend + reCAPTCHA v2
+// SEGURIDAD: Firma validada 100% en backend
 // ==========================================
 function registrarAsistencia(event) {
   event.preventDefault();
@@ -126,46 +86,12 @@ function registrarAsistencia(event) {
     return;
   }
 
-  btn.disabled = true;
-  btn.innerHTML = "⚡ VERIFICANDO SEGURIDAD...";
   alertBox.style.display = "none";
-
-  // Ejecutar reCAPTCHA v2 Invisible
-  if (typeof grecaptcha === "undefined") {
-    alertBox.textContent = "❌ reCAPTCHA no cargado. Recarga la página.";
-    alertBox.className = "alert-box error";
-    alertBox.style.display = "block";
-    btn.disabled = false;
-    btn.innerHTML = "✓ Enviar Asistencia";
-    return;
-  }
-
-  grecaptcha.execute();
-
-  // Esperar a que reCAPTCHA genere el token (máximo 5 segundos)
-  let intentos = 0;
-  const maxIntentos = 50;
-
-  function esperarToken() {
-    intentos++;
-    if (recaptchaTokenGlobal) {
-      // Token listo → enviar
-      enviarAsistencia(claveInput, docenteInput, grupoInput, tokenInput, alertBox, btn);
-    } else if (intentos < maxIntentos) {
-      setTimeout(esperarToken, 100);
-    } else {
-      alertBox.textContent = "❌ Error de verificación de seguridad. Intenta de nuevo.";
-      alertBox.className = "alert-box error";
-      alertBox.style.display = "block";
-      btn.disabled = false;
-      btn.innerHTML = "✓ Enviar Asistencia";
-      grecaptcha.reset();
-    }
-  }
-  esperarToken();
+  enviarAsistencia(claveInput, docenteInput, grupoInput, tokenInput, alertBox, btn);
 }
 
 function enviarAsistencia(claveInput, docenteInput, grupoInput, tokenInput, alertBox, btn) {
+  btn.disabled = true;
   btn.innerHTML = "⚡ ENVIANDO REGISTRO...";
 
   const params = new URLSearchParams();
@@ -174,7 +100,6 @@ function enviarAsistencia(claveInput, docenteInput, grupoInput, tokenInput, aler
   params.append("docente", docenteInput);
   params.append("grupo", grupoInput);
   params.append("firma", tokenInput);
-  params.append("recaptcha", recaptchaTokenGlobal);
 
   fetch(SCRIPT_URL, { method: "POST", body: params })
     .then(function(res) { return res.json(); })
@@ -185,7 +110,6 @@ function enviarAsistencia(claveInput, docenteInput, grupoInput, tokenInput, aler
         alertBox.style.display = "block";
         showToast("✓ ¡Asistencia registrada exitosamente!", "success");
         document.getElementById("form-register").reset();
-        recaptchaTokenGlobal = "";
         setTimeout(function() { switchView("view-menu"); }, 2500);
       } else if (data.result === "duplicated") {
         alertBox.textContent = data.message || "⚠️ Ya registraste hoy.";
@@ -208,14 +132,11 @@ function enviarAsistencia(claveInput, docenteInput, grupoInput, tokenInput, aler
     .finally(function() {
       btn.disabled = false;
       btn.innerHTML = "✓ Enviar Asistencia";
-      recaptchaTokenGlobal = "";
-      grecaptcha.reset();
     });
 }
 
 // ==========================================
 // ACCIÓN 2: GENERAR O RECUPERAR CLAVE ÚNICA
-// SEGURIDAD: reCAPTCHA v2 en creación de claves
 // ==========================================
 function generarClave(event) {
   event.preventDefault();
@@ -257,38 +178,7 @@ function generarClave(event) {
         btn.disabled = false;
         btn.innerHTML = "🔒 Generar Mi Clave Permanente";
       } else {
-        btn.innerHTML = "⚡ VERIFICANDO SEGURIDAD...";
-
-        if (typeof grecaptcha === "undefined") {
-          alertBox.textContent = "❌ reCAPTCHA no cargado. Recarga la página.";
-          alertBox.className = "alert-box error";
-          alertBox.style.display = "block";
-          btn.disabled = false;
-          btn.innerHTML = "🔒 Generar Mi Clave Permanente";
-          return;
-        }
-
-        grecaptcha.execute();
-
-        let intentos = 0;
-        const maxIntentos = 50;
-
-        function esperarTokenGen() {
-          intentos++;
-          if (recaptchaTokenGlobal) {
-            crearNuevaClave(nombreInput, docenteInput, alertBox, btn, containerClave);
-          } else if (intentos < maxIntentos) {
-            setTimeout(esperarTokenGen, 100);
-          } else {
-            alertBox.textContent = "❌ Error de verificación de seguridad. Intenta de nuevo.";
-            alertBox.className = "alert-box error";
-            alertBox.style.display = "block";
-            btn.disabled = false;
-            btn.innerHTML = "🔒 Generar Mi Clave Permanente";
-            grecaptcha.reset();
-          }
-        }
-        esperarTokenGen();
+        crearNuevaClave(nombreInput, docenteInput, alertBox, btn, containerClave);
       }
     })
     .catch(function() {
@@ -314,7 +204,6 @@ function crearNuevaClave(nombreInput, docenteInput, alertBox, btn, containerClav
   params.append("nombre", nombreInput);
   params.append("clave", claveNueva);
   params.append("docente", docenteInput);
-  params.append("recaptcha", recaptchaTokenGlobal);
 
   fetch(SCRIPT_URL, { method: "POST", body: params })
     .then(function(res) { return res.json(); })
@@ -339,8 +228,6 @@ function crearNuevaClave(nombreInput, docenteInput, alertBox, btn, containerClav
     .finally(function() {
       btn.disabled = false;
       btn.innerHTML = "🔒 Generar Mi Clave Permanente";
-      recaptchaTokenGlobal = "";
-      grecaptcha.reset();
     });
 }
 
@@ -474,42 +361,18 @@ function lockAndReturn() {
 
 // ==========================================
 // ACCIÓN 4: LIMPIAR Y ARCHIVAR ASISTENCIAS
-// SEGURIDAD: reCAPTCHA v2 obligatorio
 // ==========================================
 function triggerClearAll() {
   if (!confirm("🚨 ¿Estás completamente seguro de que deseas limpiar y archivar todos los registros del día?"))
     return;
 
-  showToast("⚡ Verificando seguridad...", "info");
-
-  if (typeof grecaptcha === "undefined") {
-    showToast("❌ reCAPTCHA no cargado. Recarga la página.", "warning");
-    return;
-  }
-
-  grecaptcha.execute();
-
-  let intentos = 0;
-  const maxIntentos = 50;
-
-  function esperarTokenClear() {
-    intentos++;
-    if (recaptchaTokenGlobal) {
-      enviarLimpiar();
-    } else if (intentos < maxIntentos) {
-      setTimeout(esperarTokenClear, 100);
-    } else {
-      showToast("❌ Error de verificación de seguridad. Intenta de nuevo.", "warning");
-      grecaptcha.reset();
-    }
-  }
-  esperarTokenClear();
+  showToast("⚡ Procesando solicitud...", "info");
+  enviarLimpiar();
 }
 
 function enviarLimpiar() {
   const params = new URLSearchParams();
   params.append("action", "limpiar_asistencias");
-  params.append("recaptcha", recaptchaTokenGlobal);
 
   fetch(SCRIPT_URL, { method: "POST", body: params })
     .then(function(res) { return res.json(); })
@@ -524,9 +387,5 @@ function enviarLimpiar() {
     })
     .catch(function() {
       showToast("❌ Error al reiniciar el día. Intenta de nuevo.", "warning");
-    })
-    .finally(function() {
-      recaptchaTokenGlobal = "";
-      grecaptcha.reset();
     });
 }
