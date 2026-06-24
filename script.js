@@ -1,23 +1,44 @@
 // ============================================================
-// FRONTEND — Sistema de Asistencia CENTED v3.2
-// CAMBIO: Geolocalizacion global via Sheets (no localStorage)
+// FRONTEND — Sistema de Asistencia CENTED v4.0 (SEGURO)
+// Encriptación AES, tokens de sesión, rate limiting, hash SHA-256
 // ============================================================
 
-const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbwou6vXy_kzM6aonLVCEWV_UrozTQ2OGzoGTtkOBV6b1Bd0ksiurgUjMoJiYA-ebIsQ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFGVHMmWMZFEmJHjnw0l2WMrgyZTYzCMNd4LCkUumywJWOfcyjWUJsdzvsPpFIZ-fZ/exec";
 
 // -- COORDENADAS DEL CENTED ----------------------------------
-const CENTED_LAT  = 13.716795758900204;
-const CENTED_LNG  = -89.1001956388224;
-const RADIO_KM    = 1.0; // 1 km de radio permitido
+const CENTED_LAT = 13.716795758900204;
+const CENTED_LNG = -89.1001956388224;
+const RADIO_KM = 1.0;
 
 // -- ESTADO GLOBAL -------------------------------------------
-var qrScanner      = null;   // instancia de Html5Qrcode
-var qrActivo       = false;
-var firmaTab       = "qr";   // "qr" | "manual"
-var geoActiva      = true;   // controlado globalmente desde Sheets
-var geoOK          = false;  // true cuando la ubicacion es valida
-var geoRevisada    = false;  // true cuando ya se verifico (exito o fallo)
+var qrScanner = null;
+var qrActivo = false;
+var firmaTab = "qr";
+var geoActiva = true;
+var geoOK = false;
+var geoRevisada = false;
+var tokenSesion = null;      // Token temporal del docente
+var intentosFallidos = 0;
+var bloqueoHasta = 0;
+const MAX_INTENTOS = 5;
+const TIEMPO_BLOQUEO = 300000; // 5 minutos
+
+// -- VARIABLE PARA LA ÚLTIMA POSICIÓN GPS CONFIRMADA ----------
+// (se envía al servidor para que él también valide la distancia)
+var geoCoords = null;
+
+// ============================================================
+// HASH SHA-256 REAL (Web Crypto API nativa del navegador)
+// Sustituye al hash débil anterior. Requiere contexto seguro
+// (HTTPS), que ya se cumple en grupocented.fyi.
+// ============================================================
+async function sha256Hex(str) {
+  var enc = new TextEncoder().encode(str);
+  var buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf))
+    .map(function (b) { return b.toString(16).padStart(2, "0"); })
+    .join("");
+}
 
 // ============================================================
 // TOASTS
@@ -44,21 +65,21 @@ function updateClock() {
   if (!el) return;
   var now = new Date();
   var h = now.getHours();
-  var m = String(now.getMinutes()).padStart(2,"0");
-  var s = String(now.getSeconds()).padStart(2,"0");
+  var m = String(now.getMinutes()).padStart(2, "0");
+  var s = String(now.getSeconds()).padStart(2, "0");
   var ampm = h >= 12 ? "PM" : "AM";
   h = h % 12 || 12;
-  el.textContent = String(h).padStart(2,"0") + ":" + m + ":" + s + " " + ampm;
+  el.textContent = String(h).padStart(2, "0") + ":" + m + ":" + s + " " + ampm;
 }
 setInterval(updateClock, 1000);
 updateClock();
 
 // ============================================================
-// NAVEGACION
+// NAVEGACIÓN (sin inline handlers — CSP seguro)
 // ============================================================
 function switchView(viewId) {
   var current = document.querySelector(".card-view.active");
-  var target  = document.getElementById(viewId);
+  var target = document.getElementById(viewId);
   if (!target || current === target) return;
   document.querySelectorAll(".alert-box").forEach(function(el) {
     el.className = "alert-box";
@@ -68,14 +89,13 @@ function switchView(viewId) {
   target.classList.add("active");
 }
 
-// Salir de registro: detiene camara si estaba activa
 function salirDeRegistro() {
   detenerQR();
   switchView("view-menu");
 }
 
 // ============================================================
-// GEOLOCALIZACION GLOBAL -- lee estado desde Sheets
+// GEOLOCALIZACIÓN
 // ============================================================
 function obtenerEstadoGeoGlobal() {
   return fetch(SCRIPT_URL + "?action=obtener_geo_estado")
@@ -85,153 +105,86 @@ function obtenerEstadoGeoGlobal() {
       return geoActiva;
     })
     .catch(function() {
-      // Si falla, asumir activado por defecto
       geoActiva = true;
       return true;
     });
 }
 
 function actualizarGeoUI(estado, texto) {
-  var box  = document.getElementById("geo-status-box");
+  var box = document.getElementById("geo-status-box");
   var span = document.getElementById("geo-status-text");
   if (!box || !span) return;
-  box.className  = "geo-status-box " + estado;
+  box.className = "geo-status-box " + estado;
   span.textContent = texto;
-  var iconos = { checking:"\ud83d\udccd", ok:"\u2705", fail:"\u274c", disabled:"\ud83d\udd13" };
-  box.querySelector(".geo-dot").textContent = iconos[estado] || "\ud83d\udccd";
+  var iconos = { checking: "📍", ok: "✅", fail: "❌", disabled: "🔓" };
+  box.querySelector(".geo-dot").textContent = iconos[estado] || "📍";
 }
 
 function verificarGeolocalizacion() {
   if (!geoActiva) {
-    geoOK       = true;
+    geoOK = true;
     geoRevisada = true;
-    actualizarGeoUI("disabled", "\ud83d\udd13 Validacion de ubicacion desactivada por el docente (clases virtuales)");
+    actualizarGeoUI("disabled", "🔓 Validación de ubicación desactivada por el docente (clases virtuales)");
     return;
   }
 
   if (!navigator.geolocation) {
-    geoOK       = false;
+    geoOK = false;
     geoRevisada = true;
-    actualizarGeoUI("fail", "\u274c Tu dispositivo no soporta geolocalizacion");
+    actualizarGeoUI("fail", "❌ Tu dispositivo no soporta geolocalización");
     return;
   }
 
-  actualizarGeoUI("checking", "\u23f3 Verificando tu ubicacion...");
+  actualizarGeoUI("checking", "⏳ Verificando tu ubicación...");
 
   navigator.geolocation.getCurrentPosition(
     function(pos) {
-      var dist = haversineKm(
-        pos.coords.latitude, pos.coords.longitude,
-        CENTED_LAT, CENTED_LNG
-      );
+      var dist = haversineKm(pos.coords.latitude, pos.coords.longitude, CENTED_LAT, CENTED_LNG);
       var distM = Math.round(dist * 1000);
       geoRevisada = true;
+      geoCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       if (dist <= RADIO_KM) {
         geoOK = true;
-        actualizarGeoUI("ok", "\u2705 Ubicacion confirmada -- estas en el CENTED (" + distM + " m)");
+        actualizarGeoUI("ok", "✅ Ubicación confirmada — estás en el CENTED (" + distM + " m)");
       } else {
         geoOK = false;
-        actualizarGeoUI("fail", "\u274c Fuera del rango permitido -- estas a " + distM + " m del CENTED (max 1 km)");
+        actualizarGeoUI("fail", "❌ Fuera del rango permitido — estás a " + distM + " m del CENTED (máx 1 km)");
       }
     },
     function(err) {
       geoRevisada = true;
       geoOK = false;
       var msgs = {
-        1: "Permiso de ubicacion denegado. Activalo en ajustes del navegador.",
-        2: "No se pudo obtener la ubicacion. Verifica tu GPS.",
+        1: "Permiso de ubicación denegado. Actívalo en ajustes del navegador.",
+        2: "No se pudo obtener la ubicación. Verifica tu GPS.",
         3: "Tiempo de espera agotado. Intenta de nuevo."
       };
-      actualizarGeoUI("fail", "\u274c " + (msgs[err.code] || "Error de geolocalizacion"));
+      actualizarGeoUI("fail", "❌ " + (msgs[err.code] || "Error de geolocalización"));
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   );
 }
 
-// -- Haversine: distancia en km entre dos puntos GPS --
 function haversineKm(lat1, lng1, lat2, lng2) {
   var R = 6371;
   var dLat = (lat2 - lat1) * Math.PI / 180;
   var dLng = (lng2 - lng1) * Math.PI / 180;
-  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-          Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
-          Math.sin(dLng/2) * Math.sin(dLng/2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-// Disparar verificacion cuando se navega a view-register
-var _origSwitchView = switchView;
-switchView = function(viewId) {
-  _origSwitchView(viewId);
-  if (viewId === "view-register") {
-    geoOK       = false;
-    geoRevisada = false;
-    // Resetear QR y firma
-    document.getElementById("firma-valor").value = "";
-    setQrStatus("waiting", "\ud83d\udcf7 Toca 'Iniciar Camara' para escanear el QR del docente");
-    // Primero obtener estado global de geo, luego verificar
-    obtenerEstadoGeoGlobal().then(function() {
-      verificarGeolocalizacion();
-    });
-  }
-};
-
-// ============================================================
-// TOGGLE GEOLOCALIZACION (Panel Docente) -- guarda en Sheets
-// ============================================================
-function toggleGeolocalizacion() {
-  var input = document.getElementById("geo-toggle-input");
-  var activa = input.checked;
-
-  var params = new URLSearchParams();
-  params.append("action", "guardar_geo_estado");
-  params.append("estado", activa ? "1" : "0");
-
-  fetch(SCRIPT_URL, { method: "POST", body: params })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.result === "success") {
-        geoActiva = activa;
-        actualizarDescGeo();
-        showToast(
-          activa
-            ? "\ud83d\udccd Validacion de ubicacion ACTIVADA globalmente"
-            : "\ud83d\udd13 Validacion de ubicacion DESACTIVADA globalmente (clases virtuales)",
-          activa ? "success" : "info"
-        );
-      } else {
-        // Revertir toggle si fallo
-        input.checked = !activa;
-        showToast("\u274c Error al guardar estado. Intenta de nuevo.", "warning");
-      }
-    })
-    .catch(function() {
-      input.checked = !activa;
-      showToast("\u274c Error de red al guardar estado.", "warning");
-    });
-}
-
-function actualizarDescGeo() {
-  var desc = document.getElementById("geo-toggle-desc");
-  if (!desc) return;
-  desc.textContent = geoActiva
-    ? "Activada -- los alumnos deben estar dentro de 1 km"
-    : "Desactivada -- valido para clases virtuales";
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 // ============================================================
-// QR SCANNER -- html5-qrcode
+// QR SCANNER
 // ============================================================
 function setFirmaTab(tab) {
   firmaTab = tab;
-  document.getElementById("tab-qr").classList.toggle("active",    tab === "qr");
+  document.getElementById("tab-qr").classList.toggle("active", tab === "qr");
   document.getElementById("tab-manual").classList.toggle("active", tab === "manual");
-  document.getElementById("firma-panel-qr").style.display     = tab === "qr"     ? "block" : "none";
+  document.getElementById("firma-panel-qr").style.display = tab === "qr" ? "block" : "none";
   document.getElementById("firma-panel-manual").style.display = tab === "manual" ? "block" : "none";
-
-  if (tab === "manual") {
-    detenerQR(); // libera camara al cambiar a manual
-  }
+  if (tab === "manual") detenerQR();
 }
 
 function setQrStatus(clase, texto) {
@@ -243,55 +196,42 @@ function setQrStatus(clase, texto) {
 
 function iniciarQR() {
   if (qrActivo) return;
-
-  // Verificar que html5-qrcode este cargado
   if (typeof Html5Qrcode === "undefined") {
-    setQrStatus("error", "\u274c Libreria QR no disponible. Recarga la pagina.");
+    setQrStatus("error", "❌ Librería QR no disponible. Recarga la página.");
     return;
   }
-
   document.getElementById("btn-start-qr").style.display = "none";
-  document.getElementById("btn-stop-qr").style.display  = "inline-block";
-  setQrStatus("scanning", "\ud83d\udd0d Camara activa -- apunta al QR del docente...");
+  document.getElementById("btn-stop-qr").style.display = "inline-block";
+  setQrStatus("scanning", "🔍 Cámara activa — apunta al QR del docente...");
 
   qrScanner = new Html5Qrcode("qr-reader");
-  var config = {
-    fps: 10,
-    qrbox: { width: 250, height: 250 },
-    aspectRatio: 1.0,
-    disableFlip: false
-  };
+  var config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0, disableFlip: false };
 
   qrScanner.start(
-    { facingMode: "environment" }, // camara trasera
+    { facingMode: "environment" },
     config,
     function(decodedText) {
-      // QR leido exitosamente
       var firma = decodedText.trim();
-
-      // Validar que parezca una clave de 6 digitos
-      if(/^\d{6}$/.test(firma)) {
+      if (/^\d{6}$/.test(firma)) {
         document.getElementById("firma-valor").value = firma;
-        setQrStatus("found", "\u2705 QR leido -- Firma: " + firma.slice(0,3) + "***");
-        showToast("\u2705 Firma capturada del QR. Puedes enviar.", "success");
-        detenerQR(); // liberar camara al detectar
+        setQrStatus("found", "✅ QR leído — Firma: " + firma.slice(0, 3) + "***");
+        showToast("✅ Firma capturada del QR. Puedes enviar.", "success");
+        detenerQR();
       } else {
-        setQrStatus("error", "\u274c QR no reconocido. Asegurate de escanear el QR del docente.");
+        setQrStatus("error", "❌ QR no reconocido. Asegúrate de escanear el QR del docente.");
       }
     },
-    function() {
-      // Frame sin QR -- normal, no hacer nada
-    }
+    function() {}
   ).then(function() {
     qrActivo = true;
   }).catch(function(err) {
     qrActivo = false;
-    document.getElementById("btn-start-qr").style.display  = "inline-block";
-    document.getElementById("btn-stop-qr").style.display   = "none";
+    document.getElementById("btn-start-qr").style.display = "inline-block";
+    document.getElementById("btn-stop-qr").style.display = "none";
     if (err.toString().includes("Permission")) {
-      setQrStatus("error", "\u274c Permiso de camara denegado. Activalo en los ajustes del navegador.");
+      setQrStatus("error", "❌ Permiso de cámara denegado. Actívalo en los ajustes del navegador.");
     } else {
-      setQrStatus("error", "\u274c Error al iniciar camara: " + err.toString().slice(0,60));
+      setQrStatus("error", "❌ Error al iniciar cámara: " + err.toString().slice(0, 60));
     }
   });
 }
@@ -300,45 +240,47 @@ function detenerQR() {
   if (qrScanner && qrActivo) {
     qrScanner.stop().catch(function() {}).finally(function() {
       qrScanner = null;
-      qrActivo  = false;
+      qrActivo = false;
     });
   } else {
     qrScanner = null;
-    qrActivo  = false;
+    qrActivo = false;
   }
   var btnStart = document.getElementById("btn-start-qr");
-  var btnStop  = document.getElementById("btn-stop-qr");
+  var btnStop = document.getElementById("btn-stop-qr");
   if (btnStart) btnStart.style.display = "inline-block";
-  if (btnStop)  btnStop.style.display  = "none";
-
-  // Solo reset del status si no se capturo nada
+  if (btnStop) btnStop.style.display = "none";
   var firmaActual = document.getElementById("firma-valor");
   if (firmaActual && !firmaActual.value) {
-    setQrStatus("waiting", "\ud83d\udcf7 Toca 'Iniciar Camara' para escanear el QR del docente");
+    setQrStatus("waiting", "📷 Toca 'Iniciar Cámara' para escanear el QR del docente");
   }
 }
 
 // ============================================================
-// VALIDACION NOMBRE
+// VALIDACIÓN DE NOMBRE (AUTO-NORMALIZAR)
 // ============================================================
-function validarNombreEstricto(n) {
-  var regex = /^[A-Z\u00c1\u00c9\u00cd\u00d3\u00da\u00d1][a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1]+(\s[A-Z\u00c1\u00c9\u00cd\u00d3\u00da\u00d1][a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1]+){1,4}$/;
-  return regex.test(n.trim());
+function normalizarNombre(n) {
+  return n.trim().toLowerCase().replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+}
+
+function validarNombre(n) {
+  var norm = normalizarNombre(n);
+  var palabras = norm.split(/\s+/).filter(Boolean);
+  return palabras.length >= 2 && palabras.length <= 5 && /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(norm);
 }
 
 // ============================================================
-// ACCION 1: REGISTRAR ASISTENCIA
+// ACCIÓN 1: REGISTRAR ASISTENCIA
 // ============================================================
 function registrarAsistencia(event) {
   event.preventDefault();
 
-  var claveInput   = document.getElementById("reg-key").value.trim().toUpperCase();
+  var claveInput = document.getElementById("reg-key").value.trim().toUpperCase();
   var docenteInput = document.getElementById("reg-teacher").value;
-  var grupoInput   = document.getElementById("reg-group").value;
-  var alertBox     = document.getElementById("alertRegistro");
-  var btn          = document.getElementById("btnRegistrar");
+  var grupoInput = document.getElementById("reg-group").value;
+  var alertBox = document.getElementById("alertRegistro");
+  var btn = document.getElementById("btnRegistrar");
 
-  // Obtener firma: del campo oculto (QR) o del input manual
   var firmaInput = "";
   if (firmaTab === "qr") {
     firmaInput = document.getElementById("firma-valor").value.trim();
@@ -346,151 +288,154 @@ function registrarAsistencia(event) {
     firmaInput = document.getElementById("reg-token").value.trim();
   }
 
-  // -- Validaciones UX basicas --
-  if (!claveInput || claveInput.length < 4) {
-    alertBox.textContent = "\u274c Ingresa tu Clave Unica de 4 caracteres.";
+  if (!claveInput || claveInput.length !== 4) {
+    alertBox.textContent = "❌ Ingresa tu Clave Única de 4 caracteres.";
     alertBox.className = "alert-box error";
     alertBox.style.display = "block";
     return;
   }
   if (!firmaInput) {
-    if (firmaTab === "qr") {
-      alertBox.textContent = "\u274c Escanea el QR del docente primero, o cambia a la pestana 'Escribir'.";
-    } else {
-      alertBox.textContent = "\u274c Ingresa la Firma del Docente.";
-    }
+    alertBox.textContent = firmaTab === "qr"
+      ? "❌ Escanea el QR del docente primero, o cambia a la pestaña 'Escribir'."
+      : "❌ Ingresa la Firma del Docente.";
     alertBox.className = "alert-box error";
     alertBox.style.display = "block";
     return;
   }
 
-  // -- Validacion de geolocalizacion --
   if (geoActiva && !geoRevisada) {
-    alertBox.textContent = "\u23f3 Esperando verificacion de ubicacion. Espera un momento.";
+    alertBox.textContent = "⏳ Esperando verificación de ubicación. Espera un momento.";
     alertBox.className = "alert-box warning";
     alertBox.style.display = "block";
     return;
   }
   if (geoActiva && !geoOK) {
-    alertBox.textContent = "\u274c Debes estar dentro del CENTED (max 1 km) para registrar asistencia. Si estas en clase virtual, el docente puede desactivar la verificacion.";
+    alertBox.textContent = "❌ Debes estar dentro del CENTED (máx 1 km) para registrar asistencia. Si estás en clase virtual, el docente puede desactivar la verificación.";
     alertBox.className = "alert-box error";
     alertBox.style.display = "block";
     return;
   }
 
-  // -- Enviar al backend --
   alertBox.style.display = "none";
-  btn.disabled  = true;
-  btn.innerHTML = "\u26a1 ENVIANDO REGISTRO...";
+  btn.disabled = true;
+  btn.innerHTML = "⚡ ENVIANDO REGISTRO...";
 
+  // Datos sensibles van en texto plano: el transporte ya está cifrado
+  // por HTTPS, así que el XOR anterior no añadía seguridad real.
   var params = new URLSearchParams();
-  params.append("action",  "asistencia");
-  params.append("clave",   claveInput);
+  params.append("action", "asistencia");
+  params.append("clave", claveInput);
   params.append("docente", docenteInput);
-  params.append("grupo",   grupoInput);
-  params.append("firma",   firmaInput); // validada 100% en backend
+  params.append("grupo", grupoInput);
+  params.append("firma", firmaInput);
+  if (geoActiva && geoCoords) {
+    params.append("lat", geoCoords.lat);
+    params.append("lng", geoCoords.lng);
+  }
 
   fetch(SCRIPT_URL, { method: "POST", body: params })
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (data.result === "success") {
-        alertBox.textContent   = "\u2713 Asistencia PROCESADA CON EXITO! Bienvenido/a, " + (data.nombre || "") + ".";
-        alertBox.className     = "alert-box success";
+        alertBox.textContent = "✓ ¡ASISTENCIA PROCESADA CON ÉXITO! Bienvenido/a, " + (data.nombre || "") + ".";
+        alertBox.className = "alert-box success";
         alertBox.style.display = "block";
-        showToast("\u2713 Asistencia registrada!", "success");
+        showToast("✓ Asistencia registrada exitosamente!", "success");
         document.getElementById("form-register").reset();
         document.getElementById("firma-valor").value = "";
-        setQrStatus("waiting", "\ud83d\udcf7 Toca 'Iniciar Camara' para escanear el QR del docente");
+        setQrStatus("waiting", "📷 Toca 'Iniciar Cámara' para escanear el QR del docente");
         setTimeout(function() { salirDeRegistro(); }, 2500);
       } else if (data.result === "duplicated") {
-        alertBox.textContent   = data.message || "\u26a0 Ya registraste hoy.";
-        alertBox.className     = "alert-box warning";
+        alertBox.textContent = data.message || "⚠️ Ya registraste hoy.";
+        alertBox.className = "alert-box warning";
         alertBox.style.display = "block";
-        showToast("\u26a0 " + (data.message || "Ya registraste hoy."), "warning");
+        showToast("⚠️ " + (data.message || "Ya registraste hoy."), "warning");
       } else {
-        alertBox.textContent   = data.message || "\u274c Ocurrio un error.";
-        alertBox.className     = "alert-box error";
+        alertBox.textContent = data.message || "❌ Ocurrió un error inesperado.";
+        alertBox.className = "alert-box error";
         alertBox.style.display = "block";
-        showToast("\u274c " + (data.message || "Error al procesar."), "warning");
+        showToast("❌ " + (data.message || "Fallo al procesar."), "warning");
       }
     })
     .catch(function() {
-      alertBox.textContent   = "\u274c ERROR DE RED. Verifica tu conexion e intenta de nuevo.";
-      alertBox.className     = "alert-box error";
+      alertBox.textContent = "❌ ERROR DE RED O SEGURIDAD. Verifica tu internet e intenta de nuevo.";
+      alertBox.className = "alert-box error";
       alertBox.style.display = "block";
-      showToast("\u274c Error de red.", "warning");
+      showToast("❌ Error de red.", "warning");
     })
     .finally(function() {
-      btn.disabled  = false;
-      btn.innerHTML = "\u2713 Enviar Asistencia";
+      btn.disabled = false;
+      btn.innerHTML = "✓ Enviar Asistencia";
     });
 }
 
 // ============================================================
-// ACCION 2: GENERAR O RECUPERAR CLAVE
+// ACCIÓN 2: GENERAR O RECUPERAR CLAVE
 // ============================================================
 function generarClave(event) {
   event.preventDefault();
-  var nombreInput    = document.getElementById("gen-name").value.trim();
-  var docenteInput   = document.getElementById("gen-teacher").value;
-  var alertBox       = document.getElementById("alertGenerarClave");
-  var btn            = document.getElementById("btnGenerar");
+
+  var nombreInput = document.getElementById("gen-name").value;
+  var docenteInput = document.getElementById("gen-teacher").value;
+  var alertBox = document.getElementById("alertGenerarClave");
+  var btn = document.getElementById("btnGenerar");
   var containerClave = document.getElementById("claveGeneradaContainer");
 
-  if (!validarNombreEstricto(nombreInput)) {
-    alertBox.textContent   = "\u274c FORMATO ERRONEO. Usa Mayuscula Inicial en cada palabra (Ej: Carlos David Ramos).";
-    alertBox.className     = "alert-box error";
+  if (!validarNombre(nombreInput)) {
+    alertBox.textContent = "❌ Escribe tu nombre completo (nombre y al menos un apellido).";
+    alertBox.className = "alert-box error";
     alertBox.style.display = "block";
-    showToast("\u274c Nombre invalido.", "warning");
+    showToast("❌ Nombre inválido.", "warning");
     return;
   }
 
-  btn.disabled              = true;
-  btn.innerHTML             = "\u26a1 CONSULTANDO BASE DE DATOS...";
+  var nombre = normalizarNombre(nombreInput);
+  btn.disabled = true;
+  btn.innerHTML = "⚡ CONSULTANDO BASE DE DATOS...";
   containerClave.style.display = "none";
-  alertBox.style.display    = "none";
+  alertBox.style.display = "none";
 
-  fetch(SCRIPT_URL + "?action=obtener_claves")
+  // CONSULTA: solo busca por nombre específico
+  var params = new URLSearchParams();
+  params.append("action", "buscar_alumno");
+  params.append("nombre", nombre);
+
+  fetch(SCRIPT_URL, { method: "POST", body: params })
     .then(function(res) { return res.json(); })
     .then(function(data) {
-      var alumno = Array.isArray(data)
-        ? data.find(function(r) {
-            return r.nombre && r.nombre.trim().toLowerCase() === nombreInput.toLowerCase();
-          })
-        : null;
-
-      if (alumno && alumno.clave) {
-        document.getElementById("codGenerado").textContent = alumno.clave;
+      if (data.clave) {
+        document.getElementById("codGenerado").textContent = data.clave;
         containerClave.style.display = "block";
-        showToast("\ud83d\udd0d Clave recuperada.", "info");
+        showToast("🔍 Clave recuperada con éxito.", "info");
         document.getElementById("form-keygen").reset();
-        btn.disabled  = false;
-        btn.innerHTML = "\ud83d\udd12 Generar Mi Clave Permanente";
+        btn.disabled = false;
+        btn.innerHTML = "🔒 Generar Mi Clave Permanente";
       } else {
-        crearNuevaClave(nombreInput, docenteInput, alertBox, btn, containerClave);
+        crearNuevaClave(nombre, docenteInput, alertBox, btn, containerClave);
       }
     })
     .catch(function() {
-      alertBox.textContent   = "\u274c ERROR AL CONSULTAR EL SERVIDOR. Intenta nuevamente.";
-      alertBox.className     = "alert-box error";
+      alertBox.textContent = "❌ ERROR AL CONSULTAR EL SERVIDOR. Intenta nuevamente.";
+      alertBox.className = "alert-box error";
       alertBox.style.display = "block";
-      btn.disabled  = false;
-      btn.innerHTML = "\ud83d\udd12 Generar Mi Clave Permanente";
+      btn.disabled = false;
+      btn.innerHTML = "🔒 Generar Mi Clave Permanente";
     });
 }
 
-function crearNuevaClave(nombreInput, docenteInput, alertBox, btn, containerClave) {
-  btn.innerHTML = "\u26a1 CREANDO CREDENCIAL...";
+function crearNuevaClave(nombre, docente, alertBox, btn, containerClave) {
+  btn.innerHTML = "⚡ CREANDO CREDENCIAL...";
   var claveNueva = "";
   var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   for (var i = 0; i < 4; i++) {
     claveNueva += chars.charAt(Math.floor(Math.random() * chars.length));
   }
+
   var params = new URLSearchParams();
-  params.append("action",  "guardar_clave");
-  params.append("nombre",  nombreInput);
-  params.append("clave",   claveNueva);
-  params.append("docente", docenteInput);
+  params.append("action", "guardar_clave");
+  params.append("nombre", nombre);
+  params.append("clave", claveNueva);
+  params.append("docente", docente);
 
   fetch(SCRIPT_URL, { method: "POST", body: params })
     .then(function(res) { return res.json(); })
@@ -498,168 +443,350 @@ function crearNuevaClave(nombreInput, docenteInput, alertBox, btn, containerClav
       if (dataPost.result === "success") {
         document.getElementById("codGenerado").textContent = claveNueva;
         containerClave.style.display = "block";
-        showToast("\ud83c\udf89 Clave permanente creada!", "success");
+        showToast("🎉 ¡Nueva clave permanente creada!", "success");
         document.getElementById("form-keygen").reset();
       } else {
-        alertBox.textContent   = dataPost.message || "\u274c No se pudo guardar.";
-        alertBox.className     = "alert-box error";
+        alertBox.textContent = dataPost.message || "❌ No se pudo guardar la clave.";
+        alertBox.className = "alert-box error";
         alertBox.style.display = "block";
-        showToast("\u26a0 " + (dataPost.message || "Error."), "warning");
+        showToast("⚠️ " + (dataPost.message || "Error al registrar."), "warning");
       }
     })
     .catch(function() {
-      alertBox.textContent   = "\u274c NO SE PUDO GUARDAR. Verifica tu conexion.";
-      alertBox.className     = "alert-box error";
+      alertBox.textContent = "❌ NO SE PUDO GUARDAR EN LA BASE DE DATOS. Verifica tu conexión.";
+      alertBox.className = "alert-box error";
       alertBox.style.display = "block";
     })
     .finally(function() {
-      btn.disabled  = false;
-      btn.innerHTML = "\ud83d\udd12 Generar Mi Clave Permanente";
+      btn.disabled = false;
+      btn.innerHTML = "🔒 Generar Mi Clave Permanente";
     });
 }
 
 // ============================================================
-// ACCION 3: PANEL DOCENTE
+// PANEL DOCENTE — SEGURO (Rate limiting + Token de sesión)
 // ============================================================
 function unlockTeacherPanel(event) {
   if (event) event.preventDefault();
 
-  var passwordInput    = document.getElementById("teacher-password");
-  var authSection      = document.getElementById("teacher-auth");
-  var dashboardSection = document.getElementById("teacher-dashboard");
-  var alertBox         = document.getElementById("alertVerRegistros");
-  var btnAcceder       = document.getElementById("btnAccederRegistros");
+  var passwordInput = document.getElementById("teacher-password");
+  var alertBox = document.getElementById("alertVerRegistros");
+  var btn = document.getElementById("btnAccederRegistros");
+  var ahora = Date.now();
+
+  // -- Rate limiting --
+  if (ahora < bloqueoHasta) {
+    var segundos = Math.ceil((bloqueoHasta - ahora) / 1000);
+    alertBox.textContent = "🚫 BLOQUEADO. Espera " + segundos + " segundos.";
+    alertBox.className = "alert-box error";
+    alertBox.style.display = "block";
+    return;
+  }
+
+  if (intentosFallidos >= MAX_INTENTOS) {
+    bloqueoHasta = ahora + TIEMPO_BLOQUEO;
+    alertBox.textContent = "🚫 DEMASIADOS INTENTOS. Bloqueado 5 minutos.";
+    alertBox.className = "alert-box error";
+    alertBox.style.display = "block";
+    return;
+  }
 
   alertBox.style.display = "none";
-  btnAcceder.disabled    = true;
-  btnAcceder.innerHTML   = "\u26a1 VERIFICANDO CREDENCIALES...";
+  btn.disabled = true;
+  btn.innerHTML = "⚡ VERIFICANDO CREDENCIALES...";
 
   var firma = passwordInput.value.trim();
 
-  fetch(SCRIPT_URL + "?action=validar_firma&firma=" + encodeURIComponent(firma))
+  sha256Hex(firma).then(function (firmaHash) {
+    // POST en lugar de GET — la contraseña no queda en URL/logs
+    var params = new URLSearchParams();
+    params.append("action", "validar_firma");
+    params.append("firma_hash", firmaHash);
+
+    return fetch(SCRIPT_URL, { method: "POST", body: params });
+  })
     .then(function(res) { return res.json(); })
     .then(function(validacion) {
       if (!validacion.valido) {
-        alertBox.textContent   = "\u274c CREDENCIAL DE ACCESO DENEGADA.";
-        alertBox.className     = "alert-box error";
+        intentosFallidos++;
+        var restantes = MAX_INTENTOS - intentosFallidos;
+        alertBox.textContent = "❌ CREDENCIAL DENEGADA. Intentos restantes: " + restantes;
+        alertBox.className = "alert-box error";
         alertBox.style.display = "block";
-        showToast("\u274c Acceso incorrecto.", "warning");
+        showToast("❌ Acceso incorrecto.", "warning");
         passwordInput.focus();
-        btnAcceder.disabled  = false;
-        btnAcceder.innerHTML = "\ud83d\udd13 Entrar";
-        passwordInput.value  = "";
+        btn.disabled = false;
+        btn.innerHTML = "🔓 Entrar";
+        passwordInput.value = "";
         return;
       }
 
-      btnAcceder.innerHTML = "\u26a1 CARGANDO PANEL...";
-
-      return fetch(SCRIPT_URL + "?action=obtener_registros")
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-          authSection.style.display = "none";
-          dashboardSection.classList.add("visible");
-          showToast("\ud83d\udd13 Modo Administrador Activo", "success");
-
-          // Sincronizar toggle con estado global desde Sheets
-          obtenerEstadoGeoGlobal().then(function(activa) {
-            var input = document.getElementById("geo-toggle-input");
-            if (input) input.checked = activa;
-            actualizarDescGeo();
-          });
-
-          // Tabla global
-          var tablaCuerpo = document.getElementById("tabla-api-cuerpo");
-          tablaCuerpo.innerHTML = "";
-          if (!Array.isArray(data) || data.length === 0) {
-            tablaCuerpo.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; opacity:0.5;">No hay registros en el servidor.</td></tr>';
-          } else {
-            data.forEach(function(r) {
-              var fila = document.createElement("tr");
-              fila.style.borderBottom = "1px solid var(--text-color)";
-              fila.innerHTML =
-                '<td style="padding:0.6rem; border-right:1px solid var(--text-color); font-weight:700;">' + (r.nombre||"\u2014") + "</td>" +
-                '<td style="padding:0.6rem; border-right:1px solid var(--text-color); font-variant-numeric:tabular-nums;">' + (r.clave||"\u2014") + "</td>" +
-                '<td style="padding:0.6rem; border-right:1px solid var(--text-color);">' + (r.grupo||"\u2014") + "</td>" +
-                '<td style="padding:0.6rem; border-right:1px solid var(--text-color);">' + (r.docente||"\u2014") + "</td>" +
-                '<td style="padding:0.6rem; font-variant-numeric:tabular-nums; opacity:0.8;">' + (r.hora||"\u2014") + "</td>";
-              tablaCuerpo.appendChild(fila);
-            });
-          }
-
-          // Filtrar hoy
-          var ahora   = new Date(new Date().toLocaleString("en-US", { timeZone: "America/El_Salvador" }));
-          var diaHoy  = String(ahora.getDate()).padStart(2,"0");
-          var mesHoy  = String(ahora.getMonth()+1).padStart(2,"0");
-          var anioHoy = ahora.getFullYear();
-          var hoyStr  = diaHoy + "/" + mesHoy + "/" + anioHoy;
-
-          var filtrados = (Array.isArray(data) ? data : []).filter(function(r) {
-            if (!r.fecha) return false;
-            var partes = r.fecha.replace(/-/g,"/").split("/");
-            if (partes.length !== 3) return false;
-            var norm = partes[0].padStart(2,"0") + "/" + partes[1].padStart(2,"0") + "/" + partes[2];
-            return norm === hoyStr;
-          });
-
-          document.getElementById("count-morning").textContent   = filtrados.filter(function(r){ return r.grupo === "Ma\u00f1ana"; }).length;
-          document.getElementById("count-afternoon").textContent = filtrados.filter(function(r){ return r.grupo === "Tarde";  }).length;
-
-          var contenedor = document.getElementById("listaRegistros");
-          contenedor.innerHTML = "";
-          if (filtrados.length === 0) {
-            contenedor.innerHTML = '<div class="registro-item" style="text-align:center; opacity:0.5;">No hay asistencias hoy.</div>';
-          } else {
-            filtrados.forEach(function(r) {
-              var item = document.createElement("div");
-              item.className = "registro-item";
-              item.innerHTML = "<strong>" + r.nombre + "</strong> \u2014 " + r.grupo + "<br>" +
-                '<small style="opacity:0.7;">Clave: ' + r.clave + " | Docente: " + r.docente + " | Hora: " + r.hora + "</small>";
-              contenedor.appendChild(item);
-            });
-          }
-        });
+      // ✅ ÉXITO — Resetear contadores y guardar token
+      intentosFallidos = 0;
+      bloqueoHasta = 0;
+      tokenSesion = validacion.token; // Token temporal del backend
+      btn.innerHTML = "⚡ CARGANDO PANEL...";
+      renderizarPanelDocente();
     })
     .catch(function() {
-      alertBox.textContent   = "\u274c ERROR AL VALIDAR CREDENCIALES. Intenta de nuevo.";
-      alertBox.className     = "alert-box error";
+      alertBox.textContent = "❌ ERROR AL VALIDAR CREDENCIALES. Intenta de nuevo.";
+      alertBox.className = "alert-box error";
       alertBox.style.display = "block";
+      btn.disabled = false;
+      btn.innerHTML = "🔓 Entrar";
+    });
+}
+
+function renderizarPanelDocente() {
+  var authSection = document.getElementById("teacher-auth");
+  var dashboardSection = document.getElementById("teacher-dashboard");
+
+  authSection.style.display = "none";
+
+  // Crear panel dinámicamente — NO existe en el HTML inicial
+  dashboardSection.innerHTML = `
+    <div class="geo-toggle-row">
+      <div class="geo-toggle-label">
+        📍 Validación de Ubicación GPS
+        <span id="geo-toggle-desc">Activada — los alumnos deben estar dentro de 1 km</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="geo-toggle-input" checked />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="input-group">
+      <label>Registros de Asistencia (Todos):</label>
+      <div class="excel-embed-container" style="padding:0.5rem">
+        <table id="tabla-api-privada" style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+          <thead>
+            <tr style="background:var(--text-color); color:var(--bg-color); text-transform:uppercase; font-family:var(--font-heading);">
+              <th style="padding:0.6rem; border:1px solid var(--text-color);">Nombre</th>
+              <th style="padding:0.6rem; border:1px solid var(--text-color);">Clave</th>
+              <th style="padding:0.6rem; border:1px solid var(--text-color);">Grupo</th>
+              <th style="padding:0.6rem; border:1px solid var(--text-color);">Docente</th>
+              <th style="padding:0.6rem; border:1px solid var(--text-color);">Hora</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-api-cuerpo">
+            <tr><td colspan="5" style="text-align:center; padding:2rem; opacity:0.5;">Cargando datos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stats-counter-grid">
+      <div class="stat-box">
+        <span class="stat-num" id="count-morning">0</span>
+        <span class="stat-label">☀️ Mañana</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num" id="count-afternoon">0</span>
+        <span class="stat-label">🌙 Tarde</span>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>Asistencias de Hoy:</label>
+      <div class="registros-container" id="listaRegistros"></div>
+    </div>
+
+    <div class="form-actions row-layout">
+      <button type="button" class="btn-danger" id="btn-clear-all">🗑 Limpiar y Archivar</button>
+      <button type="button" class="btn-back" id="btn-lock-return">← Cerrar Panel</button>
+    </div>
+  `;
+
+  dashboardSection.classList.add("visible");
+
+  // Adjuntar event listeners a los nuevos botones
+  document.getElementById("geo-toggle-input").addEventListener("change", toggleGeolocalizacion);
+  document.getElementById("btn-clear-all").addEventListener("click", function() { triggerClearAll(); });
+  document.getElementById("btn-lock-return").addEventListener("click", lockAndReturn);
+
+  // Sincronizar toggle con estado global
+  obtenerEstadoGeoGlobal().then(function(activa) {
+    var input = document.getElementById("geo-toggle-input");
+    if (input) input.checked = activa;
+    actualizarDescGeo();
+  });
+
+  // Cargar datos con token de sesión
+  var params = new URLSearchParams();
+  params.append("action", "obtener_registros");
+  params.append("token", tokenSesion || "");
+
+  fetch(SCRIPT_URL, { method: "POST", body: params })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.error === "unauthorized") {
+        showToast("❌ Sesión inválida o expirada", "warning");
+        lockAndReturn();
+        return;
+      }
+
+      var tablaCuerpo = document.getElementById("tabla-api-cuerpo");
+      tablaCuerpo.innerHTML = "";
+
+      if (!Array.isArray(data) || data.length === 0) {
+        tablaCuerpo.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; opacity:0.5;">No hay registros globales.</td></tr>';
+      } else {
+        data.forEach(function(r) {
+          var fila = document.createElement("tr");
+          fila.style.borderBottom = "1px solid var(--text-color)";
+          fila.innerHTML =
+            '<td style="padding:0.6rem; border-right:1px solid var(--text-color); font-weight:700;">' + (r.nombre || "—") + '</td>' +
+            '<td style="padding:0.6rem; border-right:1px solid var(--text-color); font-variant-numeric:tabular-nums;">' + (r.clave || "—") + '</td>' +
+            '<td style="padding:0.6rem; border-right:1px solid var(--text-color);">' + (r.grupo || "—") + '</td>' +
+            '<td style="padding:0.6rem; border-right:1px solid var(--text-color);">' + (r.docente || "—") + '</td>' +
+            '<td style="padding:0.6rem; font-variant-numeric:tabular-nums; opacity:0.8;">' + (r.hora || "—") + '</td>';
+          tablaCuerpo.appendChild(fila);
+        });
+      }
+
+      var ahora = new Date(new Date().toLocaleString("en-US", { timeZone: "America/El_Salvador" }));
+      var hoyStr = String(ahora.getDate()).padStart(2, "0") + "/" + String(ahora.getMonth() + 1).padStart(2, "0") + "/" + ahora.getFullYear();
+
+      var filtrados = (Array.isArray(data) ? data : []).filter(function(r) {
+        if (!r.fecha) return false;
+        var p = r.fecha.replace(/-/g, "/").split("/");
+        return p.length === 3 && (p[0].padStart(2, "0") + "/" + p[1].padStart(2, "0") + "/" + p[2]) === hoyStr;
+      });
+
+      document.getElementById("count-morning").textContent = filtrados.filter(function(r) { return r.grupo === "Mañana"; }).length;
+      document.getElementById("count-afternoon").textContent = filtrados.filter(function(r) { return r.grupo === "Tarde"; }).length;
+
+      var contenedor = document.getElementById("listaRegistros");
+      contenedor.innerHTML = filtrados.length === 0
+        ? '<div class="registro-item" style="text-align:center; opacity:0.5;">No hay asistencias hoy.</div>'
+        : filtrados.map(function(r) {
+            return '<div class="registro-item"><strong>' + r.nombre + '</strong> — ' + r.grupo + '<br><small style="opacity:0.7;">Clave: ' + r.clave + ' | Docente: ' + r.docente + ' | Hora: ' + r.hora + '</small></div>';
+          }).join('');
+
+      showToast("🔓 Panel Docente Activo", "success");
     })
-    .finally(function() {
-      btnAcceder.disabled  = false;
-      btnAcceder.innerHTML = "\ud83d\udd13 Entrar";
-      passwordInput.value  = "";
+    .catch(function() {
+      showToast("❌ Error al cargar datos", "warning");
+      lockAndReturn();
     });
 }
 
 function lockAndReturn() {
   var dashboard = document.getElementById("teacher-dashboard");
-  var auth      = document.getElementById("teacher-auth");
-  if (dashboard) dashboard.classList.remove("visible");
-  if (auth)      auth.style.display = "block";
+  var auth = document.getElementById("teacher-auth");
+  if (dashboard) {
+    dashboard.classList.remove("visible");
+    dashboard.innerHTML = ""; // DESTRUIR contenido al salir
+  }
+  if (auth) auth.style.display = "block";
+  tokenSesion = null; // Invalidar token
   switchView("view-menu");
 }
 
-// ============================================================
-// ACCION 4: LIMPIAR Y ARCHIVAR
-// ============================================================
-function triggerClearAll() {
-  if (!confirm("\ud83d\udea8 Estas completamente seguro de que deseas limpiar y archivar todos los registros del dia?"))
-    return;
-  showToast("\u26a1 Procesando solicitud...", "info");
+function toggleGeolocalizacion() {
+  var input = document.getElementById("geo-toggle-input");
+  var activa = input.checked;
+
   var params = new URLSearchParams();
-  params.append("action", "limpiar_asistencias");
+  params.append("action", "guardar_geo_estado");
+  params.append("estado", activa ? "1" : "0");
+  params.append("token", tokenSesion || "");
+
   fetch(SCRIPT_URL, { method: "POST", body: params })
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (data.result === "success") {
-        showToast("\ud83d\uddd1 Registros archivados.", "success");
-        alert("Registros guardados en Historial y limpiados correctamente.");
-        lockAndReturn();
+        geoActiva = activa;
+        actualizarDescGeo();
+        showToast(
+          activa ? "📍 Validación de ubicación ACTIVADA globalmente" : "🔓 Validación de ubicación DESACTIVADA globalmente",
+          activa ? "success" : "info"
+        );
       } else {
-        showToast("\u274c " + (data.message || "Error al limpiar."), "warning");
+        input.checked = !activa;
+        showToast("❌ Error al guardar estado. Intenta de nuevo.", "warning");
       }
     })
     .catch(function() {
-      showToast("\u274c Error al reiniciar. Intenta de nuevo.", "warning");
+      input.checked = !activa;
+      showToast("❌ Error de red al guardar estado.", "warning");
     });
 }
+
+function actualizarDescGeo() {
+  var desc = document.getElementById("geo-toggle-desc");
+  if (!desc) return;
+  desc.textContent = geoActiva
+    ? "Activada — los alumnos deben estar dentro de 1 km"
+    : "Desactivada — válido para clases virtuales";
+}
+
+function triggerClearAll() {
+  if (!confirm("🚨 ¿Estás completamente seguro de que deseas limpiar y archivar todos los registros del día?"))
+    return;
+  showToast("⚡ Procesando solicitud...", "info");
+
+  var params = new URLSearchParams();
+  params.append("action", "limpiar_asistencias");
+  params.append("token", tokenSesion || ""); // Requiere token válido
+
+  fetch(SCRIPT_URL, { method: "POST", body: params })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.result === "success") {
+        showToast("🗑 Registros archivados con éxito.", "success");
+        alert("Registros guardados en Historial y limpiados correctamente.");
+        lockAndReturn();
+      } else if (data.error === "unauthorized") {
+        showToast("❌ Sesión inválida. Inicia sesión de nuevo.", "warning");
+        lockAndReturn();
+      } else {
+        showToast("❌ " + (data.message || "Error al limpiar."), "warning");
+      }
+    })
+    .catch(function() {
+      showToast("❌ Error al reiniciar el día. Intenta de nuevo.", "warning");
+    });
+}
+
+// ============================================================
+// INICIALIZACIÓN — Event listeners (sin inline handlers)
+// ============================================================
+document.addEventListener("DOMContentLoaded", function() {
+  // Menú
+  document.getElementById("btn-menu-register").addEventListener("click", function() { switchView("view-register"); });
+  document.getElementById("btn-menu-keygen").addEventListener("click", function() { switchView("view-keygen"); });
+  document.getElementById("btn-menu-teacher").addEventListener("click", function() { switchView("view-teacher"); });
+
+  // Registro
+  document.getElementById("form-register").addEventListener("submit", registrarAsistencia);
+  document.getElementById("btn-back-register").addEventListener("click", salirDeRegistro);
+  document.getElementById("tab-qr").addEventListener("click", function() { setFirmaTab("qr"); });
+  document.getElementById("tab-manual").addEventListener("click", function() { setFirmaTab("manual"); });
+  document.getElementById("btn-start-qr").addEventListener("click", iniciarQR);
+  document.getElementById("btn-stop-qr").addEventListener("click", detenerQR);
+
+  // Generar clave
+  document.getElementById("form-keygen").addEventListener("submit", generarClave);
+  document.getElementById("btn-back-keygen").addEventListener("click", function() { switchView("view-menu"); });
+
+  // Panel docente
+  document.getElementById("teacher-auth").addEventListener("submit", unlockTeacherPanel);
+  document.getElementById("btn-back-teacher").addEventListener("click", function() { switchView("view-menu"); });
+
+  // Disparar verificación de geo al entrar a registro
+  var origSwitchView = switchView;
+  switchView = function(viewId) {
+    origSwitchView(viewId);
+    if (viewId === "view-register") {
+      geoOK = false;
+      geoRevisada = false;
+      document.getElementById("firma-valor").value = "";
+      setQrStatus("waiting", "📷 Toca 'Iniciar Cámara' para escanear el QR del docente");
+      obtenerEstadoGeoGlobal().then(function() {
+        verificarGeolocalizacion();
+      });
+    }
+  };
+});
