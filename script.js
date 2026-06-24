@@ -1,5 +1,5 @@
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzT48LmgGy4ydUz5aYKqKpKg7tkXm6APmpc_qeQg1G3K9ZXIHcUBrYBQWIH8UEJINKJ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxis_AfJB7ijP9ciGpKzvEA9n-kIqqDKOd8jdYs1SOCsVqIMrpCCPlLTEITNkR8QEi2/exec";
 
 
 const CENTED_LAT = 13.716795758900204;
