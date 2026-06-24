@@ -1,28 +1,37 @@
+// ============================================================
+// FRONTEND — Sistema de Asistencia CENTED v4.0 (SEGURO)
+// Encriptación AES, tokens de sesión, rate limiting, hash SHA-256
+// ============================================================
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxis_AfJB7ijP9ciGpKzvEA9n-kIqqDKOd8jdYs1SOCsVqIMrpCCPlLTEITNkR8QEi2/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpkgdmfpOeNtEXZqFHyaj36nTjnVCCTYvJ2KCL-qI_AkhuMBwXEOxgoVLpUom5wxNt/exec";
 
-
+// -- COORDENADAS DEL CENTED ----------------------------------
 const CENTED_LAT = 13.716795758900204;
 const CENTED_LNG = -89.1001956388224;
 const RADIO_KM = 1.0;
 
-
+// -- ESTADO GLOBAL -------------------------------------------
 var qrScanner = null;
 var qrActivo = false;
 var firmaTab = "qr";
 var geoActiva = true;
 var geoOK = false;
 var geoRevisada = false;
-var tokenSesion = null;      
+var tokenSesion = null;      // Token temporal del docente
 var intentosFallidos = 0;
 var bloqueoHasta = 0;
 const MAX_INTENTOS = 5;
-const TIEMPO_BLOQUEO = 300000; 
+const TIEMPO_BLOQUEO = 300000; // 5 minutos
 
-
+// -- VARIABLE PARA LA ÚLTIMA POSICIÓN GPS CONFIRMADA ----------
+// (se envía al servidor para que él también valide la distancia)
 var geoCoords = null;
 
-
+// ============================================================
+// HASH SHA-256 REAL (Web Crypto API nativa del navegador)
+// Sustituye al hash débil anterior. Requiere contexto seguro
+// (HTTPS), que ya se cumple en grupocented.fyi.
+// ============================================================
 async function sha256Hex(str) {
   var enc = new TextEncoder().encode(str);
   var buf = await crypto.subtle.digest("SHA-256", enc);
@@ -31,22 +40,51 @@ async function sha256Hex(str) {
     .join("");
 }
 
-
+// ============================================================
+// SANITIZACIÓN — Previene formula injection en Google Sheets
+// Sheets ejecuta como fórmula celdas que empiezan con = + - @
+// ============================================================
 function sanitizarInput(str) {
   if (typeof str !== "string") return "";
   var s = str.trim().slice(0, 300);
-  s = s.replace(/[\x00-\x1F\x7F]/g, "");   
-  s = s.replace(/^[=+\-@\t\r]+/, "");      
+  s = s.replace(/[\x00-\x1F\x7F]/g, "");   // control chars
+  s = s.replace(/^[=+\-@\t\r]+/, "");       // formula injection
   return s;
 }
 
+// ============================================================
+// FIRMA HMAC DEL PAYLOAD + NONCE/TIMESTAMP
+//
+// Objetivo: evitar que alguien:
+//   (a) Reutilice una petición capturada (replay attack)
+//   (b) Modifique los parámetros POST en tránsito o con DevTools
+//
+// Cómo funciona:
+//   1. El frontend genera un nonce aleatorio + timestamp actual.
+//   2. Construye la cadena: action|nonce|timestamp|campo1=val1|...
+//   3. Calcula HMAC-SHA256 de esa cadena usando el token de sesión
+//      como clave (para acciones autenticadas) o la fecha del día
+//      como clave pública compartida (para acciones públicas).
+//   4. Envía nonce, timestamp y el HMAC junto con la petición.
+//   5. El backend rehace el mismo cálculo y rechaza si no coincide
+//      o si el timestamp tiene más de 90 segundos.
+//
+// Limitación honesta: la "clave pública" (fecha) es predecible,
+// por lo que el HMAC de acciones públicas (asistencia, buscar_alumno,
+// guardar_clave) protege contra replay y tampering pero no contra
+// un atacante que lea el código y recompute el HMAC. Para acciones
+// de docente (obtener_registros, limpiar, geo) la clave es el token
+// de sesión de 32 chars aleatorios → mucho más robusto.
+// ============================================================
+
+// Genera un nonce aleatorio de 16 bytes en hex
 function generarNonce() {
   var arr = new Uint8Array(16);
   crypto.getRandomValues(arr);
   return Array.from(arr).map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
 }
 
-
+// HMAC-SHA256 usando Web Crypto API (nativa, HTTPS requerido — ya se cumple)
 async function hmacSha256Hex(key, message) {
   var enc = new TextEncoder();
   var cryptoKey = await crypto.subtle.importKey(
@@ -59,7 +97,9 @@ async function hmacSha256Hex(key, message) {
     .map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
 }
 
-
+// Obtiene la clave HMAC para peticiones públicas:
+// fecha de El Salvador en formato yyyy-MM-dd
+// Es predecible pero limita replay attacks a un día máximo.
 function clavePublicaHoy() {
   var ahora = new Date(new Date().toLocaleString("en-US", { timeZone: "America/El_Salvador" }));
   return ahora.getFullYear() + "-" +
@@ -101,7 +141,9 @@ async function firmarPayload(action, fields, key) {
   return params;
 }
 
-
+// ============================================================
+// TOASTS
+// ============================================================
 function showToast(message, type) {
   type = type || "success";
   var container = document.getElementById("toast-box-container");
@@ -116,7 +158,9 @@ function showToast(message, type) {
   }, 4000);
 }
 
-
+// ============================================================
+// RELOJ
+// ============================================================
 function updateClock() {
   var el = document.getElementById("live-clock");
   if (!el) return;
@@ -131,7 +175,9 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-
+// ============================================================
+// NAVEGACIÓN (sin inline handlers — CSP seguro)
+// ============================================================
 function switchView(viewId) {
   var current = document.querySelector(".card-view.active");
   var target = document.getElementById(viewId);
@@ -149,7 +195,9 @@ function salirDeRegistro() {
   switchView("view-menu");
 }
 
-
+// ============================================================
+// GEOLOCALIZACIÓN
+// ============================================================
 function obtenerEstadoGeoGlobal() {
   return fetch(SCRIPT_URL + "?action=obtener_geo_estado")
     .then(function(res) { return res.json(); })
@@ -228,7 +276,9 @@ function haversineKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-
+// ============================================================
+// QR SCANNER
+// ============================================================
 function setFirmaTab(tab) {
   firmaTab = tab;
   document.getElementById("tab-qr").classList.toggle("active", tab === "qr");
@@ -307,7 +357,9 @@ function detenerQR() {
   }
 }
 
-
+// ============================================================
+// VALIDACIÓN DE NOMBRE (AUTO-NORMALIZAR)
+// ============================================================
 function normalizarNombre(n) {
   return n.trim().toLowerCase().replace(/\b\w/g, function(l) { return l.toUpperCase(); });
 }
@@ -318,7 +370,9 @@ function validarNombre(n) {
   return palabras.length >= 2 && palabras.length <= 5 && /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(norm);
 }
 
-
+// ============================================================
+// ACCIÓN 1: REGISTRAR ASISTENCIA
+// ============================================================
 function registrarAsistencia(event) {
   event.preventDefault();
 
@@ -378,7 +432,7 @@ function registrarAsistencia(event) {
     fields.lng = geoCoords.lng;
   }
 
-
+  // Firma HMAC con clave pública del día (limita replay a 90 seg y tampering)
   firmarPayload("asistencia", fields, null)
     .then(function(params) {
       return fetch(SCRIPT_URL, { method: "POST", body: params });
@@ -418,7 +472,9 @@ function registrarAsistencia(event) {
     });
 }
 
-
+// ============================================================
+// ACCIÓN 2: GENERAR O RECUPERAR CLAVE
+// ============================================================
 function generarClave(event) {
   event.preventDefault();
 
@@ -506,7 +562,9 @@ function crearNuevaClave(nombre, docente, alertBox, btn, containerClave) {
     });
 }
 
-
+// ============================================================
+// PANEL DOCENTE — SEGURO (Rate limiting + Token de sesión)
+// ============================================================
 function unlockTeacherPanel(event) {
   if (event) event.preventDefault();
 
@@ -515,7 +573,7 @@ function unlockTeacherPanel(event) {
   var btn = document.getElementById("btnAccederRegistros");
   var ahora = Date.now();
 
-
+  // -- Rate limiting --
   if (ahora < bloqueoHasta) {
     var segundos = Math.ceil((bloqueoHasta - ahora) / 1000);
     alertBox.textContent = "🚫 BLOQUEADO. Espera " + segundos + " segundos.";
@@ -562,7 +620,7 @@ function unlockTeacherPanel(event) {
         return;
       }
 
-     
+      // ✅ ÉXITO — Resetear contadores y guardar token
       intentosFallidos = 0;
       bloqueoHasta = 0;
       tokenSesion = validacion.token; // Token temporal del backend
@@ -584,7 +642,7 @@ function renderizarPanelDocente() {
 
   authSection.style.display = "none";
 
-
+  // Crear panel dinámicamente — NO existe en el HTML inicial
   dashboardSection.innerHTML = `
     <div class="geo-toggle-row">
       <div class="geo-toggle-label">
@@ -641,19 +699,19 @@ function renderizarPanelDocente() {
 
   dashboardSection.classList.add("visible");
 
- 
+  // Adjuntar event listeners a los nuevos botones
   document.getElementById("geo-toggle-input").addEventListener("change", toggleGeolocalizacion);
   document.getElementById("btn-clear-all").addEventListener("click", function() { triggerClearAll(); });
   document.getElementById("btn-lock-return").addEventListener("click", lockAndReturn);
 
-
+  // Sincronizar toggle con estado global
   obtenerEstadoGeoGlobal().then(function(activa) {
     var input = document.getElementById("geo-toggle-input");
     if (input) input.checked = activa;
     actualizarDescGeo();
   });
 
-
+  // Cargar datos con token de sesión
   var params = new URLSearchParams();
   params.append("action", "obtener_registros");
   params.append("token", tokenSesion || "");
@@ -770,7 +828,7 @@ function triggerClearAll() {
 
   var params = new URLSearchParams();
   params.append("action", "limpiar_asistencias");
-  params.append("token", tokenSesion || "");
+  params.append("token", tokenSesion || ""); // Requiere token válido
 
   fetch(SCRIPT_URL, { method: "POST", body: params })
     .then(function(res) { return res.json(); })
@@ -791,14 +849,16 @@ function triggerClearAll() {
     });
 }
 
-
+// ============================================================
+// INICIALIZACIÓN — Event listeners (sin inline handlers)
+// ============================================================
 document.addEventListener("DOMContentLoaded", function() {
-
+  // Menú
   document.getElementById("btn-menu-register").addEventListener("click", function() { switchView("view-register"); });
   document.getElementById("btn-menu-keygen").addEventListener("click", function() { switchView("view-keygen"); });
   document.getElementById("btn-menu-teacher").addEventListener("click", function() { switchView("view-teacher"); });
 
-
+  // Registro
   document.getElementById("form-register").addEventListener("submit", registrarAsistencia);
   document.getElementById("btn-back-register").addEventListener("click", salirDeRegistro);
   document.getElementById("tab-qr").addEventListener("click", function() { setFirmaTab("qr"); });
@@ -806,15 +866,15 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("btn-start-qr").addEventListener("click", iniciarQR);
   document.getElementById("btn-stop-qr").addEventListener("click", detenerQR);
 
-  
+  // Generar clave
   document.getElementById("form-keygen").addEventListener("submit", generarClave);
   document.getElementById("btn-back-keygen").addEventListener("click", function() { switchView("view-menu"); });
 
-
+  // Panel docente
   document.getElementById("teacher-auth").addEventListener("submit", unlockTeacherPanel);
   document.getElementById("btn-back-teacher").addEventListener("click", function() { switchView("view-menu"); });
 
-  
+  // Disparar verificación de geo al entrar a registro
   var origSwitchView = switchView;
   switchView = function(viewId) {
     origSwitchView(viewId);
