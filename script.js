@@ -1,14 +1,10 @@
 // ============================================================
-// FRONTEND — Sistema de Asistencia CENTED v3.1
-// NUEVAS FEATURES:
-//   - Escáner QR con html5-qrcode (rellena firma automáticamente)
-//   - Geolocalización (radio 1 km del CENTED, desactivable por docente)
-//   - Fallback manual de firma siempre disponible
-//   - 100% validación en backend (firma nunca se calcula en frontend)
+// FRONTEND — Sistema de Asistencia CENTED v3.2
+// CAMBIO: Geolocalización global via Sheets (no localStorage)
 // ============================================================
 
 const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbw58uNyLTZTHOvnaU1SPMwH9_dx90TalflVO2Us6rJs50Ut0mU_4JISTTDxyGRnGaDH/exec";
+  "https://script.google.com/macros/s/AKfycbw_FMQH2IFr1hBEQpVE6xrumXZhkyPCyyMiG48aDiiIV-bvEeVnabh6CzciNqaF3lR_/exec";
 
 // ── COORDENADAS DEL CENTED ──────────────────────────────────
 const CENTED_LAT  = 13.716795758900204;
@@ -19,12 +15,10 @@ const RADIO_KM    = 1.0; // 1 km de radio permitido
 var qrScanner      = null;   // instancia de Html5Qrcode
 var qrActivo       = false;
 var firmaTab       = "qr";   // "qr" | "manual"
-var geoActiva      = true;   // controlado por toggle del docente
+var geoActiva      = true;   // controlado globalmente desde Sheets
 var geoOK          = false;  // true cuando la ubicación es válida
 var geoRevisada    = false;  // true cuando ya se verificó (éxito o fallo)
-
-// ── CLAVE DE STORAGE PARA GEO TOGGLE ────────────────────────
-var GEO_STORAGE_KEY = "cented_geo_activa";
+var geoPolling     = null;   // interval para polling de estado geo
 
 // ============================================================
 // TOASTS
@@ -82,17 +76,20 @@ function salirDeRegistro() {
 }
 
 // ============================================================
-// GEOLOCALIZACIÓN
-// ── Haversine: distancia en km entre dos puntos GPS ──
+// GEOLOCALIZACIÓN GLOBAL — lee estado desde Sheets
 // ============================================================
-function haversineKm(lat1, lng1, lat2, lng2) {
-  var R = 6371;
-  var dLat = (lat2 - lat1) * Math.PI / 180;
-  var dLng = (lng2 - lng1) * Math.PI / 180;
-  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-          Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
-          Math.sin(dLng/2) * Math.sin(dLng/2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function obtenerEstadoGeoGlobal() {
+  return fetch(SCRIPT_URL + "?action=obtener_geo_estado")
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      geoActiva = data.geo_activa !== false;
+      return geoActiva;
+    })
+    .catch(function() {
+      // Si falla, asumir activado por defecto
+      geoActiva = true;
+      return true;
+    });
 }
 
 function actualizarGeoUI(estado, texto) {
@@ -106,14 +103,10 @@ function actualizarGeoUI(estado, texto) {
 }
 
 function verificarGeolocalizacion() {
-  // Leer estado del toggle desde localStorage
-  var stored = localStorage.getItem(GEO_STORAGE_KEY);
-  geoActiva = (stored === null) ? true : (stored === "1");
-
   if (!geoActiva) {
     geoOK       = true;
     geoRevisada = true;
-    actualizarGeoUI("disabled", "Validación de ubicación desactivada por el docente");
+    actualizarGeoUI("disabled", "🔓 Validación de ubicación desactivada por el docente (clases virtuales)");
     return;
   }
 
@@ -156,16 +149,16 @@ function verificarGeolocalizacion() {
   );
 }
 
-// Se llama cuando el usuario entra a la vista de registro
-document.addEventListener("DOMContentLoaded", function() {
-  // Leer geo toggle desde storage al cargar
-  var stored = localStorage.getItem(GEO_STORAGE_KEY);
-  geoActiva = (stored === null) ? true : (stored === "1");
-  // Sincronizar el toggle en el panel docente si ya está cargado
-  var input = document.getElementById("geo-toggle-input");
-  if (input) input.checked = geoActiva;
-  actualizarDescGeo();
-});
+// ── Haversine: distancia en km entre dos puntos GPS ──
+function haversineKm(lat1, lng1, lat2, lng2) {
+  var R = 6371;
+  var dLat = (lat2 - lat1) * Math.PI / 180;
+  var dLng = (lng2 - lng1) * Math.PI / 180;
+  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+          Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
 // Disparar verificación cuando se navega a view-register
 var _origSwitchView = switchView;
@@ -176,34 +169,53 @@ switchView = function(viewId) {
     geoRevisada = false;
     // Resetear QR y firma
     document.getElementById("firma-valor").value = "";
-    setQrStatus("waiting", "📷 Toca \"Iniciar Cámara\" para escanear el QR del docente");
-    // Iniciar verificación de geo
-    verificarGeolocalizacion();
+    setQrStatus("waiting", "📷 Toca "Iniciar Cámara" para escanear el QR del docente");
+    // Primero obtener estado global de geo, luego verificar
+    obtenerEstadoGeoGlobal().then(function() {
+      verificarGeolocalizacion();
+    });
   }
 };
 
 // ============================================================
-// TOGGLE GEOLOCALIZACIÓN (Panel Docente)
+// TOGGLE GEOLOCALIZACIÓN (Panel Docente) — guarda en Sheets
 // ============================================================
 function toggleGeolocalizacion() {
   var input = document.getElementById("geo-toggle-input");
-  geoActiva = input.checked;
-  localStorage.setItem(GEO_STORAGE_KEY, geoActiva ? "1" : "0");
-  actualizarDescGeo();
-  showToast(
-    geoActiva
-      ? "📍 Validación de ubicación ACTIVADA"
-      : "🔓 Validación de ubicación DESACTIVADA (clases virtuales)",
-    geoActiva ? "success" : "info"
-  );
+  var activa = input.checked;
+
+  var params = new URLSearchParams();
+  params.append("action", "guardar_geo_estado");
+  params.append("estado", activa ? "1" : "0");
+
+  fetch(SCRIPT_URL, { method: "POST", body: params })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.result === "success") {
+        geoActiva = activa;
+        actualizarDescGeo();
+        showToast(
+          activa
+            ? "📍 Validación de ubicación ACTIVADA globalmente"
+            : "🔓 Validación de ubicación DESACTIVADA globalmente (clases virtuales)",
+          activa ? "success" : "info"
+        );
+      } else {
+        // Revertir toggle si falló
+        input.checked = !activa;
+        showToast("❌ Error al guardar estado. Intenta de nuevo.", "warning");
+      }
+    })
+    .catch(function() {
+      input.checked = !activa;
+      showToast("❌ Error de red al guardar estado.", "warning");
+    });
 }
 
 function actualizarDescGeo() {
   var desc = document.getElementById("geo-toggle-desc");
   if (!desc) return;
-  var stored = localStorage.getItem(GEO_STORAGE_KEY);
-  var activa = (stored === null) ? true : (stored === "1");
-  desc.textContent = activa
+  desc.textContent = geoActiva
     ? "Activada — los alumnos deben estar dentro de 1 km"
     : "Desactivada — válido para clases virtuales";
 }
@@ -259,7 +271,7 @@ function iniciarQR() {
       var firma = decodedText.trim();
 
       // Validar que parezca una clave de 6 dígitos
-      if (/^\d{6}$/.test(firma)) {
+      if(/^\d{6}$/.test(firma)) {
         document.getElementById("firma-valor").value = firma;
         setQrStatus("found", "✅ QR leído — Firma: " + firma.slice(0,3) + "***");
         showToast("✅ Firma capturada del QR. Puedes enviar.", "success");
@@ -303,7 +315,7 @@ function detenerQR() {
   // Solo reset del status si no se capturó nada
   var firmaActual = document.getElementById("firma-valor");
   if (firmaActual && !firmaActual.value) {
-    setQrStatus("waiting", "📷 Toca \"Iniciar Cámara\" para escanear el QR del docente");
+    setQrStatus("waiting", "📷 Toca "Iniciar Cámara" para escanear el QR del docente");
   }
 }
 
@@ -344,7 +356,7 @@ function registrarAsistencia(event) {
   }
   if (!firmaInput) {
     if (firmaTab === "qr") {
-      alertBox.textContent = "❌ Escanea el QR del docente primero, o cambia a la pestaña \"Escribir\".";
+      alertBox.textContent = "❌ Escanea el QR del docente primero, o cambia a la pestaña "Escribir".";
     } else {
       alertBox.textContent = "❌ Ingresa la Firma del Docente.";
     }
@@ -354,16 +366,13 @@ function registrarAsistencia(event) {
   }
 
   // ── Validación de geolocalización ──
-  var stored  = localStorage.getItem(GEO_STORAGE_KEY);
-  var geoReq  = (stored === null) ? true : (stored === "1");
-
-  if (geoReq && !geoRevisada) {
+  if (geoActiva && !geoRevisada) {
     alertBox.textContent = "⏳ Esperando verificación de ubicación. Espera un momento.";
     alertBox.className = "alert-box warning";
     alertBox.style.display = "block";
     return;
   }
-  if (geoReq && !geoOK) {
+  if (geoActiva && !geoOK) {
     alertBox.textContent = "❌ Debes estar dentro del CENTED (máx 1 km) para registrar asistencia. Si estás en clase virtual, el docente puede desactivar la verificación.";
     alertBox.className = "alert-box error";
     alertBox.style.display = "block";
@@ -392,7 +401,7 @@ function registrarAsistencia(event) {
         showToast("✓ ¡Asistencia registrada!", "success");
         document.getElementById("form-register").reset();
         document.getElementById("firma-valor").value = "";
-        setQrStatus("waiting", "📷 Toca \"Iniciar Cámara\" para escanear el QR del docente");
+        setQrStatus("waiting", "📷 Toca "Iniciar Cámara" para escanear el QR del docente");
         setTimeout(function() { salirDeRegistro(); }, 2500);
       } else if (data.result === "duplicated") {
         alertBox.textContent   = data.message || "⚠️ Ya registraste hoy.";
@@ -552,12 +561,12 @@ function unlockTeacherPanel(event) {
           dashboardSection.classList.add("visible");
           showToast("🔓 Modo Administrador Activo", "success");
 
-          // Sincronizar toggle con localStorage
-          var stored = localStorage.getItem(GEO_STORAGE_KEY);
-          var geoActualActiva = (stored === null) ? true : (stored === "1");
-          var input = document.getElementById("geo-toggle-input");
-          if (input) input.checked = geoActualActiva;
-          actualizarDescGeo();
+          // Sincronizar toggle con estado global desde Sheets
+          obtenerEstadoGeoGlobal().then(function(activa) {
+            var input = document.getElementById("geo-toggle-input");
+            if (input) input.checked = activa;
+            actualizarDescGeo();
+          });
 
           // Tabla global
           var tablaCuerpo = document.getElementById("tabla-api-cuerpo");
