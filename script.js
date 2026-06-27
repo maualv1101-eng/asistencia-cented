@@ -3,7 +3,7 @@
 // Encriptación AES, tokens de sesión, rate limiting, hash SHA-256
 // ============================================================
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpkgdmfpOeNtEXZqFHyaj36nTjnVCCTYvJ2KCL-qI_AkhuMBwXEOxgoVLpUom5wxNt/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbznAOfiH3oBhZPGdszhAW01oMIeurc3quLvmbBKPDl6dcKuGT5GUT-Q9L0dZz867xB3/exec";
 
 // -- COORDENADAS DEL CENTED ----------------------------------
 const CENTED_LAT = 13.716795758900204;
