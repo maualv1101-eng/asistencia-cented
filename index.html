@@ -32,6 +32,7 @@
 
     <!-- Librería QR Scanner -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <style>
       :root {
@@ -248,6 +249,12 @@
         .map-status-container iframe { height: 170px; }
       }
 
+      .hp-field {
+        position: absolute !important; left: -9999px !important; top: -9999px !important;
+        width: 1px !important; height: 1px !important; overflow: hidden !important;
+        opacity: 0 !important; pointer-events: none !important;
+      }
+
       .registros-container { max-height: 220px; overflow-y: auto; border: var(--border-width) solid var(--text-color); margin-bottom: 1.5rem; background: var(--bg-color); border-radius: calc(var(--border-radius) - 4px); }
       .registro-item { padding: 1rem; border-bottom: var(--border-width) solid var(--text-color); font-size: 0.9rem; }
       .registro-item:last-child { border-bottom: none; }
@@ -377,6 +384,10 @@
         <div id="alertRegistro" class="alert-box"></div>
 
         <form id="form-register">
+          <div class="hp-field" aria-hidden="true">
+            <label for="reg-website">Sitio web (dejar en blanco)</label>
+            <input type="text" id="reg-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
           <div class="input-group">
             <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
             <input type="password" id="reg-key" maxlength="4"
@@ -450,6 +461,10 @@
         <h2 class="view-title">【 鍵作成 】 Generar Mi Clave</h2>
         <div id="alertGenerarClave" class="alert-box"></div>
         <form id="form-keygen">
+          <div class="hp-field" aria-hidden="true">
+            <label for="gen-website">Sitio web (dejar en blanco)</label>
+            <input type="text" id="gen-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
           <div class="input-group">
             <label for="gen-name">Escribe tu Nombre Completo *</label>
             <input type="text" id="gen-name"
@@ -473,9 +488,12 @@
           </div>
           <div id="claveGeneradaContainer" style="display:none; margin-top:1.5rem; margin-bottom:1.5rem;">
             <div class="alert-box success" style="display:block; margin-bottom:0.5rem;">🎉 ¡Clave lista! Guárdala, es permanente:</div>
-            <div class="stat-box" style="padding:1rem; background:#ffffff;">
+            <div class="stat-box" id="claveCapturaArea" style="padding:1rem; background:#ffffff;">
               <span id="codGenerado" style="font-family:var(--font-heading); font-size:2.5rem; font-weight:800; color:var(--accent-color); letter-spacing:8px;"></span>
             </div>
+            <button type="button" id="btn-guardar-clave-captura" class="btn-secondary" style="margin-top:0.8rem;">
+              📸 Guardar Clave (Captura)
+            </button>
           </div>
           <div class="form-actions">
             <button type="submit" id="btnGenerar" class="btn-submit">🔒 Generar Mi Clave Permanente</button>
@@ -489,6 +507,10 @@
         <h2 class="view-title">【 管理 】 Panel del Docente</h2>
         <div id="alertVerRegistros" class="alert-box"></div>
         <form id="teacher-auth">
+          <div class="hp-field" aria-hidden="true">
+            <label for="teacher-website">Sitio web (dejar en blanco)</label>
+            <input type="text" id="teacher-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
           <div class="input-group">
             <label for="teacher-password">Clave de Validación Docente *</label>
             <input type="password" id="teacher-password" placeholder="••••••••••••" required autocomplete="off" />
