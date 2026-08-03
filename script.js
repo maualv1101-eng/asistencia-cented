@@ -1,6 +1,8 @@
 // FRONTEND — Sistema de Asistencia CENTED v5.0
+// Novedades: panel docente con configuración de limpieza automática
+// semanal (día + hora), y verificación de duplicados reforzada en backend.
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYsWjB3qqR-ud0wx8LSPy-Cw0xis1BGXVoCvUY-jnP4w6SCekO_AvsJybqPP1On6jC/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJnwqLxuJ7GJyWPBurNHfZr2TehZW2SRvqjloZmA_TM2oiHTJxOUOU3TU9uksWE0P3/exec";
 
 // -- COORDENADAS DEL CENTED ----------------------------------
 const CENTED_LAT = 13.716795758900204;
@@ -14,13 +16,15 @@ var firmaTab = "qr";
 var geoActiva = true;
 var geoOK = false;
 var geoRevisada = false;
-var tokenSesion = null;      
-var panelAutoRefreshInterval = null;
+var tokenSesion = null;      // Token temporal del docente
+var panelAutoRefreshInterval = null; // ID del setInterval de auto-refresh (30s)
 var intentosFallidos = 0;
 var bloqueoHasta = 0;
 const MAX_INTENTOS = 5;
-const TIEMPO_BLOQUEO = 300000; 
+const TIEMPO_BLOQUEO = 300000; // 5 minutos
 
+// -- VARIABLE PARA LA ÚLTIMA POSICIÓN GPS CONFIRMADA ----------
+// (se envía al servidor para que él también valide la distancia)
 var geoCoords = null;
 
 
@@ -325,7 +329,9 @@ function detenerQR() {
   }
 }
 
-
+// ============================================================
+// VALIDACIÓN DE NOMBRE (AUTO-NORMALIZAR)
+// ============================================================
 function normalizarNombre(n) {
   return n.trim().toLowerCase().replace(/\b\w/g, function(l) { return l.toUpperCase(); });
 }
@@ -693,7 +699,7 @@ function renderizarPanelDocente() {
 
   authSection.style.display = "none";
 
- 
+  // Crear panel dinámicamente — NO existe en el HTML inicial
   dashboardSection.innerHTML = `
     <div class="geo-toggle-row">
       <div class="geo-toggle-label">
