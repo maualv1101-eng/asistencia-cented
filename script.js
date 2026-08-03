@@ -1,7 +1,6 @@
+// FRONTEND — Sistema de Asistencia CENTED v5.0
 
-// FRONTEND — Sistema de Asistencia CENTED v4.0 (SEGURO)
-
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyoezgEguEieM87TR_mmTmDdX1XtYPhR-XG5HtQ_Ad0H5T8t659gp0Pr1pR7L6HtKnV/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYsWjB3qqR-ud0wx8LSPy-Cw0xis1BGXVoCvUY-jnP4w6SCekO_AvsJybqPP1On6jC/exec";
 
 // -- COORDENADAS DEL CENTED ----------------------------------
 const CENTED_LAT = 13.716795758900204;
@@ -15,15 +14,13 @@ var firmaTab = "qr";
 var geoActiva = true;
 var geoOK = false;
 var geoRevisada = false;
-var tokenSesion = null;      // Token temporal del docente
-var panelAutoRefreshInterval = null; // ID del setInterval de auto-refresh (30s)
+var tokenSesion = null;      
+var panelAutoRefreshInterval = null;
 var intentosFallidos = 0;
 var bloqueoHasta = 0;
 const MAX_INTENTOS = 5;
-const TIEMPO_BLOQUEO = 300000; // 5 minutos
+const TIEMPO_BLOQUEO = 300000; 
 
-// -- VARIABLE PARA LA ÚLTIMA POSICIÓN GPS CONFIRMADA ----------
-// (se envía al servidor para que él también valide la distancia)
 var geoCoords = null;
 
 
@@ -328,9 +325,7 @@ function detenerQR() {
   }
 }
 
-// ============================================================
-// VALIDACIÓN DE NOMBRE (AUTO-NORMALIZAR)
-// ============================================================
+
 function normalizarNombre(n) {
   return n.trim().toLowerCase().replace(/\b\w/g, function(l) { return l.toUpperCase(); });
 }
@@ -698,7 +693,7 @@ function renderizarPanelDocente() {
 
   authSection.style.display = "none";
 
-  // Crear panel dinámicamente — NO existe en el HTML inicial
+ 
   dashboardSection.innerHTML = `
     <div class="geo-toggle-row">
       <div class="geo-toggle-label">
@@ -751,6 +746,48 @@ function renderizarPanelDocente() {
       <button type="button" class="btn-danger" id="btn-clear-all">🗑 Limpiar y Archivar</button>
       <button type="button" class="btn-back" id="btn-lock-return">← Cerrar Panel</button>
     </div>
+
+    <div class="input-group" style="margin-top:0.5rem;">
+      <label>⏰ Limpieza Automática Semanal</label>
+      <small class="helper-text" style="margin-bottom:0.8rem; display:block;">
+        Elige el día y la hora en que el sistema debe limpiar y archivar
+        la asistencia automáticamente, sin que nadie tenga que entrar al panel.
+      </small>
+
+      <div class="geo-toggle-row" style="margin-bottom:1rem;">
+        <div class="geo-toggle-label">
+          Activar limpieza automática
+          <span id="auto-clean-desc">Cargando configuración...</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="auto-clean-toggle" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="input-group">
+        <label for="auto-clean-day">Día de la semana</label>
+        <select id="auto-clean-day">
+          <option value="0">Domingo</option>
+          <option value="1">Lunes</option>
+          <option value="2">Martes</option>
+          <option value="3">Miércoles</option>
+          <option value="4">Jueves</option>
+          <option value="5">Viernes</option>
+          <option value="6" selected>Sábado</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="auto-clean-time">Hora (24h, hora El Salvador)</label>
+        <input type="text" id="auto-clean-time" value="17:00" placeholder="Ej: 17:00" maxlength="5" />
+        <small class="helper-text">Formato HH:MM, 24 horas. Ej: 17:00 = 5:00 PM.</small>
+      </div>
+
+      <button type="button" class="btn-secondary" id="btn-save-auto-clean" style="margin-top:0.5rem;">
+        💾 Guardar Configuración de Limpieza
+      </button>
+    </div>
   `;
 
   dashboardSection.classList.add("visible");
@@ -759,6 +796,7 @@ function renderizarPanelDocente() {
   document.getElementById("geo-toggle-input").addEventListener("change", toggleGeolocalizacion);
   document.getElementById("btn-clear-all").addEventListener("click", function() { triggerClearAll(); });
   document.getElementById("btn-lock-return").addEventListener("click", lockAndReturn);
+  document.getElementById("btn-save-auto-clean").addEventListener("click", guardarConfigLimpiezaAutomatica);
 
   // Sincronizar toggle con estado global
   obtenerEstadoGeoGlobal().then(function(activa) {
@@ -767,10 +805,102 @@ function renderizarPanelDocente() {
     actualizarDescGeo();
   });
 
+  // Cargar configuración actual de limpieza automática
+  cargarConfigLimpiezaAutomatica();
+
   // Carga inicial (con toast de bienvenida) + arrancar auto-refresh cada 30s
   cargarDatosPanel(false);
   detenerAutoRefreshPanel();
   panelAutoRefreshInterval = setInterval(function() { cargarDatosPanel(true); }, 30000);
+}
+
+var DIAS_SEMANA_TEXTO = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+function cargarConfigLimpiezaAutomatica() {
+  var params = new URLSearchParams();
+  params.append("action", "obtener_config_limpieza");
+  params.append("token", tokenSesion || "");
+
+  fetch(SCRIPT_URL, { method: "POST", body: params })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      var desc = document.getElementById("auto-clean-desc");
+      var toggle = document.getElementById("auto-clean-toggle");
+      var daySel = document.getElementById("auto-clean-day");
+      var timeInput = document.getElementById("auto-clean-time");
+      if (!desc || !toggle || !daySel || !timeInput) return; // el panel ya se cerró
+
+      if (data.result !== "success") {
+        desc.textContent = "No se pudo cargar la configuración.";
+        return;
+      }
+
+      toggle.checked = !!data.activa;
+      daySel.value = String(data.dia);
+      timeInput.value = data.hora;
+      actualizarDescLimpiezaAuto(data.activa, data.dia, data.hora);
+    })
+    .catch(function() {
+      var desc = document.getElementById("auto-clean-desc");
+      if (desc) desc.textContent = "⚠️ Error al cargar configuración.";
+    });
+}
+
+function actualizarDescLimpiezaAuto(activa, dia, hora) {
+  var desc = document.getElementById("auto-clean-desc");
+  if (!desc) return;
+  if (!activa) {
+    desc.textContent = "Desactivada — la limpieza solo se hace manualmente";
+    return;
+  }
+  var nombreDia = DIAS_SEMANA_TEXTO[parseInt(dia, 10)] || "Sábado";
+  desc.textContent = "Activa — todos los " + nombreDia + " a las " + hora + " (hora ES)";
+}
+
+function guardarConfigLimpiezaAutomatica() {
+  var btn = document.getElementById("btn-save-auto-clean");
+  var toggle = document.getElementById("auto-clean-toggle");
+  var daySel = document.getElementById("auto-clean-day");
+  var timeInput = document.getElementById("auto-clean-time");
+  if (!btn || !toggle || !daySel || !timeInput) return;
+
+  var hora = timeInput.value.trim();
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(hora)) {
+    showToast("❌ Hora inválida. Usa formato HH:MM (ej: 17:00).", "warning");
+    timeInput.focus();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "⚡ Guardando...";
+
+  var params = new URLSearchParams();
+  params.append("action", "guardar_config_limpieza");
+  params.append("activa", toggle.checked ? "1" : "0");
+  params.append("dia", daySel.value);
+  params.append("hora", hora);
+  params.append("token", tokenSesion || "");
+
+  fetch(SCRIPT_URL, { method: "POST", body: params })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      btn.disabled = false;
+      btn.textContent = "💾 Guardar Configuración de Limpieza";
+      if (data.result === "success") {
+        actualizarDescLimpiezaAuto(toggle.checked, daySel.value, hora);
+        showToast("✅ Configuración de limpieza automática guardada.", "success");
+      } else if (data.error === "unauthorized") {
+        showToast("❌ Sesión inválida. Inicia sesión de nuevo.", "warning");
+        lockAndReturn();
+      } else {
+        showToast("❌ " + (data.message || "Error al guardar configuración."), "warning");
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.textContent = "💾 Guardar Configuración de Limpieza";
+      showToast("❌ Error de red al guardar configuración.", "warning");
+    });
 }
 
 
