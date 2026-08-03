@@ -1,9 +1,7 @@
-// ============================================================
-// FRONTEND — Sistema de Asistencia CENTED v4.0 (SEGURO)
-// Encriptación AES, tokens de sesión, rate limiting, hash SHA-256
-// ============================================================
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzgIFdH5Lno5RYam-c9s9DRgUbXbmxzT9MJRAlH74oOnFQMKCbEiSz07ujDjXZ7oo_v/exec";
+// FRONTEND — Sistema de Asistencia CENTED v4.0 (SEGURO)
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyoezgEguEieM87TR_mmTmDdX1XtYPhR-XG5HtQ_Ad0H5T8t659gp0Pr1pR7L6HtKnV/exec";
 
 // -- COORDENADAS DEL CENTED ----------------------------------
 const CENTED_LAT = 13.716795758900204;
@@ -28,11 +26,7 @@ const TIEMPO_BLOQUEO = 300000; // 5 minutos
 // (se envía al servidor para que él también valide la distancia)
 var geoCoords = null;
 
-// ============================================================
-// HASH SHA-256 REAL (Web Crypto API nativa del navegador)
-// Sustituye al hash débil anterior. Requiere contexto seguro
-// (HTTPS), que ya se cumple en grupocented.fyi.
-// ============================================================
+
 async function sha256Hex(str) {
   var enc = new TextEncoder().encode(str);
   var buf = await crypto.subtle.digest("SHA-256", enc);
@@ -41,10 +35,7 @@ async function sha256Hex(str) {
     .join("");
 }
 
-// ============================================================
-// SANITIZACIÓN — Previene formula injection en Google Sheets
-// Sheets ejecuta como fórmula celdas que empiezan con = + - @
-// ============================================================
+
 function sanitizarInput(str) {
   if (typeof str !== "string") return "";
   var s = str.trim().slice(0, 300);
@@ -53,39 +44,16 @@ function sanitizarInput(str) {
   return s;
 }
 
-// ============================================================
-// FIRMA HMAC DEL PAYLOAD + NONCE/TIMESTAMP
-//
-// Objetivo: evitar que alguien:
-//   (a) Reutilice una petición capturada (replay attack)
-//   (b) Modifique los parámetros POST en tránsito o con DevTools
-//
-// Cómo funciona:
-//   1. El frontend genera un nonce aleatorio + timestamp actual.
-//   2. Construye la cadena: action|nonce|timestamp|campo1=val1|...
-//   3. Calcula HMAC-SHA256 de esa cadena usando el token de sesión
-//      como clave (para acciones autenticadas) o la fecha del día
-//      como clave pública compartida (para acciones públicas).
-//   4. Envía nonce, timestamp y el HMAC junto con la petición.
-//   5. El backend rehace el mismo cálculo y rechaza si no coincide
-//      o si el timestamp tiene más de 90 segundos.
-//
-// Limitación honesta: la "clave pública" (fecha) es predecible,
-// por lo que el HMAC de acciones públicas (asistencia, buscar_alumno,
-// guardar_clave) protege contra replay y tampering pero no contra
-// un atacante que lea el código y recompute el HMAC. Para acciones
-// de docente (obtener_registros, limpiar, geo) la clave es el token
-// de sesión de 32 chars aleatorios → mucho más robusto.
-// ============================================================
 
-// Genera un nonce aleatorio de 16 bytes en hex
+
+
 function generarNonce() {
   var arr = new Uint8Array(16);
   crypto.getRandomValues(arr);
   return Array.from(arr).map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
 }
 
-// HMAC-SHA256 usando Web Crypto API (nativa, HTTPS requerido — ya se cumple)
+
 async function hmacSha256Hex(key, message) {
   var enc = new TextEncoder();
   var cryptoKey = await crypto.subtle.importKey(
@@ -98,9 +66,7 @@ async function hmacSha256Hex(key, message) {
     .map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
 }
 
-// Obtiene la clave HMAC para peticiones públicas:
-// fecha de El Salvador en formato yyyy-MM-dd
-// Es predecible pero limita replay attacks a un día máximo.
+
 function clavePublicaHoy() {
   var ahora = new Date(new Date().toLocaleString("en-US", { timeZone: "America/El_Salvador" }));
   return ahora.getFullYear() + "-" +
@@ -121,7 +87,7 @@ async function firmarPayload(action, fields, key) {
   var ts    = String(Math.floor(Date.now() / 1000));
   var clave = key || clavePublicaHoy();
 
-  // Cadena canónica: acción + nonce + ts + campos ordenados alfabéticamente
+
   var camposOrdenados = Object.keys(fields).sort().map(function(k) {
     return k + "=" + (fields[k] !== undefined && fields[k] !== null ? fields[k] : "");
   }).join("|");
@@ -142,10 +108,7 @@ async function firmarPayload(action, fields, key) {
   return params;
 }
 
-// ============================================================
-// HAPTIC FEEDBACK (vibración) — silencioso si el dispositivo/navegador
-// no lo soporta (p.ej. iOS Safari no expone navigator.vibrate).
-// ============================================================
+
 function vibrar(tipo) {
   if (!("vibrate" in navigator)) return;
   try {
@@ -155,9 +118,7 @@ function vibrar(tipo) {
   } catch (e) { /* algunos navegadores lanzan si no hay gesto de usuario previo */ }
 }
 
-// ============================================================
-// TOASTS
-// ============================================================
+
 function showToast(message, type) {
   type = type || "success";
   var container = document.getElementById("toast-box-container");
@@ -189,9 +150,7 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// ============================================================
-// NAVEGACIÓN (sin inline handlers — CSP seguro)
-// ============================================================
+
 function switchView(viewId) {
   var current = document.querySelector(".card-view.active");
   var target = document.getElementById(viewId);
@@ -209,9 +168,7 @@ function salirDeRegistro() {
   switchView("view-menu");
 }
 
-// ============================================================
-// GEOLOCALIZACIÓN
-// ============================================================
+
 function obtenerEstadoGeoGlobal() {
   return fetch(SCRIPT_URL + "?action=obtener_geo_estado")
     .then(function(res) { return res.json(); })
@@ -239,7 +196,7 @@ function verificarGeolocalizacion() {
   if (!geoActiva) {
     geoOK = true;
     geoRevisada = true;
-    actualizarGeoUI("disabled", "🔓 Validación de ubicación desactivada por el docente (clases virtuales)");
+    actualizarGeoUI("disabled", "🔓 Validación de ubicación desactivada por el docente");
     return;
   }
 
@@ -392,20 +349,24 @@ function validarTelefono(t) {
   return /^[267]\d{7}$/.test(limpiarTelefono(t));
 }
 
-// ============================================================
-// ACCIÓN 1: REGISTRAR ASISTENCIA
-// ============================================================
-// ============================================================
-// SCROLL AUTOMÁTICO AL INICIO — para que el mensaje de éxito/error
-// siempre sea visible, sin importar qué tan abajo esté el usuario
-// (ej. después de escanear QR o revisar el mapa).
-// ============================================================
+
 function irAlInicioDePagina() {
   window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
 }
 
 function registrarAsistencia(event) {
   event.preventDefault();
+
+  // Honeypot anti-bot: campo invisible para humanos, si viene lleno es un bot.
+  var hpReg = (document.getElementById("reg-website") || {}).value || "";
+  if (hpReg.trim() !== "") {
+    var alertBoxHp = document.getElementById("alertRegistro");
+    alertBoxHp.textContent = "❌ No se pudo procesar tu solicitud.";
+    alertBoxHp.className = "alert-box error";
+    alertBoxHp.style.display = "block";
+    irAlInicioDePagina();
+    return;
+  }
 
   var claveInput   = sanitizarInput(document.getElementById("reg-key").value).toUpperCase();
   var docenteInput = sanitizarInput(document.getElementById("reg-teacher").value);
@@ -460,14 +421,15 @@ function registrarAsistencia(event) {
     clave:   claveInput,
     docente: docenteInput,
     grupo:   grupoInput,
-    firma:   firmaInput
+    firma:   firmaInput,
+    hp:      hpReg
   };
   if (geoActiva && geoCoords) {
     fields.lat = geoCoords.lat;
     fields.lng = geoCoords.lng;
   }
 
-  // Firma HMAC con clave pública del día (limita replay a 90 seg y tampering)
+
   firmarPayload("asistencia", fields, null)
     .then(function(params) {
       return fetch(SCRIPT_URL, { method: "POST", body: params });
@@ -515,18 +477,25 @@ function registrarAsistencia(event) {
     });
 }
 
-// ============================================================
-// ACCIÓN 2: GENERAR O RECUPERAR CLAVE
-// ============================================================
+
 function generarClave(event) {
   event.preventDefault();
 
+  
+  var hpGen = (document.getElementById("gen-website") || {}).value || "";
   var nombreInput = document.getElementById("gen-name").value;
   var docenteInput = document.getElementById("gen-teacher").value;
   var telefonoInput = document.getElementById("gen-phone").value;
   var alertBox = document.getElementById("alertGenerarClave");
   var btn = document.getElementById("btnGenerar");
   var containerClave = document.getElementById("claveGeneradaContainer");
+
+  if (hpGen.trim() !== "") {
+    alertBox.textContent = "❌ No se pudo procesar tu solicitud.";
+    alertBox.className = "alert-box error";
+    alertBox.style.display = "block";
+    return;
+  }
 
   if (!validarNombre(nombreInput)) {
     alertBox.textContent = "❌ Escribe tu nombre completo (nombre y al menos un apellido).";
@@ -566,7 +535,7 @@ function generarClave(event) {
         btn.disabled = false;
         btn.innerHTML = "🔒 Generar Mi Clave Permanente";
       } else {
-        crearNuevaClave(nombre, docenteInput, telefono, alertBox, btn, containerClave);
+        crearNuevaClave(nombre, docenteInput, telefono, hpGen, alertBox, btn, containerClave);
       }
     })
     .catch(function() {
@@ -578,7 +547,7 @@ function generarClave(event) {
     });
 }
 
-function crearNuevaClave(nombre, docente, telefono, alertBox, btn, containerClave) {
+function crearNuevaClave(nombre, docente, telefono, hp, alertBox, btn, containerClave) {
   btn.innerHTML = "⚡ CREANDO CREDENCIAL...";
   var claveNueva = "";
   var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -586,7 +555,7 @@ function crearNuevaClave(nombre, docente, telefono, alertBox, btn, containerClav
     claveNueva += chars.charAt(Math.floor(Math.random() * chars.length));
   }
 
-  firmarPayload("guardar_clave", { nombre: nombre, clave: claveNueva, docente: sanitizarInput(docente), telefono: telefono }, null)
+  firmarPayload("guardar_clave", { nombre: nombre, clave: claveNueva, docente: sanitizarInput(docente), telefono: telefono, hp: hp || "" }, null)
     .then(function(params) {
       return fetch(SCRIPT_URL, { method: "POST", body: params });
     })
@@ -615,18 +584,51 @@ function crearNuevaClave(nombre, docente, telefono, alertBox, btn, containerClav
     });
 }
 
-// ============================================================
-// PANEL DOCENTE — SEGURO (Rate limiting + Token de sesión)
-// ============================================================
+
+function capturarClave() {
+  var el = document.getElementById("claveCapturaArea");
+  var boton = document.getElementById("btn-guardar-clave-captura");
+  if (!el || typeof html2canvas === "undefined") {
+    showToast("❌ No se pudo generar la captura. Recarga la página.", "warning");
+    return;
+  }
+  var textoOriginal = boton ? boton.innerHTML : "";
+  if (boton) { boton.disabled = true; boton.innerHTML = "⚡ GENERANDO..."; }
+
+  html2canvas(el, { backgroundColor: "#ffffff", scale: 2 }).then(function(canvas) {
+    var codigo = (document.getElementById("codGenerado") || {}).textContent || "clave";
+    var link = document.createElement("a");
+    link.download = "clave-cented-" + codigo + ".png";
+    link.href = canvas.toDataURL("image/png");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    showToast("📸 Captura guardada en tus descargas.", "success");
+  }).catch(function() {
+    showToast("❌ Error al generar la captura.", "warning");
+  }).finally(function() {
+    if (boton) { boton.disabled = false; boton.innerHTML = textoOriginal; }
+  });
+}
+
+
 function unlockTeacherPanel(event) {
   if (event) event.preventDefault();
 
+  var hpTeacher = (document.getElementById("teacher-website") || {}).value || "";
   var passwordInput = document.getElementById("teacher-password");
   var alertBox = document.getElementById("alertVerRegistros");
   var btn = document.getElementById("btnAccederRegistros");
   var ahora = Date.now();
 
-  // -- Rate limiting --
+  if (hpTeacher.trim() !== "") {
+    alertBox.textContent = "❌ CREDENCIAL DENEGADA.";
+    alertBox.className = "alert-box error";
+    alertBox.style.display = "block";
+    return;
+  }
+
+ 
   if (ahora < bloqueoHasta) {
     var segundos = Math.ceil((bloqueoHasta - ahora) / 1000);
     alertBox.textContent = "🚫 BLOQUEADO. Espera " + segundos + " segundos.";
@@ -654,6 +656,7 @@ function unlockTeacherPanel(event) {
     var params = new URLSearchParams();
     params.append("action", "validar_firma");
     params.append("firma_hash", firmaHash);
+    params.append("hp", hpTeacher);
 
     return fetch(SCRIPT_URL, { method: "POST", body: params });
   })
@@ -673,7 +676,7 @@ function unlockTeacherPanel(event) {
         return;
       }
 
-      // ✅ ÉXITO — Resetear contadores y guardar token
+   
       intentosFallidos = 0;
       bloqueoHasta = 0;
       tokenSesion = validacion.token; // Token temporal del backend
@@ -770,9 +773,7 @@ function renderizarPanelDocente() {
   panelAutoRefreshInterval = setInterval(function() { cargarDatosPanel(true); }, 30000);
 }
 
-// ============================================================
-// AUTO-REFRESH DEL PANEL DOCENTE (cada 30s, silencioso)
-// ============================================================
+
 function detenerAutoRefreshPanel() {
   if (panelAutoRefreshInterval) {
     clearInterval(panelAutoRefreshInterval);
@@ -935,9 +936,7 @@ function triggerClearAll() {
     });
 }
 
-// ============================================================
-// MODO OSCURO (persistido en localStorage)
-// ============================================================
+
 var THEME_STORAGE_KEY = "cented_theme";
 
 function aplicarTema(tema) {
@@ -966,9 +965,7 @@ function toggleTema() {
   try { localStorage.setItem(THEME_STORAGE_KEY, tema); } catch (e) { /* localStorage bloqueado, no pasa nada */ }
 }
 
-// ============================================================
-// INICIALIZACIÓN — Event listeners (sin inline handlers)
-// ============================================================
+
 document.addEventListener("DOMContentLoaded", function() {
   // Tema (debe ir primero para evitar parpadeo)
   inicializarTema();
@@ -991,6 +988,8 @@ document.addEventListener("DOMContentLoaded", function() {
   // Generar clave
   document.getElementById("form-keygen").addEventListener("submit", generarClave);
   document.getElementById("btn-back-keygen").addEventListener("click", function() { switchView("view-menu"); });
+  var btnCaptura = document.getElementById("btn-guardar-clave-captura");
+  if (btnCaptura) btnCaptura.addEventListener("click", capturarClave);
 
   // Panel docente
   document.getElementById("teacher-auth").addEventListener("submit", unlockTeacherPanel);
