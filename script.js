@@ -395,6 +395,15 @@ function validarTelefono(t) {
 // ============================================================
 // ACCIÓN 1: REGISTRAR ASISTENCIA
 // ============================================================
+// ============================================================
+// SCROLL AUTOMÁTICO AL INICIO — para que el mensaje de éxito/error
+// siempre sea visible, sin importar qué tan abajo esté el usuario
+// (ej. después de escanear QR o revisar el mapa).
+// ============================================================
+function irAlInicioDePagina() {
+  window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+}
+
 function registrarAsistencia(event) {
   event.preventDefault();
 
@@ -415,6 +424,7 @@ function registrarAsistencia(event) {
     alertBox.textContent = "❌ Ingresa tu Clave Única de 4 caracteres.";
     alertBox.className = "alert-box error";
     alertBox.style.display = "block";
+    irAlInicioDePagina();
     return;
   }
   if (!firmaInput) {
@@ -423,6 +433,7 @@ function registrarAsistencia(event) {
       : "❌ Ingresa la Firma del Docente.";
     alertBox.className = "alert-box error";
     alertBox.style.display = "block";
+    irAlInicioDePagina();
     return;
   }
 
@@ -430,12 +441,14 @@ function registrarAsistencia(event) {
     alertBox.textContent = "⏳ Esperando verificación de ubicación. Espera un momento.";
     alertBox.className = "alert-box warning";
     alertBox.style.display = "block";
+    irAlInicioDePagina();
     return;
   }
   if (geoActiva && !geoOK) {
     alertBox.textContent = "❌ Debes estar dentro del CENTED (máx 1 km) para registrar asistencia. Si estás en clase virtual, el docente puede desactivar la verificación.";
     alertBox.className = "alert-box error";
     alertBox.style.display = "block";
+    irAlInicioDePagina();
     return;
   }
 
@@ -466,6 +479,7 @@ function registrarAsistencia(event) {
         alertBox.textContent = "✓ ¡ASISTENCIA PROCESADA CON ÉXITO! Bienvenido/a, " + (data.nombre || "") + ".";
         alertBox.className = "alert-box success";
         alertBox.style.display = "block";
+        irAlInicioDePagina();
         showToast("✓ Asistencia registrada exitosamente!", "success");
         document.getElementById("form-register").reset();
         document.getElementById("firma-valor").value = "";
@@ -476,12 +490,14 @@ function registrarAsistencia(event) {
         alertBox.textContent = data.message || "⚠️ Ya registraste hoy.";
         alertBox.className = "alert-box warning";
         alertBox.style.display = "block";
+        irAlInicioDePagina();
         showToast("⚠️ " + (data.message || "Ya registraste hoy."), "warning");
       } else {
         vibrar("error");
         alertBox.textContent = data.message || "❌ Ocurrió un error inesperado.";
         alertBox.className = "alert-box error";
         alertBox.style.display = "block";
+        irAlInicioDePagina();
         showToast("❌ " + (data.message || "Fallo al procesar."), "warning");
       }
     })
@@ -490,6 +506,7 @@ function registrarAsistencia(event) {
       alertBox.textContent = "❌ ERROR DE RED O SEGURIDAD. Verifica tu internet e intenta de nuevo.";
       alertBox.className = "alert-box error";
       alertBox.style.display = "block";
+      irAlInicioDePagina();
       showToast("❌ Error de red.", "warning");
     })
     .finally(function() {
