@@ -9,7 +9,7 @@
       style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
       font-src https://fonts.gstatic.com;
       connect-src https://script.google.com https://script.googleusercontent.com;
-      frame-src https://maualv1101.wixsite.com;
+      frame-src https://maualv1101.wixsite.com https://www.google.com;
       img-src 'self' https://grupocented.fyi data: blob:;
       media-src blob:;
       worker-src blob:;
@@ -19,7 +19,10 @@
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://grupocented.fyi/" />
     <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Asistencia Cented" />
     <link rel="icon" href="https://grupocented.fyi/LOGO.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="https://grupocented.fyi/LOGO.png" sizes="180x180" />
     <meta property="og:type" content="website" />
@@ -45,6 +48,41 @@
       }
 
       * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      html[data-theme="dark"] {
+        --bg-color: #14151a;
+        --text-color: #f2f2f0;
+        --accent-color: #6b8bff;
+        --danger-color: #ff6b60;
+        --success-color: #29e0a0;
+        --geo-color: #ffb340;
+      }
+      html[data-theme="dark"] body { background-color: var(--bg-color); }
+      html[data-theme="dark"] .app-container { background: #1d1e24; box-shadow: 12px 12px 0px var(--text-color); }
+      html[data-theme="dark"] .brand .badge { background: var(--text-color); color: #1d1e24; }
+      html[data-theme="dark"] .overlay-texture {
+        background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 0),
+                          linear-gradient(rgba(255,255,255,0.02) 1px, transparent 0);
+      }
+      html[data-theme="dark"] input[type="text"], html[data-theme="dark"] input[type="password"],
+      html[data-theme="dark"] input[type="tel"], html[data-theme="dark"] select, html[data-theme="dark"] textarea {
+        background: #14151a; color: var(--text-color);
+      }
+      html[data-theme="dark"] input:focus, html[data-theme="dark"] select:focus { background: #1d1e24; }
+      html[data-theme="dark"] .toast-card { background: #1d1e24; color: var(--text-color); }
+      html[data-theme="dark"] .map-status-container .map-caption,
+      html[data-theme="dark"] .geo-status-box.disabled { background: #14151a; }
+      html { transition: background-color 0.25s ease; }
+      body, .app-container, input, select, textarea, .toast-card { transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; }
+
+      .theme-toggle-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0.9rem 1rem; margin-bottom: 1rem;
+        border: var(--border-width) solid var(--text-color);
+        border-radius: calc(var(--border-radius) - 4px);
+        background: var(--bg-color);
+      }
+      .theme-toggle-label { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 0.5rem; }
 
       body {
         background-color: var(--bg-color);
@@ -194,6 +232,22 @@
       .toggle-switch input:checked + .toggle-slider { background: var(--success-color); border-color: #007d4f; }
       .toggle-switch input:checked + .toggle-slider::before { transform: translateX(24px); }
 
+      .map-status-container {
+        border: var(--border-width) solid var(--text-color);
+        border-radius: calc(var(--border-radius) - 4px);
+        overflow: hidden; margin-bottom: 1.5rem;
+        box-shadow: 4px 4px 0px var(--text-color);
+      }
+      .map-status-container .map-caption {
+        padding: 0.6rem 1rem; font-size: 0.78rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        background: var(--bg-color); border-bottom: var(--border-width) solid var(--text-color);
+      }
+      .map-status-container iframe { width: 100%; height: 220px; border: none; display: block; }
+      @media (max-width: 480px) {
+        .map-status-container iframe { height: 170px; }
+      }
+
       .registros-container { max-height: 220px; overflow-y: auto; border: var(--border-width) solid var(--text-color); margin-bottom: 1.5rem; background: var(--bg-color); border-radius: calc(var(--border-radius) - 4px); }
       .registro-item { padding: 1rem; border-bottom: var(--border-width) solid var(--text-color); font-size: 0.9rem; }
       .registro-item:last-child { border-bottom: none; }
@@ -261,6 +315,13 @@
 
       <!-- ══ VISTA MENÚ ══ -->
       <section id="view-menu" class="card-view active">
+        <div class="theme-toggle-row">
+          <span class="theme-toggle-label"><span id="theme-icon">🌙</span> Modo Oscuro</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="theme-toggle-input" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
         <div class="menu-grid">
           <button type="button" class="btn-retro" id="btn-menu-register">
             <span class="btn-num">01</span>
@@ -303,6 +364,14 @@
         <div id="geo-status-box" class="geo-status-box checking">
           <span class="geo-dot">📍</span>
           <span id="geo-status-text">Verificando ubicación...</span>
+        </div>
+
+        <div class="map-status-container">
+          <div class="map-caption">📍 Ubicación del CENTED — debes estar a máx. 1 km</div>
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3876.0268373300473!2d-89.10019229999999!3d13.716824399999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f6337fb4732f1a9%3A0x274444715eeeaab5!2sCENTED!5e0!3m2!1sen!2ssv!4v1785780891511!5m2!1sen!2ssv"
+            loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
+            title="Mapa de ubicación CENTED"></iframe>
         </div>
 
         <div id="alertRegistro" class="alert-box"></div>
@@ -394,6 +463,13 @@
               <option value="Mauricio Alvarado">Mauricio Alvarado</option>
               <option value="Wilfredo Pineda">Wilfredo Pineda</option>
             </select>
+          </div>
+          <div class="input-group">
+            <label for="gen-phone">Número de Teléfono *</label>
+            <input type="tel" id="gen-phone" maxlength="9"
+              placeholder="Ej: 7123-4567" required autocomplete="off"
+              inputmode="numeric" />
+            <small class="helper-text">8 dígitos, sin guiones ni espacios (se limpian automáticamente).</small>
           </div>
           <div id="claveGeneradaContainer" style="display:none; margin-top:1.5rem; margin-bottom:1.5rem;">
             <div class="alert-box success" style="display:block; margin-bottom:0.5rem;">🎉 ¡Clave lista! Guárdala, es permanente:</div>
