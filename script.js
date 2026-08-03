@@ -1,6 +1,4 @@
-// FRONTEND — Sistema de Asistencia CENTED v5.0
-// Novedades: panel docente con configuración de limpieza automática
-// semanal (día + hora), y verificación de duplicados reforzada en backend.
+
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJnwqLxuJ7GJyWPBurNHfZr2TehZW2SRvqjloZmA_TM2oiHTJxOUOU3TU9uksWE0P3/exec";
 
@@ -329,9 +327,7 @@ function detenerQR() {
   }
 }
 
-// ============================================================
-// VALIDACIÓN DE NOMBRE (AUTO-NORMALIZAR)
-// ============================================================
+
 function normalizarNombre(n) {
   return n.trim().toLowerCase().replace(/\b\w/g, function(l) { return l.toUpperCase(); });
 }
