@@ -3,7 +3,7 @@
 // Encriptación AES, tokens de sesión, rate limiting, hash SHA-256
 // ============================================================
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_zYB5h_XymjcOp_cQIP99U_iXii1TppRdOJLWvGSq6vSooRWYNh5w94FhlLndfUjh/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzgIFdH5Lno5RYam-c9s9DRgUbXbmxzT9MJRAlH74oOnFQMKCbEiSz07ujDjXZ7oo_v/exec";
 
 // -- COORDENADAS DEL CENTED ----------------------------------
 const CENTED_LAT = 13.716795758900204;
@@ -18,6 +18,7 @@ var geoActiva = true;
 var geoOK = false;
 var geoRevisada = false;
 var tokenSesion = null;      // Token temporal del docente
+var panelAutoRefreshInterval = null; // ID del setInterval de auto-refresh (30s)
 var intentosFallidos = 0;
 var bloqueoHasta = 0;
 const MAX_INTENTOS = 5;
@@ -139,6 +140,19 @@ async function firmarPayload(action, fields, key) {
   params.append("_ts",    ts);
   params.append("_hmac",  hmac);
   return params;
+}
+
+// ============================================================
+// HAPTIC FEEDBACK (vibración) — silencioso si el dispositivo/navegador
+// no lo soporta (p.ej. iOS Safari no expone navigator.vibrate).
+// ============================================================
+function vibrar(tipo) {
+  if (!("vibrate" in navigator)) return;
+  try {
+    if (tipo === "exito") navigator.vibrate(50);
+    else if (tipo === "error") navigator.vibrate([80, 60, 80, 60, 80]);
+    else if (tipo === "aviso") navigator.vibrate([40, 40, 40]);
+  } catch (e) { /* algunos navegadores lanzan si no hay gesto de usuario previo */ }
 }
 
 // ============================================================
@@ -370,6 +384,14 @@ function validarNombre(n) {
   return palabras.length >= 2 && palabras.length <= 5 && /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(norm);
 }
 
+// Teléfono salvadoreño: 8 dígitos, empieza con 2 (fijo), 6 o 7 (móvil)
+function limpiarTelefono(t) {
+  return (t || "").replace(/[^\d]/g, "");
+}
+function validarTelefono(t) {
+  return /^[267]\d{7}$/.test(limpiarTelefono(t));
+}
+
 // ============================================================
 // ACCIÓN 1: REGISTRAR ASISTENCIA
 // ============================================================
@@ -440,6 +462,7 @@ function registrarAsistencia(event) {
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (data.result === "success") {
+        vibrar("exito");
         alertBox.textContent = "✓ ¡ASISTENCIA PROCESADA CON ÉXITO! Bienvenido/a, " + (data.nombre || "") + ".";
         alertBox.className = "alert-box success";
         alertBox.style.display = "block";
@@ -449,11 +472,13 @@ function registrarAsistencia(event) {
         setQrStatus("waiting", "📷 Toca 'Iniciar Cámara' para escanear el QR del docente");
         setTimeout(function() { salirDeRegistro(); }, 2500);
       } else if (data.result === "duplicated") {
+        vibrar("aviso");
         alertBox.textContent = data.message || "⚠️ Ya registraste hoy.";
         alertBox.className = "alert-box warning";
         alertBox.style.display = "block";
         showToast("⚠️ " + (data.message || "Ya registraste hoy."), "warning");
       } else {
+        vibrar("error");
         alertBox.textContent = data.message || "❌ Ocurrió un error inesperado.";
         alertBox.className = "alert-box error";
         alertBox.style.display = "block";
@@ -461,6 +486,7 @@ function registrarAsistencia(event) {
       }
     })
     .catch(function() {
+      vibrar("error");
       alertBox.textContent = "❌ ERROR DE RED O SEGURIDAD. Verifica tu internet e intenta de nuevo.";
       alertBox.className = "alert-box error";
       alertBox.style.display = "block";
@@ -480,6 +506,7 @@ function generarClave(event) {
 
   var nombreInput = document.getElementById("gen-name").value;
   var docenteInput = document.getElementById("gen-teacher").value;
+  var telefonoInput = document.getElementById("gen-phone").value;
   var alertBox = document.getElementById("alertGenerarClave");
   var btn = document.getElementById("btnGenerar");
   var containerClave = document.getElementById("claveGeneradaContainer");
@@ -492,6 +519,15 @@ function generarClave(event) {
     return;
   }
 
+  if (!validarTelefono(telefonoInput)) {
+    alertBox.textContent = "❌ Ingresa un número de teléfono válido de 8 dígitos (Ej: 71234567).";
+    alertBox.className = "alert-box error";
+    alertBox.style.display = "block";
+    showToast("❌ Teléfono inválido.", "warning");
+    return;
+  }
+
+  var telefono = limpiarTelefono(telefonoInput);
   var nombre = normalizarNombre(nombreInput);
   btn.disabled = true;
   btn.innerHTML = "⚡ CONSULTANDO BASE DE DATOS...";
@@ -513,7 +549,7 @@ function generarClave(event) {
         btn.disabled = false;
         btn.innerHTML = "🔒 Generar Mi Clave Permanente";
       } else {
-        crearNuevaClave(nombre, docenteInput, alertBox, btn, containerClave);
+        crearNuevaClave(nombre, docenteInput, telefono, alertBox, btn, containerClave);
       }
     })
     .catch(function() {
@@ -525,7 +561,7 @@ function generarClave(event) {
     });
 }
 
-function crearNuevaClave(nombre, docente, alertBox, btn, containerClave) {
+function crearNuevaClave(nombre, docente, telefono, alertBox, btn, containerClave) {
   btn.innerHTML = "⚡ CREANDO CREDENCIAL...";
   var claveNueva = "";
   var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -533,7 +569,7 @@ function crearNuevaClave(nombre, docente, alertBox, btn, containerClave) {
     claveNueva += chars.charAt(Math.floor(Math.random() * chars.length));
   }
 
-  firmarPayload("guardar_clave", { nombre: nombre, clave: claveNueva, docente: sanitizarInput(docente) }, null)
+  firmarPayload("guardar_clave", { nombre: nombre, clave: claveNueva, docente: sanitizarInput(docente), telefono: telefono }, null)
     .then(function(params) {
       return fetch(SCRIPT_URL, { method: "POST", body: params });
     })
@@ -656,7 +692,7 @@ function renderizarPanelDocente() {
     </div>
 
     <div class="input-group">
-      <label>Registros de Asistencia (Todos):</label>
+      <label>Registros de Asistencia (Todos): <small id="auto-refresh-indicator" style="font-weight:400; opacity:0.6; text-transform:none;">🔄 Auto-actualiza cada 30s</small></label>
       <div class="excel-embed-container" style="padding:0.5rem">
         <table id="tabla-api-privada" style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
           <thead>
@@ -711,7 +747,32 @@ function renderizarPanelDocente() {
     actualizarDescGeo();
   });
 
-  // Cargar datos con token de sesión
+  // Carga inicial (con toast de bienvenida) + arrancar auto-refresh cada 30s
+  cargarDatosPanel(false);
+  detenerAutoRefreshPanel();
+  panelAutoRefreshInterval = setInterval(function() { cargarDatosPanel(true); }, 30000);
+}
+
+// ============================================================
+// AUTO-REFRESH DEL PANEL DOCENTE (cada 30s, silencioso)
+// ============================================================
+function detenerAutoRefreshPanel() {
+  if (panelAutoRefreshInterval) {
+    clearInterval(panelAutoRefreshInterval);
+    panelAutoRefreshInterval = null;
+  }
+}
+
+/**
+ * Carga (o recarga) los datos del panel docente.
+ * @param {boolean} silencioso - si true, no muestra el toast de éxito
+ *                                ni el texto "Cargando..." (evita parpadeo
+ *                                en las recargas automáticas de fondo).
+ */
+function cargarDatosPanel(silencioso) {
+  var indicador = document.getElementById("auto-refresh-indicator");
+  if (indicador && silencioso) indicador.textContent = "🔄 Actualizando...";
+
   var params = new URLSearchParams();
   params.append("action", "obtener_registros");
   params.append("token", tokenSesion || "");
@@ -720,12 +781,14 @@ function renderizarPanelDocente() {
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (data.error === "unauthorized") {
+        detenerAutoRefreshPanel();
         showToast("❌ Sesión inválida o expirada", "warning");
         lockAndReturn();
         return;
       }
 
       var tablaCuerpo = document.getElementById("tabla-api-cuerpo");
+      if (!tablaCuerpo) return; // el panel ya se cerró
       tablaCuerpo.innerHTML = "";
 
       if (!Array.isArray(data) || data.length === 0) {
@@ -763,15 +826,21 @@ function renderizarPanelDocente() {
             return '<div class="registro-item"><strong>' + r.nombre + '</strong> — ' + r.grupo + '<br><small style="opacity:0.7;">Clave: ' + r.clave + ' | Docente: ' + r.docente + ' | Hora: ' + r.hora + '</small></div>';
           }).join('');
 
-      showToast("🔓 Panel Docente Activo", "success");
+      if (indicador) indicador.textContent = "🔄 Auto-actualiza cada 30s";
+      if (!silencioso) showToast("🔓 Panel Docente Activo", "success");
     })
     .catch(function() {
-      showToast("❌ Error al cargar datos", "warning");
-      lockAndReturn();
+      var indicador2 = document.getElementById("auto-refresh-indicator");
+      if (indicador2) indicador2.textContent = "⚠️ Error al actualizar — reintentando en 30s";
+      if (!silencioso) {
+        showToast("❌ Error al cargar datos", "warning");
+        lockAndReturn();
+      }
     });
 }
 
 function lockAndReturn() {
+  detenerAutoRefreshPanel();
   var dashboard = document.getElementById("teacher-dashboard");
   var auth = document.getElementById("teacher-auth");
   if (dashboard) {
@@ -850,9 +919,45 @@ function triggerClearAll() {
 }
 
 // ============================================================
+// MODO OSCURO (persistido en localStorage)
+// ============================================================
+var THEME_STORAGE_KEY = "cented_theme";
+
+function aplicarTema(tema) {
+  var esOscuro = tema === "dark";
+  document.documentElement.setAttribute("data-theme", esOscuro ? "dark" : "light");
+  var icon = document.getElementById("theme-icon");
+  if (icon) icon.textContent = esOscuro ? "☀️" : "🌙";
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", esOscuro ? "#14151a" : "#000000");
+}
+
+function inicializarTema() {
+  var guardado = null;
+  try { guardado = localStorage.getItem(THEME_STORAGE_KEY); } catch (e) { /* localStorage bloqueado */ }
+  var prefiereOscuro = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  var tema = guardado || (prefiereOscuro ? "dark" : "light");
+  aplicarTema(tema);
+  var input = document.getElementById("theme-toggle-input");
+  if (input) input.checked = tema === "dark";
+}
+
+function toggleTema() {
+  var input = document.getElementById("theme-toggle-input");
+  var tema = input && input.checked ? "dark" : "light";
+  aplicarTema(tema);
+  try { localStorage.setItem(THEME_STORAGE_KEY, tema); } catch (e) { /* localStorage bloqueado, no pasa nada */ }
+}
+
+// ============================================================
 // INICIALIZACIÓN — Event listeners (sin inline handlers)
 // ============================================================
 document.addEventListener("DOMContentLoaded", function() {
+  // Tema (debe ir primero para evitar parpadeo)
+  inicializarTema();
+  var themeInput = document.getElementById("theme-toggle-input");
+  if (themeInput) themeInput.addEventListener("change", toggleTema);
+
   // Menú
   document.getElementById("btn-menu-register").addEventListener("click", function() { switchView("view-register"); });
   document.getElementById("btn-menu-keygen").addEventListener("click", function() { switchView("view-keygen"); });
