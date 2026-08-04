@@ -1,30 +1,23 @@
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhkvO5WWXQEb9WTmZiuWGXex_Ro8Qwh0ugdYdyDb_lKZ81MzwemNQwJpqhWsNOy_0/exec";
 
-
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJnwqLxuJ7GJyWPBurNHfZr2TehZW2SRvqjloZmA_TM2oiHTJxOUOU3TU9uksWE0P3/exec";
-
-// -- COORDENADAS DEL CENTED ----------------------------------
 const CENTED_LAT = 13.716795758900204;
 const CENTED_LNG = -89.1001956388224;
 const RADIO_KM = 1.0;
 
-// -- ESTADO GLOBAL -------------------------------------------
 var qrScanner = null;
 var qrActivo = false;
 var firmaTab = "qr";
 var geoActiva = true;
 var geoOK = false;
 var geoRevisada = false;
-var tokenSesion = null;      // Token temporal del docente
-var panelAutoRefreshInterval = null; // ID del setInterval de auto-refresh (30s)
+var tokenSesion = null;
+var panelAutoRefreshInterval = null;
 var intentosFallidos = 0;
 var bloqueoHasta = 0;
 const MAX_INTENTOS = 5;
-const TIEMPO_BLOQUEO = 300000; // 5 minutos
+const TIEMPO_BLOQUEO = 300000;
 
-// -- VARIABLE PARA LA ÚLTIMA POSICIÓN GPS CONFIRMADA ----------
-// (se envía al servidor para que él también valide la distancia)
 var geoCoords = null;
-
 
 async function sha256Hex(str) {
   var enc = new TextEncoder().encode(str);
@@ -34,24 +27,19 @@ async function sha256Hex(str) {
     .join("");
 }
 
-
 function sanitizarInput(str) {
   if (typeof str !== "string") return "";
   var s = str.trim().slice(0, 300);
-  s = s.replace(/[\x00-\x1F\x7F]/g, "");   // control chars
-  s = s.replace(/^[=+\-@\t\r]+/, "");       // formula injection
+  s = s.replace(/[\x00-\x1F\x7F]/g, "");
+  s = s.replace(/^[=+\-@\t\r]+/, "");
   return s;
 }
-
-
-
 
 function generarNonce() {
   var arr = new Uint8Array(16);
   crypto.getRandomValues(arr);
   return Array.from(arr).map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
 }
-
 
 async function hmacSha256Hex(key, message) {
   var enc = new TextEncoder();
@@ -64,7 +52,6 @@ async function hmacSha256Hex(key, message) {
   return Array.from(new Uint8Array(sig))
     .map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
 }
-
 
 function clavePublicaHoy() {
   var ahora = new Date(new Date().toLocaleString("en-US", { timeZone: "America/El_Salvador" }));
@@ -86,7 +73,6 @@ async function firmarPayload(action, fields, key) {
   var ts    = String(Math.floor(Date.now() / 1000));
   var clave = key || clavePublicaHoy();
 
-
   var camposOrdenados = Object.keys(fields).sort().map(function(k) {
     return k + "=" + (fields[k] !== undefined && fields[k] !== null ? fields[k] : "");
   }).join("|");
@@ -107,7 +93,6 @@ async function firmarPayload(action, fields, key) {
   return params;
 }
 
-
 function vibrar(tipo) {
   if (!("vibrate" in navigator)) return;
   try {
@@ -116,7 +101,6 @@ function vibrar(tipo) {
     else if (tipo === "aviso") navigator.vibrate([40, 40, 40]);
   } catch (e) { /* algunos navegadores lanzan si no hay gesto de usuario previo */ }
 }
-
 
 function showToast(message, type) {
   type = type || "success";
@@ -132,9 +116,6 @@ function showToast(message, type) {
   }, 4000);
 }
 
-// ============================================================
-// RELOJ
-// ============================================================
 function updateClock() {
   var el = document.getElementById("live-clock");
   if (!el) return;
@@ -148,7 +129,6 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
-
 
 function switchView(viewId) {
   var current = document.querySelector(".card-view.active");
@@ -166,7 +146,6 @@ function salirDeRegistro() {
   detenerQR();
   switchView("view-menu");
 }
-
 
 function obtenerEstadoGeoGlobal() {
   return fetch(SCRIPT_URL + "?action=obtener_geo_estado")
@@ -246,9 +225,6 @@ function haversineKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// ============================================================
-// QR SCANNER
-// ============================================================
 function setFirmaTab(tab) {
   firmaTab = tab;
   document.getElementById("tab-qr").classList.toggle("active", tab === "qr");
@@ -327,7 +303,6 @@ function detenerQR() {
   }
 }
 
-
 function normalizarNombre(n) {
   return n.trim().toLowerCase().replace(/\b\w/g, function(l) { return l.toUpperCase(); });
 }
@@ -338,14 +313,15 @@ function validarNombre(n) {
   return palabras.length >= 2 && palabras.length <= 5 && /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(norm);
 }
 
-// Teléfono salvadoreño: 8 dígitos, empieza con 2 (fijo), 6 o 7 (móvil)
 function limpiarTelefono(t) {
   return (t || "").replace(/[^\d]/g, "");
 }
 function validarTelefono(t) {
   return /^[267]\d{7}$/.test(limpiarTelefono(t));
 }
-
+function validarCorreo(c) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((c || "").trim());
+}
 
 function irAlInicioDePagina() {
   window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
@@ -354,7 +330,6 @@ function irAlInicioDePagina() {
 function registrarAsistencia(event) {
   event.preventDefault();
 
-  // Honeypot anti-bot: campo invisible para humanos, si viene lleno es un bot.
   var hpReg = (document.getElementById("reg-website") || {}).value || "";
   if (hpReg.trim() !== "") {
     var alertBoxHp = document.getElementById("alertRegistro");
@@ -426,7 +401,6 @@ function registrarAsistencia(event) {
     fields.lng = geoCoords.lng;
   }
 
-
   firmarPayload("asistencia", fields, null)
     .then(function(params) {
       return fetch(SCRIPT_URL, { method: "POST", body: params });
@@ -474,15 +448,14 @@ function registrarAsistencia(event) {
     });
 }
 
-
 function generarClave(event) {
   event.preventDefault();
 
-  
   var hpGen = (document.getElementById("gen-website") || {}).value || "";
   var nombreInput = document.getElementById("gen-name").value;
   var docenteInput = document.getElementById("gen-teacher").value;
   var telefonoInput = document.getElementById("gen-phone").value;
+  var correoInput = document.getElementById("gen-email").value;
   var alertBox = document.getElementById("alertGenerarClave");
   var btn = document.getElementById("btnGenerar");
   var containerClave = document.getElementById("claveGeneradaContainer");
@@ -502,15 +475,27 @@ function generarClave(event) {
     return;
   }
 
-  if (!validarTelefono(telefonoInput)) {
-    alertBox.textContent = "❌ Ingresa un número de teléfono válido de 8 dígitos (Ej: 71234567).";
-    alertBox.className = "alert-box error";
-    alertBox.style.display = "block";
-    showToast("❌ Teléfono inválido.", "warning");
-    return;
+  var esExcepcion = telefonoInput.trim().toLowerCase() === "admin" && correoInput.trim().toLowerCase() === "admin";
+
+  if (!esExcepcion) {
+    if (!validarTelefono(telefonoInput)) {
+      alertBox.textContent = "❌ Ingresa un número de teléfono válido de 8 dígitos (Ej: 71234567).";
+      alertBox.className = "alert-box error";
+      alertBox.style.display = "block";
+      showToast("❌ Teléfono inválido.", "warning");
+      return;
+    }
+    if (!validarCorreo(correoInput)) {
+      alertBox.textContent = "❌ Ingresa un correo electrónico válido.";
+      alertBox.className = "alert-box error";
+      alertBox.style.display = "block";
+      showToast("❌ Correo inválido.", "warning");
+      return;
+    }
   }
 
-  var telefono = limpiarTelefono(telefonoInput);
+  var telefono = esExcepcion ? "admin" : limpiarTelefono(telefonoInput);
+  var correo = esExcepcion ? "admin" : correoInput.trim().toLowerCase();
   var nombre = normalizarNombre(nombreInput);
   btn.disabled = true;
   btn.innerHTML = "⚡ CONSULTANDO BASE DE DATOS...";
@@ -532,7 +517,7 @@ function generarClave(event) {
         btn.disabled = false;
         btn.innerHTML = "🔒 Generar Mi Clave Permanente";
       } else {
-        crearNuevaClave(nombre, docenteInput, telefono, hpGen, alertBox, btn, containerClave);
+        crearNuevaClave(nombre, docenteInput, telefono, correo, hpGen, alertBox, btn, containerClave);
       }
     })
     .catch(function() {
@@ -544,7 +529,7 @@ function generarClave(event) {
     });
 }
 
-function crearNuevaClave(nombre, docente, telefono, hp, alertBox, btn, containerClave) {
+function crearNuevaClave(nombre, docente, telefono, correo, hp, alertBox, btn, containerClave) {
   btn.innerHTML = "⚡ CREANDO CREDENCIAL...";
   var claveNueva = "";
   var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -552,7 +537,7 @@ function crearNuevaClave(nombre, docente, telefono, hp, alertBox, btn, container
     claveNueva += chars.charAt(Math.floor(Math.random() * chars.length));
   }
 
-  firmarPayload("guardar_clave", { nombre: nombre, clave: claveNueva, docente: sanitizarInput(docente), telefono: telefono, hp: hp || "" }, null)
+  firmarPayload("guardar_clave", { nombre: nombre, clave: claveNueva, docente: sanitizarInput(docente), telefono: telefono, correo: correo, hp: hp || "" }, null)
     .then(function(params) {
       return fetch(SCRIPT_URL, { method: "POST", body: params });
     })
@@ -581,7 +566,6 @@ function crearNuevaClave(nombre, docente, telefono, hp, alertBox, btn, container
     });
 }
 
-
 function capturarClave() {
   var el = document.getElementById("claveCapturaArea");
   var boton = document.getElementById("btn-guardar-clave-captura");
@@ -607,7 +591,6 @@ function capturarClave() {
     if (boton) { boton.disabled = false; boton.innerHTML = textoOriginal; }
   });
 }
-
 
 function unlockTeacherPanel(event) {
   if (event) event.preventDefault();
@@ -649,7 +632,6 @@ function unlockTeacherPanel(event) {
   var firma = passwordInput.value.trim();
 
   sha256Hex(firma).then(function (firmaHash) {
-    // POST en lugar de GET — la contraseña no queda en URL/logs
     var params = new URLSearchParams();
     params.append("action", "validar_firma");
     params.append("firma_hash", firmaHash);
@@ -676,7 +658,7 @@ function unlockTeacherPanel(event) {
    
       intentosFallidos = 0;
       bloqueoHasta = 0;
-      tokenSesion = validacion.token; // Token temporal del backend
+      tokenSesion = validacion.token;
       btn.innerHTML = "⚡ CARGANDO PANEL...";
       renderizarPanelDocente();
     })
@@ -695,7 +677,6 @@ function renderizarPanelDocente() {
 
   authSection.style.display = "none";
 
-  // Crear panel dinámicamente — NO existe en el HTML inicial
   dashboardSection.innerHTML = `
     <div class="geo-toggle-row">
       <div class="geo-toggle-label">
@@ -794,23 +775,19 @@ function renderizarPanelDocente() {
 
   dashboardSection.classList.add("visible");
 
-  // Adjuntar event listeners a los nuevos botones
   document.getElementById("geo-toggle-input").addEventListener("change", toggleGeolocalizacion);
   document.getElementById("btn-clear-all").addEventListener("click", function() { triggerClearAll(); });
   document.getElementById("btn-lock-return").addEventListener("click", lockAndReturn);
   document.getElementById("btn-save-auto-clean").addEventListener("click", guardarConfigLimpiezaAutomatica);
 
-  // Sincronizar toggle con estado global
   obtenerEstadoGeoGlobal().then(function(activa) {
     var input = document.getElementById("geo-toggle-input");
     if (input) input.checked = activa;
     actualizarDescGeo();
   });
 
-  // Cargar configuración actual de limpieza automática
   cargarConfigLimpiezaAutomatica();
 
-  // Carga inicial (con toast de bienvenida) + arrancar auto-refresh cada 30s
   cargarDatosPanel(false);
   detenerAutoRefreshPanel();
   panelAutoRefreshInterval = setInterval(function() { cargarDatosPanel(true); }, 30000);
@@ -830,7 +807,7 @@ function cargarConfigLimpiezaAutomatica() {
       var toggle = document.getElementById("auto-clean-toggle");
       var daySel = document.getElementById("auto-clean-day");
       var timeInput = document.getElementById("auto-clean-time");
-      if (!desc || !toggle || !daySel || !timeInput) return; // el panel ya se cerró
+      if (!desc || !toggle || !daySel || !timeInput) return;
 
       if (data.result !== "success") {
         desc.textContent = "No se pudo cargar la configuración.";
@@ -905,7 +882,6 @@ function guardarConfigLimpiezaAutomatica() {
     });
 }
 
-
 function detenerAutoRefreshPanel() {
   if (panelAutoRefreshInterval) {
     clearInterval(panelAutoRefreshInterval);
@@ -938,7 +914,7 @@ function cargarDatosPanel(silencioso) {
       }
 
       var tablaCuerpo = document.getElementById("tabla-api-cuerpo");
-      if (!tablaCuerpo) return; // el panel ya se cerró
+      if (!tablaCuerpo) return;
       tablaCuerpo.innerHTML = "";
 
       if (!Array.isArray(data) || data.length === 0) {
@@ -995,10 +971,10 @@ function lockAndReturn() {
   var auth = document.getElementById("teacher-auth");
   if (dashboard) {
     dashboard.classList.remove("visible");
-    dashboard.innerHTML = ""; // DESTRUIR contenido al salir
+    dashboard.innerHTML = "";
   }
   if (auth) auth.style.display = "block";
-  tokenSesion = null; // Invalidar token
+  tokenSesion = null;
   switchView("view-menu");
 }
 
@@ -1047,7 +1023,7 @@ function triggerClearAll() {
 
   var params = new URLSearchParams();
   params.append("action", "limpiar_asistencias");
-  params.append("token", tokenSesion || ""); // Requiere token válido
+  params.append("token", tokenSesion || "");
 
   fetch(SCRIPT_URL, { method: "POST", body: params })
     .then(function(res) { return res.json(); })
@@ -1067,7 +1043,6 @@ function triggerClearAll() {
       showToast("❌ Error al reiniciar el día. Intenta de nuevo.", "warning");
     });
 }
-
 
 var THEME_STORAGE_KEY = "cented_theme";
 
@@ -1097,19 +1072,15 @@ function toggleTema() {
   try { localStorage.setItem(THEME_STORAGE_KEY, tema); } catch (e) { /* localStorage bloqueado, no pasa nada */ }
 }
 
-
 document.addEventListener("DOMContentLoaded", function() {
-  // Tema (debe ir primero para evitar parpadeo)
   inicializarTema();
   var themeInput = document.getElementById("theme-toggle-input");
   if (themeInput) themeInput.addEventListener("change", toggleTema);
 
-  // Menú
   document.getElementById("btn-menu-register").addEventListener("click", function() { switchView("view-register"); });
   document.getElementById("btn-menu-keygen").addEventListener("click", function() { switchView("view-keygen"); });
   document.getElementById("btn-menu-teacher").addEventListener("click", function() { switchView("view-teacher"); });
 
-  // Registro
   document.getElementById("form-register").addEventListener("submit", registrarAsistencia);
   document.getElementById("btn-back-register").addEventListener("click", salirDeRegistro);
   document.getElementById("tab-qr").addEventListener("click", function() { setFirmaTab("qr"); });
@@ -1117,17 +1088,14 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("btn-start-qr").addEventListener("click", iniciarQR);
   document.getElementById("btn-stop-qr").addEventListener("click", detenerQR);
 
-  // Generar clave
   document.getElementById("form-keygen").addEventListener("submit", generarClave);
   document.getElementById("btn-back-keygen").addEventListener("click", function() { switchView("view-menu"); });
   var btnCaptura = document.getElementById("btn-guardar-clave-captura");
   if (btnCaptura) btnCaptura.addEventListener("click", capturarClave);
 
-  // Panel docente
   document.getElementById("teacher-auth").addEventListener("submit", unlockTeacherPanel);
   document.getElementById("btn-back-teacher").addEventListener("click", function() { switchView("view-menu"); });
 
-  // Disparar verificación de geo al entrar a registro
   var origSwitchView = switchView;
   switchView = function(viewId) {
     origSwitchView(viewId);
