@@ -30,7 +30,6 @@
     <meta property="og:url" content="https://grupocented.fyi/" />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
 
-    <!-- Librería QR Scanner -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -320,7 +319,6 @@
 
       <hr class="editorial-line" />
 
-      <!-- ══ VISTA MENÚ ══ -->
       <section id="view-menu" class="card-view active">
         <div class="theme-toggle-row">
           <span class="theme-toggle-label"><span id="theme-icon">🌙</span> Modo Oscuro</span>
@@ -364,7 +362,6 @@
         </p>
       </section>
 
-      <!-- ══ VISTA REGISTRAR ASISTENCIA ══ -->
       <section id="view-register" class="card-view">
         <h2 class="view-title">【 登録 】 Registrar Asistencia</h2>
 
@@ -456,7 +453,6 @@
         </form>
       </section>
 
-      <!-- ══ VISTA GENERAR CLAVE ══ -->
       <section id="view-keygen" class="card-view">
         <h2 class="view-title">【 鍵作成 】 Generar Mi Clave</h2>
         <div id="alertGenerarClave" class="alert-box"></div>
@@ -486,6 +482,12 @@
               inputmode="numeric" />
             <small class="helper-text">8 dígitos, sin guiones ni espacios (se limpian automáticamente).</small>
           </div>
+          <div class="input-group">
+            <label for="gen-email">Correo Electrónico *</label>
+            <input type="email" id="gen-email"
+              placeholder="Ej: nombre@correo.com" required autocomplete="off" />
+            <small class="helper-text">Debe ser un correo válido.</small>
+          </div>
           <div id="claveGeneradaContainer" style="display:none; margin-top:1.5rem; margin-bottom:1.5rem;">
             <div class="alert-box success" style="display:block; margin-bottom:0.5rem;">🎉 ¡Clave lista! Guárdala, es permanente:</div>
             <div class="stat-box" id="claveCapturaArea" style="padding:1rem; background:#ffffff;">
@@ -502,7 +504,6 @@
         </form>
       </section>
 
-      <!-- ══ VISTA PANEL DOCENTE ══ -->
       <section id="view-teacher" class="card-view">
         <h2 class="view-title">【 管理 】 Panel del Docente</h2>
         <div id="alertVerRegistros" class="alert-box"></div>
@@ -522,7 +523,6 @@
           </div>
         </form>
 
-        <!-- PANEL VACÍO — se renderiza dinámicamente tras validación -->
         <div id="teacher-dashboard" class="hidden-panel"></div>
       </section>
 
