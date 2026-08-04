@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFfHReVLIrawwEbICetFjoh4be28Ucmowa1ZYMI1pYrV_SIhBw6j7QT9ERdZ0LNwEY/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQrac2iTHNby_5V7T_V3ozJEZIR96tQRkjf3cSDTJ8k-TeC__77uJ2rFIE7e3GyQ0/exec";
 
 const CENTED_LAT = 13.716795758900204;
 const CENTED_LNG = -89.1001956388224;
