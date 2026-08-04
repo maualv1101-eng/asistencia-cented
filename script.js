@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQrac2iTHNby_5V7T_V3ozJEZIR96tQRkjf3cSDTJ8k-TeC__77uJ2rFIE7e3GyQ0/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5W1BisGOueLB2PgCROKQdxm5p-_bfgSXelvGqhFFw4oTSvtDqbZsVahpcxsKY_mue/exec";
 
 const CENTED_LAT = 13.716795758900204;
 const CENTED_LNG = -89.1001956388224;
@@ -322,6 +322,9 @@ function validarTelefono(t) {
 function validarCorreo(c) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((c || "").trim());
 }
+function validarCumpleanos(f) {
+  return /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])$/.test((f || "").trim());
+}
 
 function actualizarRequeridosGenerarClave() {
   var overrideInput = document.getElementById("gen-override");
@@ -333,11 +336,9 @@ function actualizarRequeridosGenerarClave() {
   if (hayCodigo) {
     phone.removeAttribute("required");
     email.removeAttribute("required");
-    email.setAttribute("type", "text");
   } else {
     phone.setAttribute("required", "required");
     email.setAttribute("required", "required");
-    email.setAttribute("type", "email");
   }
 }
 
@@ -474,6 +475,7 @@ function generarClave(event) {
   var docenteInput = document.getElementById("gen-teacher").value;
   var telefonoInput = document.getElementById("gen-phone").value;
   var correoInput = document.getElementById("gen-email").value;
+  var cumpleInput = document.getElementById("gen-birthday").value;
   var codigoInput = (document.getElementById("gen-override") || {}).value || "";
   var alertBox = document.getElementById("alertGenerarClave");
   var btn = document.getElementById("btnGenerar");
@@ -502,6 +504,14 @@ function generarClave(event) {
     return;
   }
 
+  if (!validarCumpleanos(cumpleInput)) {
+    alertBox.textContent = "❌ Ingresa tu fecha de cumpleaños en formato DD/MM (Ej: 15/08).";
+    alertBox.className = "alert-box error";
+    alertBox.style.display = "block";
+    showToast("❌ Fecha de cumpleaños inválida.", "warning");
+    return;
+  }
+
   var hayCodigo = codigoInput.trim().length > 0;
 
   if (!hayCodigo) {
@@ -523,6 +533,7 @@ function generarClave(event) {
 
   var telefono = limpiarTelefono(telefonoInput);
   var correo = correoInput.trim().toLowerCase();
+  var cumple = cumpleInput.trim();
   var codigo = codigoInput.trim();
   var nombre = normalizarNombre(nombreInput);
   btn.disabled = true;
@@ -546,7 +557,7 @@ function generarClave(event) {
         btn.disabled = false;
         btn.innerHTML = "🔒 Generar Mi Clave Permanente";
       } else {
-        crearNuevaClave(nombre, docenteInput, telefono, correo, codigo, hpGen, alertBox, btn, containerClave);
+        crearNuevaClave(nombre, docenteInput, telefono, correo, cumple, codigo, hpGen, alertBox, btn, containerClave);
       }
     })
     .catch(function() {
@@ -558,7 +569,7 @@ function generarClave(event) {
     });
 }
 
-function crearNuevaClave(nombre, docente, telefono, correo, codigo, hp, alertBox, btn, containerClave) {
+function crearNuevaClave(nombre, docente, telefono, correo, cumple, codigo, hp, alertBox, btn, containerClave) {
   btn.innerHTML = "⚡ CREANDO CREDENCIAL...";
   var claveNueva = "";
   var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -566,7 +577,7 @@ function crearNuevaClave(nombre, docente, telefono, correo, codigo, hp, alertBox
     claveNueva += chars.charAt(Math.floor(Math.random() * chars.length));
   }
 
-  firmarPayload("guardar_clave", { nombre: nombre, clave: claveNueva, docente: sanitizarInput(docente), telefono: telefono, correo: correo, codigo: codigo, hp: hp || "" }, null)
+  firmarPayload("guardar_clave", { nombre: nombre, clave: claveNueva, docente: sanitizarInput(docente), telefono: telefono, correo: correo, cumple: cumple, codigo: codigo, hp: hp || "" }, null)
     .then(function(params) {
       return fetch(SCRIPT_URL, { method: "POST", body: params });
     })
