@@ -513,16 +513,23 @@
           </div>
           <div class="input-group">
             <label for="gen-phone">Número de Teléfono *</label>
-            <input type="tel" id="gen-phone" maxlength="9"
+            <input type="text" id="gen-phone" maxlength="9"
               placeholder="Ej: 7123-4567" required autocomplete="off"
               inputmode="numeric" />
             <small class="helper-text">8 dígitos, sin guiones ni espacios (se limpian automáticamente).</small>
           </div>
           <div class="input-group">
             <label for="gen-email">Correo Electrónico *</label>
-            <input type="email" id="gen-email"
+            <input type="text" id="gen-email"
               placeholder="Ej: nombre@correo.com" required autocomplete="off" />
             <small class="helper-text">Debe ser un correo válido.</small>
+          </div>
+          <div class="input-group">
+            <label for="gen-birthday">Fecha de Cumpleaños (DD/MM) *</label>
+            <input type="text" id="gen-birthday" maxlength="5"
+              placeholder="Ej: 15/08" required autocomplete="off"
+              inputmode="numeric" />
+            <small class="helper-text">Formato DD/MM: primero el día, luego el mes. Ej: 15/08 = 15 de agosto.</small>
           </div>
           <details style="margin-bottom:1rem;">
             <summary style="cursor:pointer; opacity:0.6; font-size:0.85rem;">Opciones adicionales</summary>
