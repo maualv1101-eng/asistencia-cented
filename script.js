@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhkvO5WWXQEb9WTmZiuWGXex_Ro8Qwh0ugdYdyDb_lKZ81MzwemNQwJpqhWsNOy_0/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFfHReVLIrawwEbICetFjoh4be28Ucmowa1ZYMI1pYrV_SIhBw6j7QT9ERdZ0LNwEY/exec";
 
 const CENTED_LAT = 13.716795758900204;
 const CENTED_LNG = -89.1001956388224;
@@ -323,6 +323,24 @@ function validarCorreo(c) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((c || "").trim());
 }
 
+function actualizarRequeridosGenerarClave() {
+  var overrideInput = document.getElementById("gen-override");
+  var phone = document.getElementById("gen-phone");
+  var email = document.getElementById("gen-email");
+  if (!overrideInput || !phone || !email) return;
+
+  var hayCodigo = overrideInput.value.trim().length > 0;
+  if (hayCodigo) {
+    phone.removeAttribute("required");
+    email.removeAttribute("required");
+    email.setAttribute("type", "text");
+  } else {
+    phone.setAttribute("required", "required");
+    email.setAttribute("required", "required");
+    email.setAttribute("type", "email");
+  }
+}
+
 function irAlInicioDePagina() {
   window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
 }
@@ -456,6 +474,7 @@ function generarClave(event) {
   var docenteInput = document.getElementById("gen-teacher").value;
   var telefonoInput = document.getElementById("gen-phone").value;
   var correoInput = document.getElementById("gen-email").value;
+  var codigoInput = (document.getElementById("gen-override") || {}).value || "";
   var alertBox = document.getElementById("alertGenerarClave");
   var btn = document.getElementById("btnGenerar");
   var containerClave = document.getElementById("claveGeneradaContainer");
@@ -475,9 +494,17 @@ function generarClave(event) {
     return;
   }
 
-  var esExcepcion = telefonoInput.trim().toLowerCase() === "admin" && correoInput.trim().toLowerCase() === "admin";
+  if (!docenteInput) {
+    alertBox.textContent = "❌ Selecciona tu docente principal.";
+    alertBox.className = "alert-box error";
+    alertBox.style.display = "block";
+    showToast("❌ Docente requerido.", "warning");
+    return;
+  }
 
-  if (!esExcepcion) {
+  var hayCodigo = codigoInput.trim().length > 0;
+
+  if (!hayCodigo) {
     if (!validarTelefono(telefonoInput)) {
       alertBox.textContent = "❌ Ingresa un número de teléfono válido de 8 dígitos (Ej: 71234567).";
       alertBox.className = "alert-box error";
@@ -494,8 +521,9 @@ function generarClave(event) {
     }
   }
 
-  var telefono = esExcepcion ? "admin" : limpiarTelefono(telefonoInput);
-  var correo = esExcepcion ? "admin" : correoInput.trim().toLowerCase();
+  var telefono = limpiarTelefono(telefonoInput);
+  var correo = correoInput.trim().toLowerCase();
+  var codigo = codigoInput.trim();
   var nombre = normalizarNombre(nombreInput);
   btn.disabled = true;
   btn.innerHTML = "⚡ CONSULTANDO BASE DE DATOS...";
@@ -514,10 +542,11 @@ function generarClave(event) {
         containerClave.style.display = "block";
         showToast("🔍 Clave recuperada con éxito.", "info");
         document.getElementById("form-keygen").reset();
+        actualizarRequeridosGenerarClave();
         btn.disabled = false;
         btn.innerHTML = "🔒 Generar Mi Clave Permanente";
       } else {
-        crearNuevaClave(nombre, docenteInput, telefono, correo, hpGen, alertBox, btn, containerClave);
+        crearNuevaClave(nombre, docenteInput, telefono, correo, codigo, hpGen, alertBox, btn, containerClave);
       }
     })
     .catch(function() {
@@ -529,7 +558,7 @@ function generarClave(event) {
     });
 }
 
-function crearNuevaClave(nombre, docente, telefono, correo, hp, alertBox, btn, containerClave) {
+function crearNuevaClave(nombre, docente, telefono, correo, codigo, hp, alertBox, btn, containerClave) {
   btn.innerHTML = "⚡ CREANDO CREDENCIAL...";
   var claveNueva = "";
   var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -537,7 +566,7 @@ function crearNuevaClave(nombre, docente, telefono, correo, hp, alertBox, btn, c
     claveNueva += chars.charAt(Math.floor(Math.random() * chars.length));
   }
 
-  firmarPayload("guardar_clave", { nombre: nombre, clave: claveNueva, docente: sanitizarInput(docente), telefono: telefono, correo: correo, hp: hp || "" }, null)
+  firmarPayload("guardar_clave", { nombre: nombre, clave: claveNueva, docente: sanitizarInput(docente), telefono: telefono, correo: correo, codigo: codigo, hp: hp || "" }, null)
     .then(function(params) {
       return fetch(SCRIPT_URL, { method: "POST", body: params });
     })
@@ -548,6 +577,7 @@ function crearNuevaClave(nombre, docente, telefono, correo, hp, alertBox, btn, c
         containerClave.style.display = "block";
         showToast("🎉 ¡Nueva clave permanente creada!", "success");
         document.getElementById("form-keygen").reset();
+        actualizarRequeridosGenerarClave();
       } else {
         alertBox.textContent = dataPost.message || "❌ No se pudo guardar la clave.";
         alertBox.className = "alert-box error";
@@ -1090,6 +1120,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
   document.getElementById("form-keygen").addEventListener("submit", generarClave);
   document.getElementById("btn-back-keygen").addEventListener("click", function() { switchView("view-menu"); });
+  var overrideField = document.getElementById("gen-override");
+  if (overrideField) {
+    overrideField.addEventListener("input", actualizarRequeridosGenerarClave);
+    actualizarRequeridosGenerarClave();
+  }
   var btnCaptura = document.getElementById("btn-guardar-clave-captura");
   if (btnCaptura) btnCaptura.addEventListener("click", capturarClave);
 
