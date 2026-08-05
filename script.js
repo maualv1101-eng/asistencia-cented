@@ -325,6 +325,11 @@ function validarCorreo(c) {
 function validarCumpleanos(f) {
   return /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])$/.test((f || "").trim());
 }
+function formatearCumpleanosInput(e) {
+  var input = e.target;
+  var digitos = input.value.replace(/\D/g, "").slice(0, 4);
+  input.value = digitos.length > 2 ? digitos.slice(0, 2) + "/" + digitos.slice(2) : digitos;
+}
 
 function actualizarRequeridosGenerarClave() {
   var overrideInput = document.getElementById("gen-override");
@@ -1131,6 +1136,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
   document.getElementById("form-keygen").addEventListener("submit", generarClave);
   document.getElementById("btn-back-keygen").addEventListener("click", function() { switchView("view-menu"); });
+  var birthdayField = document.getElementById("gen-birthday");
+  if (birthdayField) {
+    birthdayField.addEventListener("input", formatearCumpleanosInput);
+  }
   var overrideField = document.getElementById("gen-override");
   if (overrideField) {
     overrideField.addEventListener("input", actualizarRequeridosGenerarClave);
