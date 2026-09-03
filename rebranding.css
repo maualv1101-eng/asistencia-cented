@@ -1,9 +1,8 @@
 /* ================================================================
-   rebranding.css
-   Estilos para la ventana emergente de anuncio (rebranding) y para
-   el panel de "Personalización de Marca". Archivo NUEVO, separado
-   del CSS original — no modifica ni sobreescribe ningún estilo
-   existente del sitio.
+   rebranding.css  (v2)
+   Estilos para la ventana emergente de anuncio y para el panel de
+   "Personalización de Marca". Archivo NUEVO, separado del CSS
+   original — no modifica ni sobreescribe ningún estilo existente.
    ================================================================ */
 
 .rebrand-modal-overlay {
@@ -30,8 +29,10 @@
   position: relative;
   background: var(--bg-color, #f4f3ef);
   color: var(--text-color, #0d0d0d);
-  max-width: 420px;
+  max-width: 460px;
   width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
   border-radius: 14px;
   border: 2px solid #000;
   box-shadow: 0 12px 0 rgba(0, 0, 0, 0.15);
@@ -46,11 +47,12 @@
 }
 
 .rebrand-modal-logo {
-  width: 84px;
-  height: 84px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
   margin: 0 auto 0.75rem;
   display: block;
+  border-radius: 10px;
 }
 
 .rebrand-modal-tag {
@@ -68,9 +70,31 @@
 
 .rebrand-modal-title {
   font-family: "Syne", sans-serif;
-  font-size: 1.35rem;
-  margin: 0 0 0.6rem;
+  font-size: 1.3rem;
+  margin: 0 0 0.9rem;
   line-height: 1.2;
+}
+
+/* ---- Imagen grande del aviso: se adapta a horizontal o vertical ---- */
+.rebrand-modal-banner-wrap {
+  width: 100%;
+  max-height: 55vh;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid #000;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.rebrand-modal-banner {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 55vh;
+  object-fit: contain; /* nunca recorta ni deforma, sea horizontal o vertical */
 }
 
 .rebrand-modal-text {
@@ -78,6 +102,7 @@
   line-height: 1.5;
   opacity: 0.85;
   margin: 0 0 1.25rem;
+  text-align: left;
 }
 
 .rebrand-modal-accept {
@@ -107,6 +132,7 @@
   cursor: pointer;
   opacity: 0.55;
   color: inherit;
+  z-index: 2;
 }
 
 .rebrand-modal-close:hover {
@@ -114,16 +140,65 @@
 }
 
 /* ---- Panel de personalización de marca ---- */
-.brand-logo-preview {
+.brand-step {
+  border-top: 1px dashed rgba(0, 0, 0, 0.15);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.brand-step:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0.5rem;
+}
+
+.brand-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--accent-color, #2b46ff);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-right: 0.4rem;
+}
+
+.brand-session-note {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  background: rgba(43, 70, 255, 0.08);
+  border: 1px solid rgba(43, 70, 255, 0.25);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.brand-logo-preview,
+.brand-banner-preview {
   margin-top: 0.6rem;
   display: flex;
   justify-content: center;
 }
 
 .brand-logo-preview img {
-  max-width: 120px;
-  max-height: 120px;
+  max-width: 110px;
+  max-height: 110px;
   object-fit: contain;
+  border: 2px solid #000;
+  border-radius: 10px;
+  padding: 4px;
+  background: #fff;
+}
+
+.brand-banner-preview img {
+  max-width: 100%;
+  max-height: 260px;
+  width: auto;
+  height: auto;
+  object-fit: contain; /* horizontal o vertical, sin recorte */
   border: 2px solid #000;
   border-radius: 10px;
   padding: 4px;
@@ -133,5 +208,11 @@
 @media (max-width: 480px) {
   .rebrand-modal-box {
     padding: 1.5rem 1.1rem 1.25rem;
+  }
+  .rebrand-modal-banner-wrap {
+    max-height: 40vh;
+  }
+  .rebrand-modal-banner {
+    max-height: 40vh;
   }
 }
