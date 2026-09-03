@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDH7-R_O0ylKtk0v0sZX-u4T4KXDFYN-6JWVkBEZOmBxjkTLYLIVvmQeKdUAnAQRg_/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrQO4MGejGG8QCtX5x1JPC_n6LvKSlguAjlV6BhNRJw4i0Bxb9CXbbOZ0hv6ZpxZU/exec";
 
 const CENTED_LAT = 13.716795758900204;
 const CENTED_LNG = -89.1001956388224;
@@ -821,6 +821,8 @@ function renderizarPanelDocente() {
 
   dashboardSection.classList.add("visible");
 
+  inyectarPanelPersonalizacionMarca(dashboardSection);
+
   document.getElementById("geo-toggle-input").addEventListener("change", toggleGeolocalizacion);
   document.getElementById("btn-clear-all").addEventListener("click", function() { triggerClearAll(); });
   document.getElementById("btn-lock-return").addEventListener("click", lockAndReturn);
@@ -1118,8 +1120,337 @@ function toggleTema() {
   try { localStorage.setItem(THEME_STORAGE_KEY, tema); } catch (e) { /* localStorage bloqueado, no pasa nada */ }
 }
 
+// ==========================================
+// PERSONALIZACIÓN DE MARCA + AVISO EMERGENTE
+// La configuración vive en el backend (hoja "Config"), así que se aplica
+// para TODOS los visitantes del sitio, no solo en el navegador donde se
+// guardó. Se llama una vez al cargar la página (público, sin login).
+// ==========================================
+var AVISO_SESSION_KEY = "cented_aviso_visto_sesion";
+
+function inicializarMarcaYAviso() {
+  fetch(SCRIPT_URL + "?action=obtener_config_marca")
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (!data || data.result !== "success" || !data.config) return;
+      aplicarConfigMarcaAlSitio(data.config);
+      mostrarAvisoSiCorresponde(data.config);
+    })
+    .catch(function() { /* si falla, el sitio sigue con los valores por defecto del HTML */ });
+}
+
+function aplicarConfigMarcaAlSitio(cfg) {
+  // Logo en el encabezado
+  var logoImg = document.getElementById("brand-logo-img");
+  if (logoImg && cfg.logoUrl) {
+    logoImg.src = cfg.logoUrl;
+    logoImg.style.display = "block";
+  }
+
+  // Título institucional
+  var titleEl = document.getElementById("brand-title-text");
+  if (titleEl && cfg.title) titleEl.textContent = cfg.title;
+  if (cfg.title) {
+    document.title = cfg.title + " | AULA DIGITAL - DEPARTAMENTO DE SISTEMAS INFORMATICOS";
+  }
+
+  // Favicon / ícono de la pestaña
+  if (cfg.logoUrl) {
+    var iconLink = document.querySelector('link[rel="icon"]');
+    if (iconLink) iconLink.href = cfg.logoUrl;
+  }
+
+  // Logo dentro del aviso emergente
+  var avisoLogo = document.getElementById("aviso-logo-img");
+  if (avisoLogo && cfg.logoUrl) avisoLogo.src = cfg.logoUrl;
+}
+
+/**
+ * Muestra el aviso institucional una vez por cada sesión de navegador
+ * (cada vez que alguien abre una pestaña nueva y entra a grupocented.fyi).
+ * Se guarda solo en sessionStorage: al cerrar la pestaña o abrir una nueva,
+ * vuelve a aparecer — cumple con "cada vez que se ingresa al sitio".
+ */
+function mostrarAvisoSiCorresponde(cfg) {
+  if (!cfg.avisoActivo) return;
+
+  var yaVisto = false;
+  try { yaVisto = sessionStorage.getItem(AVISO_SESSION_KEY) === "1"; } catch (e) { /* storage bloqueado */ }
+  if (yaVisto) return;
+
+  var overlay = document.getElementById("aviso-overlay");
+  if (!overlay) return;
+
+  var tituloEl = document.getElementById("aviso-titulo-txt");
+  var textoEl = document.getElementById("aviso-texto-txt");
+  var botonEl = document.getElementById("aviso-btn-continuar");
+  var bannerEl = document.getElementById("aviso-banner-img");
+
+  if (tituloEl && cfg.avisoTitulo) tituloEl.textContent = cfg.avisoTitulo;
+  if (textoEl && cfg.avisoTexto) textoEl.textContent = cfg.avisoTexto;
+  if (botonEl && cfg.avisoBoton) botonEl.textContent = cfg.avisoBoton;
+
+  if (bannerEl) {
+    if (cfg.bannerUrl) {
+      bannerEl.src = cfg.bannerUrl;
+      bannerEl.style.display = "block";
+      bannerEl.className = "aviso-banner " + (cfg.bannerOrient === "vertical" ? "vertical" : "horizontal");
+    } else {
+      bannerEl.style.display = "none";
+    }
+  }
+
+  overlay.classList.add("visible");
+}
+
+function cerrarAvisoInstitucional() {
+  var overlay = document.getElementById("aviso-overlay");
+  if (overlay) overlay.classList.remove("visible");
+  try { sessionStorage.setItem(AVISO_SESSION_KEY, "1"); } catch (e) { /* storage bloqueado, no pasa nada */ }
+}
+
+// ── Panel "Personalización de Marca" (dentro del Panel del Docente) ──
+
+function inyectarPanelPersonalizacionMarca(dashboardSection) {
+  var wrap = document.createElement("div");
+  wrap.className = "input-group";
+  wrap.style.marginTop = "0.5rem";
+  wrap.innerHTML = `
+    <label class="brand-panel-title">🎨 Personalización de Marca</label>
+    <small class="helper-text" style="margin-bottom:0.9rem; display:block;">
+      Aquí puedes actualizar el logo, el nombre institucional y una imagen grande
+      para los avisos del sitio (por ejemplo, el anuncio del rebranding u otros
+      comunicados). Los cambios se guardan en el servidor y se aplican para
+      TODOS los visitantes del sitio, no solo en este navegador.
+    </small>
+
+    <div id="brand-status-msg" class="brand-status-msg"></div>
+
+    <div class="brand-step">
+      <div class="brand-step-label"><span class="brand-step-num">1</span> Logo institucional (ícono pequeño)</div>
+      <small class="helper-text">Se usa como ícono del sitio y en la ventana emergente. Formato cuadrado recomendado. PNG, JPG o WEBP.</small>
+      <input type="file" id="brand-logo-file" accept="image/png,image/jpeg,image/webp" style="margin-top:0.6rem;" />
+      <img id="brand-logo-preview" class="brand-preview-img" alt="Vista previa del logo" />
+    </div>
+
+    <div class="brand-step">
+      <div class="brand-step-label"><span class="brand-step-num">2</span> Título / Nombre institucional</div>
+      <input type="text" id="brand-title-input" maxlength="120" placeholder="Ej: Grupo Cented Academy Pro Education" />
+    </div>
+
+    <div class="brand-step">
+      <div class="brand-step-label"><span class="brand-step-num">3</span> Imagen grande para avisos (opcional)</div>
+      <small class="helper-text">Aparece dentro de la ventana emergente de avisos. Puede ser horizontal o vertical.</small>
+      <div class="form-actions row-layout" style="margin:0.6rem 0;">
+        <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.85rem; font-weight:700;">
+          <input type="radio" name="brand-banner-orient" value="horizontal" checked /> Horizontal
+        </label>
+        <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.85rem; font-weight:700;">
+          <input type="radio" name="brand-banner-orient" value="vertical" /> Vertical
+        </label>
+      </div>
+      <input type="file" id="brand-banner-file" accept="image/png,image/jpeg,image/webp" />
+      <img id="brand-banner-preview" class="brand-preview-banner" alt="Vista previa de la imagen de aviso" />
+    </div>
+
+    <div class="brand-step">
+      <div class="brand-step-label"><span class="brand-step-num">4</span> Texto del aviso emergente</div>
+      <div class="input-group">
+        <label for="brand-aviso-titulo">Título del aviso</label>
+        <input type="text" id="brand-aviso-titulo" maxlength="200" placeholder="Ej: ¡Tenemos un nuevo nombre!" />
+      </div>
+      <div class="input-group">
+        <label for="brand-aviso-texto">Mensaje del aviso</label>
+        <textarea id="brand-aviso-texto" maxlength="1200" rows="4" placeholder="Escribe el mensaje del aviso..."></textarea>
+      </div>
+      <div class="input-group">
+        <label for="brand-aviso-boton">Texto del botón</label>
+        <input type="text" id="brand-aviso-boton" maxlength="60" placeholder="Entendido, continuar" />
+      </div>
+      <div class="geo-toggle-row" style="margin-top:0.6rem;">
+        <div class="geo-toggle-label">Mostrar la ventana emergente a los visitantes</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="brand-aviso-activo" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <button type="button" class="btn-secondary" id="btn-save-brand" style="width:100%;">
+      💾 Guardar Personalización de Marca
+    </button>
+  `;
+  dashboardSection.appendChild(wrap);
+
+  document.getElementById("brand-logo-file").addEventListener("change", function(ev) {
+    manejarSeleccionImagenMarca(ev, "brand-logo-preview");
+  });
+  document.getElementById("brand-banner-file").addEventListener("change", function(ev) {
+    manejarSeleccionImagenMarca(ev, "brand-banner-preview");
+  });
+  document.getElementById("btn-save-brand").addEventListener("click", guardarPersonalizacionMarca);
+
+  cargarConfigMarcaEnPanel();
+}
+
+function manejarSeleccionImagenMarca(ev, previewId) {
+  var file = ev.target.files && ev.target.files[0];
+  var preview = document.getElementById(previewId);
+  if (!file || !preview) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast("❌ La imagen es demasiado grande (máx. 5MB).", "warning");
+    ev.target.value = "";
+    return;
+  }
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    preview.src = e.target.result;
+    preview.style.display = "block";
+  };
+  reader.readAsDataURL(file);
+}
+
+function leerArchivoComoBase64_(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function() {
+      // reader.result = "data:image/png;base64,AAAA..." -> nos quedamos solo con la parte base64
+      var partes = reader.result.split(",");
+      resolve({ base64: partes[1] || "", mime: file.type || "image/png" });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function subirImagenMarcaAlServidor_(file, nombre) {
+  return leerArchivoComoBase64_(file).then(function(datos) {
+    var params = new URLSearchParams();
+    params.append("action", "subir_imagen_marca");
+    params.append("token", tokenSesion || "");
+    params.append("imagen_base64", datos.base64);
+    params.append("mime", datos.mime);
+    params.append("nombre", nombre);
+    return fetch(SCRIPT_URL, { method: "POST", body: params }).then(function(res) { return res.json(); });
+  });
+}
+
+function cargarConfigMarcaEnPanel() {
+  fetch(SCRIPT_URL + "?action=obtener_config_marca")
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (!data || data.result !== "success" || !data.config) return;
+      var cfg = data.config;
+
+      var titleInput = document.getElementById("brand-title-input");
+      if (titleInput) titleInput.value = cfg.title || "";
+
+      var logoPreview = document.getElementById("brand-logo-preview");
+      if (logoPreview && cfg.logoUrl) { logoPreview.src = cfg.logoUrl; logoPreview.style.display = "block"; }
+
+      var bannerPreview = document.getElementById("brand-banner-preview");
+      if (bannerPreview && cfg.bannerUrl) { bannerPreview.src = cfg.bannerUrl; bannerPreview.style.display = "block"; }
+
+      var orientRadios = document.getElementsByName("brand-banner-orient");
+      for (var i = 0; i < orientRadios.length; i++) {
+        orientRadios[i].checked = (orientRadios[i].value === (cfg.bannerOrient || "horizontal"));
+      }
+
+      var avisoTitulo = document.getElementById("brand-aviso-titulo");
+      if (avisoTitulo) avisoTitulo.value = cfg.avisoTitulo || "";
+      var avisoTexto = document.getElementById("brand-aviso-texto");
+      if (avisoTexto) avisoTexto.value = cfg.avisoTexto || "";
+      var avisoBoton = document.getElementById("brand-aviso-boton");
+      if (avisoBoton) avisoBoton.value = cfg.avisoBoton || "";
+      var avisoActivo = document.getElementById("brand-aviso-activo");
+      if (avisoActivo) avisoActivo.checked = !!cfg.avisoActivo;
+    })
+    .catch(function() { /* el panel simplemente queda con los campos vacíos */ });
+}
+
+function mostrarEstadoBrand_(mensaje, tipo) {
+  var el = document.getElementById("brand-status-msg");
+  if (!el) return;
+  el.textContent = mensaje;
+  el.className = "brand-status-msg " + (tipo === "ok" ? "ok" : "warn");
+}
+
+function guardarPersonalizacionMarca() {
+  var btn = document.getElementById("btn-save-brand");
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = "⚡ Guardando...";
+  mostrarEstadoBrand_("Guardando cambios en el servidor...", "warn");
+
+  var logoFile = document.getElementById("brand-logo-file").files[0];
+  var bannerFile = document.getElementById("brand-banner-file").files[0];
+  var orientRadios = document.getElementsByName("brand-banner-orient");
+  var orient = "horizontal";
+  for (var i = 0; i < orientRadios.length; i++) {
+    if (orientRadios[i].checked) orient = orientRadios[i].value;
+  }
+
+  var subidas = [];
+  subidas.push(logoFile ? subirImagenMarcaAlServidor_(logoFile, "logo") : Promise.resolve(null));
+  subidas.push(bannerFile ? subirImagenMarcaAlServidor_(bannerFile, "banner") : Promise.resolve(null));
+
+  Promise.all(subidas)
+    .then(function(resultados) {
+      var logoResult = resultados[0];
+      var bannerResult = resultados[1];
+
+      if (logoFile && (!logoResult || logoResult.result !== "success")) {
+        throw new Error((logoResult && logoResult.message) || "No se pudo subir el logo.");
+      }
+      if (bannerFile && (!bannerResult || bannerResult.result !== "success")) {
+        throw new Error((bannerResult && bannerResult.message) || "No se pudo subir la imagen de aviso.");
+      }
+
+      var params = new URLSearchParams();
+      params.append("action", "guardar_config_marca");
+      params.append("token", tokenSesion || "");
+      params.append("title", document.getElementById("brand-title-input").value.trim());
+      if (logoResult && logoResult.url) params.append("logoUrl", logoResult.url);
+      if (bannerResult && bannerResult.url) params.append("bannerUrl", bannerResult.url);
+      params.append("bannerOrient", orient);
+      params.append("avisoActivo", document.getElementById("brand-aviso-activo").checked ? "1" : "0");
+      params.append("avisoTitulo", document.getElementById("brand-aviso-titulo").value.trim());
+      params.append("avisoTexto", document.getElementById("brand-aviso-texto").value.trim());
+      params.append("avisoBoton", document.getElementById("brand-aviso-boton").value.trim());
+
+      return fetch(SCRIPT_URL, { method: "POST", body: params }).then(function(res) { return res.json(); });
+    })
+    .then(function(data) {
+      btn.disabled = false;
+      btn.textContent = "💾 Guardar Personalización de Marca";
+
+      if (!data) return;
+
+      if (data.result === "success") {
+        mostrarEstadoBrand_("✅ Guardado en el servidor. Ya se aplica para TODOS los visitantes del sitio.", "ok");
+        showToast("✅ Personalización de marca guardada.", "success");
+        if (data.config) aplicarConfigMarcaAlSitio(data.config);
+      } else if (data.error === "unauthorized") {
+        mostrarEstadoBrand_("❌ Sesión inválida. Vuelve a iniciar sesión en el Panel del Docente y guarda de nuevo.", "warn");
+        showToast("❌ Sesión inválida. Inicia sesión de nuevo.", "warning");
+      } else {
+        mostrarEstadoBrand_("❌ " + (data.message || "Error al guardar."), "warn");
+        showToast("❌ " + (data.message || "Error al guardar la personalización."), "warning");
+      }
+    })
+    .catch(function(err) {
+      btn.disabled = false;
+      btn.textContent = "💾 Guardar Personalización de Marca";
+      mostrarEstadoBrand_("❌ " + (err && err.message ? err.message : "Error de red al guardar."), "warn");
+      showToast("❌ Error al guardar la personalización.", "warning");
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   inicializarTema();
+  inicializarMarcaYAviso();
   var themeInput = document.getElementById("theme-toggle-input");
   if (themeInput) themeInput.addEventListener("change", toggleTema);
 
@@ -1150,6 +1481,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
   document.getElementById("teacher-auth").addEventListener("submit", unlockTeacherPanel);
   document.getElementById("btn-back-teacher").addEventListener("click", function() { switchView("view-menu"); });
+
+  var btnAvisoContinuar = document.getElementById("aviso-btn-continuar");
+  if (btnAvisoContinuar) btnAvisoContinuar.addEventListener("click", cerrarAvisoInstitucional);
+  var btnAvisoX = document.getElementById("aviso-close-x");
+  if (btnAvisoX) btnAvisoX.addEventListener("click", cerrarAvisoInstitucional);
+  var avisoOverlayEl = document.getElementById("aviso-overlay");
+  if (avisoOverlayEl) {
+    avisoOverlayEl.addEventListener("click", function(ev) {
+      if (ev.target === avisoOverlayEl) cerrarAvisoInstitucional();
+    });
+  }
 
   var origSwitchView = switchView;
   switchView = function(viewId) {
