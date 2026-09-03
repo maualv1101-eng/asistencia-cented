@@ -14,8 +14,8 @@
       media-src blob:;
       worker-src blob:;
     " />
-    <title>GRUPO CENTED PRO EDUCACION| AULA DIGITAL - DEPARTAMENTO DE SISTEMAS INFORMATICOS - GRUPO CENTED PRO EDUCACION</title>
-    <meta name="description" content="Portal oficial para el Control de Asistencia en el Aula de Sistemas Informáticos de Grupo Cented Pro Educacion." />
+    <title>GRUPO CENTED ACADEMY PRO EDUCACION| AULA DIGITAL - DEPARTAMENTO DE SISTEMAS INFORMATICOS - GRUPO CENTED ACADEMY PRO EDUCACION</title>
+    <meta name="description" content="Portal oficial para el Control de Asistencia en el Aula de Sistemas Informáticos de Grupo Cented Academy Pro Educacion." />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://grupocented.fyi/" />
     <meta name="theme-color" content="#000000" />
@@ -26,7 +26,7 @@
     <link rel="icon" href="https://grupocented.fyi/LOGO.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="https://grupocented.fyi/LOGO.png" sizes="180x180" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Control de Asistencia — Grupo Cented Pro Educacion AULA" />
+    <meta property="og:title" content="Control de Asistencia — Grupo Cented Academy Pro Educacion AULA" />
     <meta property="og:url" content="https://grupocented.fyi/" />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
 
@@ -329,9 +329,118 @@
         .aula-iframe-container { height: 50vh; }
         .stats-counter-grid { gap: 0.8rem; }
       }
+      /* ====== POPUP DE ANUNCIO DE REBRANDING ======
+         Editable / eliminable a futuro: para desactivar el aviso,
+         basta con borrar este bloque y el bloque HTML #rebrand-announce-overlay
+         en el <body>, además del <script src="rebrand-announce.js"> al final. */
+      .rebrand-announce-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem;
+        background: rgba(13, 13, 13, 0.72);
+        backdrop-filter: blur(4px);
+      }
+      .rebrand-announce-overlay[hidden] { display: none; }
+      .rebrand-announce-card {
+        position: relative;
+        width: 100%;
+        max-width: 440px;
+        background: var(--card-bg, #ffffff);
+        color: var(--text-color);
+        border: var(--border-width) solid var(--border-color);
+        border-radius: var(--border-radius);
+        box-shadow: 10px 10px 0px var(--shadow-color);
+        padding: 1.75rem 1.5rem 1.5rem;
+        text-align: center;
+        font-family: var(--font-body);
+        animation: rebrand-pop 0.35s ease;
+      }
+      @keyframes rebrand-pop {
+        from { opacity: 0; transform: translateY(12px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      .rebrand-announce-card img {
+        width: 72px;
+        height: 72px;
+        object-fit: contain;
+        margin: 0 auto 0.75rem;
+        display: block;
+        border-radius: 8px;
+      }
+      .rebrand-announce-eyebrow {
+        font-family: var(--font-heading);
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        color: var(--accent-color);
+        margin-bottom: 0.4rem;
+      }
+      .rebrand-announce-card h2 {
+        font-family: var(--font-heading);
+        font-size: 1.3rem;
+        line-height: 1.25;
+        margin-bottom: 0.6rem;
+      }
+      .rebrand-announce-card p {
+        font-size: 0.9rem;
+        opacity: 0.85;
+        margin-bottom: 1.25rem;
+        line-height: 1.4;
+      }
+      .rebrand-announce-btn {
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        letter-spacing: 0.03em;
+        border: var(--border-width) solid var(--border-color);
+        border-radius: 8px;
+        background: var(--accent-color);
+        color: #fff;
+        padding: 0.65rem 1.5rem;
+        cursor: pointer;
+        box-shadow: 4px 4px 0px var(--shadow-color);
+        transition: transform 0.15s ease;
+      }
+      .rebrand-announce-btn:hover { transform: translate(-2px, -2px); }
+      .rebrand-announce-btn:active { transform: translate(0, 0); }
+      .rebrand-announce-close {
+        position: absolute;
+        top: 0.6rem;
+        right: 0.7rem;
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        line-height: 1;
+        cursor: pointer;
+        color: var(--text-color);
+        opacity: 0.6;
+      }
+      .rebrand-announce-close:hover { opacity: 1; }
     </style>
   </head>
   <body>
+    <!-- ====== POPUP DE ANUNCIO DE REBRANDING ======
+         Editable a futuro: cambia el texto/imagen aquí abajo cuando quieras.
+         Para desactivarlo por completo, borra este <div id="rebrand-announce-overlay">,
+         el bloque CSS "POPUP DE ANUNCIO DE REBRANDING" en el <head>,
+         y la línea <script src="rebrand-announce.js"> al final del <body>. -->
+    <div id="rebrand-announce-overlay" class="rebrand-announce-overlay" hidden>
+      <div class="rebrand-announce-card" role="dialog" aria-modal="true" aria-labelledby="rebrand-announce-title">
+        <button type="button" class="rebrand-announce-close" id="rebrand-announce-close" aria-label="Cerrar aviso">✕</button>
+        <img src="LOGO.png" alt="Logo Grupo Cented Academy Pro Educacion" />
+        <div class="rebrand-announce-eyebrow">📢 ANUNCIO</div>
+        <h2 id="rebrand-announce-title">¡Tenemos nuevo nombre!</h2>
+        <p>
+          <strong>Grupo Cented</strong> ahora es
+          <strong>Grupo Cented Academy Pro Educación</strong>.
+          Mismo equipo, misma Aula Digital — con una nueva identidad.
+        </p>
+        <button type="button" class="rebrand-announce-btn" id="rebrand-announce-ok">Entendido</button>
+      </div>
+    </div>
+
     <div class="overlay-texture"></div>
     <div id="toast-box-container" class="toast-container"></div>
 
@@ -344,7 +453,7 @@
       <header class="main-header">
         <div class="brand">
           <span class="badge">出席 AULA DIGITAL + ASISTENCIA</span>
-          <h1>GRUPO CENTED PRO EDUCACION</h1>
+          <h1>GRUPO CENTED ACADEMY PRO EDUCACION</h1>
           <p class="subtitle">DEPARTAMENTO DE SISTEMAS INFORMATICOS</p>
         </div>
         <div class="live-status">
@@ -388,13 +497,13 @@
         <div class="aula-iframe-container" style="margin-top:1.5rem;">
           <iframe src="https://maualv1101.wixsite.com/my-site"
             sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-            loading="lazy" title="Aula Digital Grupo Cented">
+            loading="lazy" title="Aula Digital Grupo Cented Academy Pro Educacion">
             <p>Tu navegador no soporta iframes.</p>
           </iframe>
         </div>
         <br/>
        <p style="font-size:0.8rem; opacity:0.5; margin-top:1rem; text-align:center;">
-          Depto. Sistemas Informáticos · Grupo Cented Pro Educacion · <a href="politica_privacidad_cented.pdf" target="_blank" rel="noopener noreferrer">Política de Privacidad y Tratamiento de Datos</a> · © 2026
+          Depto. Sistemas Informáticos · Grupo Cented Academy Pro Educacion · <a href="politica_privacidad_cented.pdf" target="_blank" rel="noopener noreferrer">Política de Privacidad y Tratamiento de Datos</a> · © 2026
         </p>
         <p style="font-size:0.8rem; opacity:0.5; margin-top:1rem; text-align:center;">
           DESCARGA LA ULTIMA VERSION DE ALERTA DE SISMO PARA PC (pronto en Andoid TV) desde los medios oficiales  <a href="https://drive.google.com/drive/folders/1DPpFro4mSRrnIp2S8F211IsDz48_t9iq?usp=sharing" target="_blank" rel="noopener noreferrer">SITIO OFFICIAL</a> · © 2026
@@ -582,5 +691,6 @@
     </main>
 
     <script src="script.js"></script>
+    <script src="rebrand-announce.js"></script>
   </body>
 </html>
