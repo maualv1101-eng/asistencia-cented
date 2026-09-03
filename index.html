@@ -302,9 +302,16 @@
     <div id="rebrand-modal-overlay" class="rebrand-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="rebrand-modal-title">
       <div class="rebrand-modal-box">
         <button type="button" id="rebrand-modal-close" class="rebrand-modal-close" aria-label="Cerrar aviso">×</button>
+
         <img id="rebrand-modal-logo" class="rebrand-modal-logo" src="https://grupocented.fyi/LOGO.png" alt="Logo institucional" />
+
         <span class="rebrand-modal-tag">📢 Aviso institucional</span>
         <h2 id="rebrand-modal-title" class="rebrand-modal-title">¡Tenemos un nuevo nombre!</h2>
+
+        <div id="rebrand-modal-banner-wrap" class="rebrand-modal-banner-wrap" style="display:none;">
+          <img id="rebrand-modal-banner" class="rebrand-modal-banner" src="" alt="Imagen del aviso" />
+        </div>
+
         <p id="rebrand-modal-text" class="rebrand-modal-text">
           A partir de hoy, <strong>Grupo Cented</strong> pasa a ser
           <strong>Grupo Cented Academy Pro Education</strong>. Seguimos siendo el mismo
@@ -552,6 +559,12 @@
 
       <section id="view-brand" class="card-view">
         <h2 class="view-title">🎨 Personalización de Marca</h2>
+        <p style="font-size:0.85rem; opacity:0.75; margin-top:-0.5rem; margin-bottom:1rem;">
+          Aquí puedes actualizar el logo, el nombre institucional y una imagen grande
+          para los avisos del sitio (por ejemplo, el anuncio del rebranding u otros
+          comunicados). Sigue los pasos en orden: primero el logo, luego el título y
+          por último, si quieres, una imagen grande.
+        </p>
         <div id="alertBrand" class="alert-box"></div>
 
         <form id="brand-auth">
@@ -567,36 +580,49 @@
         </form>
 
         <div id="brand-panel" class="hidden-panel">
-          <div class="input-group">
-            <label for="brand-logo-input">Nuevo Logo / Imagen (PNG o JPG)</label>
+          <p id="brand-session-note" class="brand-session-note"></p>
+
+          <div class="input-group brand-step">
+            <label for="brand-logo-input"><span class="brand-step-num">1</span> Logo institucional (ícono pequeño)</label>
+            <small class="helper-text">Se usa como ícono del sitio y en la ventana emergente. Formato cuadrado recomendado. PNG o JPG.</small>
             <input type="file" id="brand-logo-input" accept="image/png, image/jpeg" />
             <div id="brand-logo-preview" class="brand-logo-preview"></div>
           </div>
 
-          <div class="input-group">
-            <label for="brand-title-input">Título / Nombre institucional</label>
+          <div class="input-group brand-step">
+            <label for="brand-title-input"><span class="brand-step-num">2</span> Título / Nombre institucional</label>
+            <small class="helper-text">Aparece en el encabezado del sitio y en la ventana emergente.</small>
             <input type="text" id="brand-title-input" placeholder="Grupo Cented Academy Pro Education" maxlength="80" />
           </div>
 
-          <div class="input-group">
+          <div class="input-group brand-step">
             <label for="brand-slogan-input">Eslogan / Subtítulo</label>
+            <small class="helper-text">Texto pequeño debajo del título, en el encabezado.</small>
             <input type="text" id="brand-slogan-input" placeholder="Departamento de Sistemas Informáticos" maxlength="120" />
           </div>
 
-          <div class="input-group">
-            <label for="brand-announcement-input">Texto del aviso emergente (rebranding / anuncios)</label>
-            <textarea id="brand-announcement-input" rows="4" maxlength="400" placeholder="Escribe aquí el mensaje que verán todos los visitantes al entrar al sitio..."></textarea>
+          <div class="input-group brand-step">
+            <label for="brand-banner-input"><span class="brand-step-num">3</span> Imagen grande (opcional) — horizontal o vertical</label>
+            <small class="helper-text">
+              Se muestra dentro de la ventana emergente, arriba de la descripción.
+              Acepta imágenes horizontales o verticales: se ajusta automáticamente sin
+              recortarse ni deformarse. Úsala para anuncios especiales, banners de
+              temporada, etc. PNG o JPG.
+            </small>
+            <input type="file" id="brand-banner-input" accept="image/png, image/jpeg" />
+            <div id="brand-banner-preview" class="brand-banner-preview"></div>
+          </div>
+
+          <div class="input-group brand-step">
+            <label for="brand-announcement-input">Descripción del aviso emergente</label>
+            <small class="helper-text">El mensaje que verán los visitantes al entrar al sitio, debajo de la imagen grande (si hay una).</small>
+            <textarea id="brand-announcement-input" rows="4" maxlength="600" placeholder="Escribe aquí el mensaje que verán todos los visitantes al entrar al sitio..."></textarea>
           </div>
 
           <div class="form-actions">
             <button type="button" id="btnGuardarBrand" class="btn-submit">💾 Guardar Cambios</button>
-            <button type="button" id="btnRestaurarBrand" class="btn-back">♻️ Restaurar Original</button>
+            <button type="button" id="btnRestaurarBrand" class="btn-back">♻️ Limpiar Vista Previa Local</button>
           </div>
-          <p style="font-size:0.75rem; opacity:0.6; margin-top:0.75rem;">
-            Nota: estos cambios se guardan en este navegador (almacenamiento local) y se aplican
-            a quien visite el sitio desde el mismo, incluyendo el logo, título, eslogan y el
-            mensaje de la ventana emergente. No modifican los archivos del repositorio.
-          </p>
         </div>
       </section>
 
