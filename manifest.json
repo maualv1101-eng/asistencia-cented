@@ -1,7 +1,7 @@
 {
-  "name": "Asistencia Grupo Cented",
+  "name": "Asistencia Grupo Cented Academy Pro Educacion",
   "short_name": "Cented Asistencia",
-  "description": "Control de Asistencia — Departamento de Sistemas Informáticos, Grupo Cented Altavista.",
+  "description": "Control de Asistencia — Departamento de Sistemas Informáticos, Grupo Cented Academy Pro Educacion (Altavista).",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
