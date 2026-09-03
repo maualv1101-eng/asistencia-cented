@@ -10,7 +10,7 @@
       font-src https://fonts.gstatic.com;
       connect-src https://script.google.com https://script.googleusercontent.com;
       frame-src https://maualv1101.wixsite.com https://www.google.com;
-      img-src 'self' https://grupocented.fyi data: blob:;
+      img-src 'self' https://grupocented.fyi https://lh3.googleusercontent.com https://drive.google.com data: blob:;
       media-src blob:;
       worker-src blob:;
     " />
@@ -22,11 +22,11 @@
     <link rel="manifest" href="manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Cented Academy Pro" />
+    <meta name="apple-mobile-web-app-title" content="Asistencia Cented" />
     <link rel="icon" href="https://grupocented.fyi/LOGO.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="https://grupocented.fyi/LOGO.png" sizes="180x180" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Control de Asistencia — Grupo Cented Academy Pro Education" />
+    <meta property="og:title" content="Control de Asistencia — Grupo Cented Academy Pro Education AULA" />
     <meta property="og:url" content="https://grupocented.fyi/" />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
 
@@ -293,37 +293,111 @@
         .aula-iframe-container { height: 50vh; }
         .stats-counter-grid { gap: 0.8rem; }
       }
+
+      /* ── Ventana emergente de aviso institucional (rebranding, avisos, etc.) ── */
+      #aviso-overlay {
+        position: fixed; inset: 0; background: rgba(13,13,13,0.55);
+        display: none; align-items: center; justify-content: center;
+        z-index: 20000; padding: 1.2rem; backdrop-filter: blur(2px);
+      }
+      #aviso-overlay.visible { display: flex; }
+      .aviso-card {
+        background: var(--bg-color); color: var(--text-color);
+        border: var(--border-width) solid var(--text-color);
+        border-radius: var(--border-radius);
+        box-shadow: 10px 10px 0px var(--text-color);
+        max-width: 440px; width: 100%; max-height: 90vh; overflow-y: auto;
+        position: relative; padding: 1.8rem 1.6rem 1.6rem;
+        font-family: var(--font-body);
+        animation: aviso-pop 0.25s cubic-bezier(0.19,1,0.22,1) forwards;
+      }
+      @keyframes aviso-pop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      .aviso-close {
+        position: absolute; top: 0.7rem; right: 0.9rem;
+        background: none; border: none; font-size: 1.3rem; cursor: pointer;
+        color: var(--text-color); opacity: 0.55; line-height: 1;
+      }
+      .aviso-close:hover { opacity: 1; }
+      .aviso-logo { display: block; max-width: 96px; max-height: 96px; margin: 0 auto 1rem; }
+      .aviso-badge {
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        background: var(--accent-color); color: #fff;
+        font-size: 0.72rem; font-weight: 800; letter-spacing: 1.5px;
+        text-transform: uppercase; padding: 0.35rem 0.8rem;
+        border-radius: 999px; margin: 0 auto 1rem; width: fit-content;
+      }
+      .aviso-center { text-align: center; }
+      .aviso-card h2 {
+        font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800;
+        margin-bottom: 0.9rem; line-height: 1.2; text-align: center;
+      }
+      .aviso-card p.aviso-texto {
+        font-size: 0.92rem; line-height: 1.5; opacity: 0.85; margin-bottom: 1.3rem;
+        white-space: pre-line; text-align: center;
+      }
+      .aviso-banner {
+        width: 100%; border-radius: calc(var(--border-radius) - 6px);
+        border: var(--border-width) solid var(--text-color);
+        margin-bottom: 1.2rem; display: block; object-fit: cover;
+      }
+      .aviso-banner.vertical { max-height: 420px; }
+      .aviso-banner.horizontal { max-height: 220px; }
+      .aviso-btn {
+        display: block; width: 100%; padding: 0.9rem; font-family: var(--font-heading);
+        font-weight: 800; font-size: 0.95rem; letter-spacing: 0.5px; text-transform: uppercase;
+        background: var(--accent-color); color: #fff; border: var(--border-width) solid var(--text-color);
+        border-radius: calc(var(--border-radius) - 6px); cursor: pointer;
+        box-shadow: 4px 4px 0px var(--text-color); transition: transform 0.1s ease;
+      }
+      .aviso-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px var(--text-color); }
+
+      /* ── Panel de Personalización de Marca (dentro del panel docente) ── */
+      .brand-panel-title {
+        font-family: var(--font-heading); font-weight: 800; font-size: 1.05rem;
+        display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;
+      }
+      .brand-step {
+        border: var(--border-width) solid var(--text-color);
+        border-radius: calc(var(--border-radius) - 4px);
+        padding: 1rem; margin-bottom: 1rem; background: var(--bg-color);
+      }
+      .brand-step-label { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; margin-bottom: 0.6rem; }
+      .brand-step-num {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 22px; height: 22px; border-radius: 50%; background: var(--accent-color);
+        color: #fff; font-size: 0.75rem; font-weight: 800; flex-shrink: 0;
+      }
+      .brand-preview-img { max-width: 120px; max-height: 120px; border: var(--border-width) solid var(--text-color); border-radius: 8px; margin-top: 0.6rem; display: none; object-fit: cover; }
+      .brand-preview-banner { max-width: 100%; max-height: 220px; border: var(--border-width) solid var(--text-color); border-radius: 8px; margin-top: 0.6rem; display: none; object-fit: cover; }
+      .brand-status-msg { font-size: 0.8rem; padding: 0.6rem 0.8rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
+      .brand-status-msg.ok { display: block; background: rgba(0,199,129,0.12); color: var(--success-color); border: 1px solid var(--success-color); }
+      .brand-status-msg.warn { display: block; background: rgba(255,149,0,0.12); color: var(--geo-color); border: 1px solid var(--geo-color); }
     </style>
   </head>
   <body>
     <div class="overlay-texture"></div>
+    <div id="toast-box-container" class="toast-container"></div>
 
-    <!-- ===== Ventana emergente de anuncio (Rebranding) ===== -->
-    <div id="rebrand-modal-overlay" class="rebrand-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="rebrand-modal-title">
-      <div class="rebrand-modal-box">
-        <button type="button" id="rebrand-modal-close" class="rebrand-modal-close" aria-label="Cerrar aviso">×</button>
-
-        <img id="rebrand-modal-logo" class="rebrand-modal-logo" src="https://grupocented.fyi/LOGO.png" alt="Logo institucional" />
-
-        <span class="rebrand-modal-tag">📢 Aviso institucional</span>
-        <h2 id="rebrand-modal-title" class="rebrand-modal-title">¡Tenemos un nuevo nombre!</h2>
-
-        <div id="rebrand-modal-banner-wrap" class="rebrand-modal-banner-wrap" style="display:none;">
-          <img id="rebrand-modal-banner" class="rebrand-modal-banner" src="" alt="Imagen del aviso" />
+    <!-- Ventana emergente de aviso institucional. Contenido controlado desde
+         el Panel del Docente → Personalización de Marca. Se muestra una vez
+         por cada nueva sesión de navegador (pestaña), es decir, cada vez que
+         alguien entra al sitio. -->
+    <div id="aviso-overlay">
+      <div class="aviso-card" role="dialog" aria-modal="true" aria-labelledby="aviso-titulo-txt">
+        <button type="button" class="aviso-close" id="aviso-close-x" aria-label="Cerrar">✕</button>
+        <div class="aviso-center">
+          <img id="aviso-logo-img" class="aviso-logo" src="https://grupocented.fyi/LOGO.png" alt="Logo institucional" />
+          <span class="aviso-badge">📣 AVISO INSTITUCIONAL</span>
         </div>
-
-        <p id="rebrand-modal-text" class="rebrand-modal-text">
-          A partir de hoy, <strong>Grupo Cented</strong> pasa a ser
-          <strong>Grupo Cented Academy Pro Education</strong>. Seguimos siendo el mismo
-          equipo, el mismo sistema de asistencia y la misma comunidad — solo con una
-          nueva identidad.
+        <img id="aviso-banner-img" class="aviso-banner horizontal" style="display:none;" alt="" />
+        <h2 id="aviso-titulo-txt">¡Tenemos un nuevo nombre!</h2>
+        <p class="aviso-texto" id="aviso-texto-txt">
+          A partir de hoy, <strong>Grupo Cented</strong> pasa a ser <strong>Grupo Cented Academy Pro Education</strong>.
+          Seguimos siendo el mismo equipo, el mismo sistema de asistencia y la misma comunidad — solo con una nueva identidad.
         </p>
-        <button type="button" id="rebrand-modal-accept" class="rebrand-modal-accept">Entendido, continuar</button>
+        <button type="button" class="aviso-btn" id="aviso-btn-continuar">Entendido, continuar</button>
       </div>
     </div>
-    <link rel="stylesheet" href="rebranding.css" />
-
-    <div id="toast-box-container" class="toast-container"></div>
 
     <main class="app-container">
       <div class="mobile-zoom-warning">
@@ -334,7 +408,8 @@
       <header class="main-header">
         <div class="brand">
           <span class="badge">出席 AULA DIGITAL + ASISTENCIA</span>
-          <h1>GRUPO CENTED ACADEMY PRO EDUCATION</h1>
+          <img id="brand-logo-img" src="https://grupocented.fyi/LOGO.png" alt="Logo institucional" style="display:none; max-width:64px; max-height:64px; margin:0.4rem 0;" />
+          <h1 id="brand-title-text">GRUPO CENTED ACADEMY PRO EDUCATION</h1>
           <p class="subtitle">DEPARTAMENTO DE SISTEMAS INFORMATICOS</p>
         </div>
         <div class="live-status">
@@ -374,11 +449,6 @@
             <span class="btn-text">Ir al Aula Digital</span>
             <span class="btn-arrow">↗</span>
           </a>
-          <button type="button" class="btn-retro" id="btn-menu-brand">
-            <span class="btn-num">05</span>
-            <span class="btn-text">Personalización de Marca (Docente)</span>
-            <span class="btn-arrow">→</span>
-          </button>
         </div>
         <div class="aula-iframe-container" style="margin-top:1.5rem;">
           <iframe src="https://maualv1101.wixsite.com/my-site"
@@ -557,78 +627,8 @@
         <div id="teacher-dashboard" class="hidden-panel"></div>
       </section>
 
-      <section id="view-brand" class="card-view">
-        <h2 class="view-title">🎨 Personalización de Marca</h2>
-        <p style="font-size:0.85rem; opacity:0.75; margin-top:-0.5rem; margin-bottom:1rem;">
-          Aquí puedes actualizar el logo, el nombre institucional y una imagen grande
-          para los avisos del sitio (por ejemplo, el anuncio del rebranding u otros
-          comunicados). Sigue los pasos en orden: primero el logo, luego el título y
-          por último, si quieres, una imagen grande.
-        </p>
-        <div id="alertBrand" class="alert-box"></div>
-
-        <form id="brand-auth">
-          <div class="input-group">
-            <label for="brand-password">Clave de Acceso Docente *</label>
-            <input type="password" id="brand-password" placeholder="••••••••" required autocomplete="off" />
-            <small class="helper-text">Solo el Departamento de Sistemas Informáticos puede modificar la imagen institucional.</small>
-          </div>
-          <div class="form-actions">
-            <button type="submit" id="btnAccederBrand" class="btn-submit">🔓 Entrar</button>
-            <button type="button" class="btn-back" id="btn-back-brand">← Volver</button>
-          </div>
-        </form>
-
-        <div id="brand-panel" class="hidden-panel">
-          <p id="brand-session-note" class="brand-session-note"></p>
-
-          <div class="input-group brand-step">
-            <label for="brand-logo-input"><span class="brand-step-num">1</span> Logo institucional (ícono pequeño)</label>
-            <small class="helper-text">Se usa como ícono del sitio y en la ventana emergente. Formato cuadrado recomendado. PNG o JPG.</small>
-            <input type="file" id="brand-logo-input" accept="image/png, image/jpeg" />
-            <div id="brand-logo-preview" class="brand-logo-preview"></div>
-          </div>
-
-          <div class="input-group brand-step">
-            <label for="brand-title-input"><span class="brand-step-num">2</span> Título / Nombre institucional</label>
-            <small class="helper-text">Aparece en el encabezado del sitio y en la ventana emergente.</small>
-            <input type="text" id="brand-title-input" placeholder="Grupo Cented Academy Pro Education" maxlength="80" />
-          </div>
-
-          <div class="input-group brand-step">
-            <label for="brand-slogan-input">Eslogan / Subtítulo</label>
-            <small class="helper-text">Texto pequeño debajo del título, en el encabezado.</small>
-            <input type="text" id="brand-slogan-input" placeholder="Departamento de Sistemas Informáticos" maxlength="120" />
-          </div>
-
-          <div class="input-group brand-step">
-            <label for="brand-banner-input"><span class="brand-step-num">3</span> Imagen grande (opcional) — horizontal o vertical</label>
-            <small class="helper-text">
-              Se muestra dentro de la ventana emergente, arriba de la descripción.
-              Acepta imágenes horizontales o verticales: se ajusta automáticamente sin
-              recortarse ni deformarse. Úsala para anuncios especiales, banners de
-              temporada, etc. PNG o JPG.
-            </small>
-            <input type="file" id="brand-banner-input" accept="image/png, image/jpeg" />
-            <div id="brand-banner-preview" class="brand-banner-preview"></div>
-          </div>
-
-          <div class="input-group brand-step">
-            <label for="brand-announcement-input">Descripción del aviso emergente</label>
-            <small class="helper-text">El mensaje que verán los visitantes al entrar al sitio, debajo de la imagen grande (si hay una).</small>
-            <textarea id="brand-announcement-input" rows="4" maxlength="600" placeholder="Escribe aquí el mensaje que verán todos los visitantes al entrar al sitio..."></textarea>
-          </div>
-
-          <div class="form-actions">
-            <button type="button" id="btnGuardarBrand" class="btn-submit">💾 Guardar Cambios</button>
-            <button type="button" id="btnRestaurarBrand" class="btn-back">♻️ Limpiar Vista Previa Local</button>
-          </div>
-        </div>
-      </section>
-
     </main>
 
     <script src="script.js"></script>
-    <script src="rebranding.js"></script>
   </body>
 </html>
