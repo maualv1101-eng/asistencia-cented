@@ -1,26 +1,6 @@
-// ==========================================
-// script.js — CENTED v8.0
-// Cambios respecto a v7.x:
-//  - FIX CRÍTICO: generarClave() ya no rompe cuando gen-birthday
-//    no existe en el DOM. Todos los campos opcionales (gen-birthday,
-//    gen-override, gen-phone, gen-email) se leen con null-check.
-//  - FIX: teléfono, correo y cumpleaños son OPCIONALES. Solo nombre
-//    + docente son obligatorios al crear una clave.
-//  - FIX: inicializarMarcaYAviso() unifica alias "obtener_marca" /
-//    "obtener_config_marca" — ahora el frontend llama al endpoint
-//    correcto sin depender del alias.
-//  - NUEVO: aviso emergente soporta imagen, video nativo (Drive) e
-//    iframe (YouTube/URL externa), según aviso_tipo_media.
-//  - NUEVO: panel de marca muestra campo "URL externa" para pegar
-//    links de YouTube o Drive sin subir nada.
-//  - NUEVO: soporte de upload de video (MP4/WEBM) en el panel de marca.
-//  - RENDIMIENTO: scripts externos con defer; switchView solo limpia
-//    alertas de la vista saliente, no de todo el DOM.
-//  - rebranding.js y rebranding.css eliminados — toda la lógica está
-//    aquí (un solo archivo JS, sin dependencias extra).
-// ==========================================
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyoG6pOKkLC0bKxkoBH_-ePy-enz52nqnnTmi0j5lCdmpLHtCG6gkHKLWWkdJWV9arx/exec";
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGnZyl2ruTyTz4knBZi9ydpDxN1ZipBN1jHBUzW2vs8sPqGgNSe2iPyTdn38eQ2B9z/exec";
 
 const CENTED_LAT = 13.716795758900204;
 const CENTED_LNG = -89.1001956388224;
@@ -115,6 +95,22 @@ function sanitizarInput(str) {
 function esUrlHttpsSegura(url) {
   if (!url) return false;
   try { return new URL(url).protocol === "https:"; } catch(e) { return false; }
+}
+
+function convertirYoutubeAEmbed(url) {
+  if (!esUrlHttpsSegura(url)) return "";
+  try {
+    var u = new URL(url);
+    var id = "";
+    if (u.hostname === "youtu.be") id = u.pathname.slice(1).split("/")[0];
+    else if (u.hostname === "www.youtube.com" || u.hostname === "youtube.com" || u.hostname === "m.youtube.com") {
+      if (u.pathname === "/watch") id = u.searchParams.get("v") || "";
+      else if (u.pathname.indexOf("/embed/") === 0 || u.pathname.indexOf("/shorts/") === 0)
+        id = u.pathname.split("/")[2] || "";
+    }
+    if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return "";
+    return "https://www.youtube.com/embed/" + id + "?autoplay=1&mute=1&playsinline=1&rel=0";
+  } catch(e) { return ""; }
 }
 
 // ── Feedback ──────────────────────────────
@@ -1135,25 +1131,33 @@ function mostrarAvisoSiCorresponde(cfg) {
       mediaWrap.appendChild(img); mediaWrap.classList.add("visible");
 
     } else if (tipo==="video" && cfg.bannerUrl) {
-      // Drive video embeds usan iframe (preview)
-      if (cfg.bannerUrl.indexOf("drive.google.com")!==-1||cfg.bannerUrl.indexOf("youtube.com")!==-1) {
+      // Solo los enlaces de visualización de Drive usan iframe; los archivos
+      // subidos se entregan como video nativo para conservar controles y calidad.
+      if (cfg.bannerUrl.indexOf("/preview")!==-1 && cfg.bannerUrl.indexOf("drive.google.com")!==-1) {
         var ifrm=document.createElement("iframe");
         ifrm.src=cfg.bannerUrl; ifrm.className="aviso-media-iframe"+(esVertical?" portrait-frame":"");
-        ifrm.setAttribute("allowfullscreen",""); ifrm.setAttribute("loading","lazy");
+        ifrm.setAttribute("allow","autoplay; fullscreen; encrypted-media; picture-in-picture");
+        ifrm.setAttribute("allowfullscreen",""); ifrm.setAttribute("loading","eager");
         ifrm.title="Video del aviso institucional";
         mediaWrap.appendChild(ifrm); mediaWrap.classList.add("visible");
       } else {
-        // Video nativo (blob/file URL)
+        // Video nativo: autoplay muted es necesario para que los navegadores
+        // móviles permitan iniciar la reproducción sin tocar la pantalla.
         var vid=document.createElement("video");
         vid.src=cfg.bannerUrl; vid.className="aviso-media-video";
-        vid.setAttribute("controls",""); vid.setAttribute("preload","metadata");
+        vid.setAttribute("controls",""); vid.setAttribute("preload","auto");
+        vid.setAttribute("autoplay",""); vid.setAttribute("muted","");
+        vid.setAttribute("playsinline",""); vid.loop=false; vid.muted=true;
         mediaWrap.appendChild(vid); mediaWrap.classList.add("visible");
+        vid.play().catch(function() {});
       }
 
     } else if (tipo==="url_ext" && esUrlHttpsSegura(cfg.avisoUrlExt)) {
+      var youtubeEmbed = convertirYoutubeAEmbed(cfg.avisoUrlExt);
       var ifrm2=document.createElement("iframe");
-      ifrm2.src=cfg.avisoUrlExt; ifrm2.className="aviso-media-iframe"+(esVertical?" portrait-frame":"");
-      ifrm2.setAttribute("allowfullscreen",""); ifrm2.setAttribute("loading","lazy");
+      ifrm2.src=youtubeEmbed || cfg.avisoUrlExt; ifrm2.className="aviso-media-iframe"+(esVertical?" portrait-frame":"");
+      ifrm2.setAttribute("allow","autoplay; fullscreen; encrypted-media; picture-in-picture");
+      ifrm2.setAttribute("allowfullscreen",""); ifrm2.setAttribute("loading","eager");
       ifrm2.title="Contenido externo del aviso";
       mediaWrap.appendChild(ifrm2); mediaWrap.classList.add("visible");
     }
@@ -1164,7 +1168,12 @@ function mostrarAvisoSiCorresponde(cfg) {
 }
 
 function cerrarAviso() {
-  var overlay=document.getElementById("aviso-overlay"); if(overlay) overlay.classList.remove("visible");
+  var overlay=document.getElementById("aviso-overlay");
+  if (overlay) {
+    overlay.querySelectorAll("video").forEach(function(v) { v.pause(); v.removeAttribute("src"); v.load(); });
+    overlay.querySelectorAll("iframe").forEach(function(frame) { frame.src="about:blank"; });
+    overlay.classList.remove("visible");
+  }
   try { sessionStorage.setItem(AVISO_SESSION_KEY,"1"); } catch(e){}
 }
 
