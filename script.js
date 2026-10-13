@@ -1,6 +1,4 @@
-
-
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWjkX1L6AWJPaFh_p03YPrxuHkV0J3xtiv_5CQT9o-bjysY2olTgJA3TM024ZLe6Bf/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyyZQVPGC2lVy9agEbyNfCL4nBBURy9grOqUKOOGDehWvQsbR9kbAKoSo8UZkt0hg/exec";
 
 const CENTED_LAT = 13.716795758900204;
 const CENTED_LNG = -89.1001956388224;
@@ -61,8 +59,6 @@ async function firmarPayload(action, fields, key) {
   var ts    = String(Math.floor(Date.now() / 1000));
   var clave = key || clavePublicaHoy();
 
-  // Incluir TODOS los campos en la firma, incluso vacíos, para que
-  // coincida con lo que verifica verificarHmac_ en el backend.
   var camposOrdenados = Object.keys(fields).sort().map(function(k) {
     var v = fields[k];
     return k + "=" + (v !== undefined && v !== null ? v : "");
@@ -73,8 +69,6 @@ async function firmarPayload(action, fields, key) {
   var params = new URLSearchParams();
   params.append("action", action);
   Object.keys(fields).forEach(function(k) {
-    // Enviamos SIEMPRE todos los campos (incluso vacíos) para que el
-    // backend pueda reconstruir la firma correctamente.
     params.append(k, fields[k] !== undefined && fields[k] !== null ? fields[k] : "");
   });
   params.append("_nonce", nonce);
@@ -155,7 +149,6 @@ function switchView(viewId) {
   var current = document.querySelector(".card-view.active");
   var target  = document.getElementById(viewId);
   if (!target || current === target) return;
-  // Limpiar solo alertas de la vista actual
   if (current) {
     current.querySelectorAll(".alert-box").forEach(function(el) {
       el.className = "alert-box"; el.style.display = "none";
@@ -163,10 +156,9 @@ function switchView(viewId) {
     current.classList.remove("active");
   }
   target.classList.add("active");
-  // Al entrar a registro, reiniciar geo
   if (viewId === "view-register") {
     geoOK = false; geoRevisada = false;
-    document.getElementById("firma-valor").value = "";
+    var fv = document.getElementById("firma-valor"); if (fv) fv.value = "";
     setQrStatus("waiting", "📷 Toca 'Iniciar Cámara' para escanear el QR del docente");
     obtenerEstadoGeoGlobal().then(function() { verificarGeolocalizacion(); });
   }
@@ -232,10 +224,15 @@ function haversineKm(lat1, lng1, lat2, lng2) {
 // ── QR ────────────────────────────────────
 function setFirmaTab(tab) {
   firmaTab = tab;
-  document.getElementById("tab-qr").classList.toggle("active", tab==="qr");
-  document.getElementById("tab-manual").classList.toggle("active", tab==="manual");
-  document.getElementById("firma-panel-qr").style.display   = tab==="qr"     ? "block" : "none";
-  document.getElementById("firma-panel-manual").style.display = tab==="manual" ? "block" : "none";
+  var tabQr = document.getElementById("tab-qr");
+  var tabManual = document.getElementById("tab-manual");
+  var panelQr = document.getElementById("firma-panel-qr");
+  var panelManual = document.getElementById("firma-panel-manual");
+
+  if (tabQr) tabQr.classList.toggle("active", tab==="qr");
+  if (tabManual) tabManual.classList.toggle("active", tab==="manual");
+  if (panelQr) panelQr.style.display = tab==="qr" ? "block" : "none";
+  if (panelManual) panelManual.style.display = tab==="manual" ? "block" : "none";
   if (tab === "manual") detenerQR();
 }
 
@@ -247,8 +244,10 @@ function setQrStatus(clase, texto) {
 function iniciarQR() {
   if (qrActivo) return;
   if (typeof Html5Qrcode === "undefined") { setQrStatus("error","❌ Librería QR no disponible. Recarga."); return; }
-  document.getElementById("btn-start-qr").style.display = "none";
-  document.getElementById("btn-stop-qr").style.display  = "inline-block";
+  var btnStart = document.getElementById("btn-start-qr");
+  var btnStop = document.getElementById("btn-stop-qr");
+  if (btnStart) btnStart.style.display = "none";
+  if (btnStop) btnStop.style.display  = "inline-block";
   setQrStatus("scanning", "🔍 Cámara activa — apunta al QR del docente...");
   qrScanner = new Html5Qrcode("qr-reader");
   qrScanner.start(
@@ -257,7 +256,8 @@ function iniciarQR() {
     function(txt) {
       var firma = txt.trim();
       if (/^\d{6}$/.test(firma)) {
-        document.getElementById("firma-valor").value = firma;
+        var fv = document.getElementById("firma-valor");
+        if (fv) fv.value = firma;
         setQrStatus("found", "✅ QR leído — Firma: " + firma.slice(0,3) + "***");
         showToast("✅ Firma capturada. Puedes enviar.", "success");
         detenerQR();
@@ -268,8 +268,8 @@ function iniciarQR() {
   ).then(function() { qrActivo = true; })
   .catch(function(err) {
     qrActivo = false;
-    document.getElementById("btn-start-qr").style.display = "inline-block";
-    document.getElementById("btn-stop-qr").style.display  = "none";
+    if (btnStart) btnStart.style.display = "inline-block";
+    if (btnStop) btnStop.style.display  = "none";
     if (err.toString().includes("Permission")) setQrStatus("error","❌ Permiso de cámara denegado.");
     else setQrStatus("error","❌ Error al iniciar cámara.");
   });
@@ -316,20 +316,27 @@ function registrarAsistencia(event) {
     alertBox.textContent="❌ No se pudo procesar tu solicitud."; alertBox.className="alert-box error"; alertBox.style.display="block"; return;
   }
 
-  var claveInput   = sanitizarInput(document.getElementById("reg-key").value).toUpperCase();
-  var docenteInput = sanitizarInput(document.getElementById("reg-teacher").value);
-  var grupoInput   = sanitizarInput(document.getElementById("reg-group").value);
+  var claveInput   = sanitizarInput((document.getElementById("reg-key")||{}).value||"").toUpperCase();
+  var docenteInput = sanitizarInput((document.getElementById("reg-teacher")||{}).value||"");
+  var grupoInput   = sanitizarInput((document.getElementById("reg-group")||{}).value||"");
+  var fValEl       = document.getElementById("firma-valor");
+  var rTokEl       = document.getElementById("reg-token");
   var firmaInput   = firmaTab==="qr"
-    ? sanitizarInput(document.getElementById("firma-valor").value)
-    : sanitizarInput(document.getElementById("reg-token").value);
+    ? sanitizarInput(fValEl ? fValEl.value : "")
+    : sanitizarInput(rTokEl ? rTokEl.value : "");
 
   if (!claveInput || claveInput.length !== 4) {
     alertBox.textContent="❌ Ingresa tu Clave Única de 4 caracteres."; alertBox.className="alert-box error"; alertBox.style.display="block"; irAlInicioDePagina(); return;
   }
+
+  /*
+  // ── DESACTIVADO: La firma de docente ya no es obligatoria ──
   if (!firmaInput) {
     alertBox.textContent=firmaTab==="qr"?"❌ Escanea el QR del docente primero.":"❌ Ingresa la Firma del Docente.";
     alertBox.className="alert-box error"; alertBox.style.display="block"; irAlInicioDePagina(); return;
   }
+  */
+
   if (geoActiva && !geoRevisada) {
     alertBox.textContent="⏳ Esperando verificación de ubicación."; alertBox.className="alert-box warning"; alertBox.style.display="block"; irAlInicioDePagina(); return;
   }
@@ -340,7 +347,7 @@ function registrarAsistencia(event) {
 
   alertBox.style.display="none"; btn.disabled=true; btn.innerHTML="⚡ ENVIANDO REGISTRO...";
 
-  var fields = { clave:claveInput, docente:docenteInput, grupo:grupoInput, firma:firmaInput, hp:hp };
+  var fields = { clave:claveInput, docente:docenteInput, grupo:grupoInput, firma:firmaInput||"", hp:hp };
   if (geoActiva && geoCoords) { fields.lat=geoCoords.lat; fields.lng=geoCoords.lng; }
 
   firmarPayload("asistencia", fields, null)
@@ -353,7 +360,7 @@ function registrarAsistencia(event) {
         alertBox.className="alert-box success"; alertBox.style.display="block"; irAlInicioDePagina();
         showToast("✓ Asistencia registrada.", "success");
         document.getElementById("form-register").reset();
-        document.getElementById("firma-valor").value="";
+        if (fValEl) fValEl.value="";
         setQrStatus("waiting","📷 Toca 'Iniciar Cámara' para escanear el QR del docente");
         setTimeout(function(){ salirDeRegistro(); }, 2500);
       } else if (data.result === "duplicated") {
@@ -375,8 +382,6 @@ function registrarAsistencia(event) {
 }
 
 // ── GENERAR CLAVE ─────────────────────────
-// FIX PRINCIPAL: todos los campos opcionales se leen con null-check.
-// Solo nombre + docente son estrictamente obligatorios.
 function generarClave(event) {
   event.preventDefault();
 
@@ -385,9 +390,7 @@ function generarClave(event) {
   var docenteInput = (document.getElementById("gen-teacher")||{}).value||"";
   var telefonoInput= (document.getElementById("gen-phone")||{}).value||"";
   var correoInput  = (document.getElementById("gen-email")||{}).value||"";
-  // gen-birthday puede no existir en el DOM (compatibilidad) → fallback ""
   var cumpleInput  = ((document.getElementById("gen-birthday")||{}).value||"").trim();
-  // gen-override igual
   var codigoInput  = ((document.getElementById("gen-override")||{}).value||"").trim();
 
   var alertBox      = document.getElementById("alertGenerarClave");
@@ -398,7 +401,6 @@ function generarClave(event) {
     alertBox.textContent="❌ No se pudo procesar."; alertBox.className="alert-box error"; alertBox.style.display="block"; return;
   }
 
-  // ── Validaciones obligatorias ──
   if (!validarNombre(nombreInput)) {
     alertBox.textContent="❌ Escribe tu nombre completo (nombre y al menos un apellido).";
     alertBox.className="alert-box error"; alertBox.style.display="block";
@@ -411,23 +413,19 @@ function generarClave(event) {
     showToast("❌ Docente requerido.","warning"); return;
   }
 
-  // ── Validaciones opcionales (solo si el usuario las llenó) ──
   var telefono = limpiarTelefono(telefonoInput);
   var correo   = correoInput.trim().toLowerCase();
 
-  // Teléfono: si se ingresó algo, debe ser válido (a menos que haya código de excepción)
   if (telefono && !codigoInput && !validarTelefono(telefonoInput)) {
     alertBox.textContent="❌ El teléfono ingresado no es válido (8 dígitos, empieza con 2, 6 o 7).";
     alertBox.className="alert-box error"; alertBox.style.display="block";
     showToast("❌ Teléfono inválido.","warning"); return;
   }
-  // Correo: si se ingresó algo, debe ser válido
   if (correo && !codigoInput && !validarCorreo(correoInput)) {
     alertBox.textContent="❌ El correo ingresado no es válido.";
     alertBox.className="alert-box error"; alertBox.style.display="block";
     showToast("❌ Correo inválido.","warning"); return;
   }
-  // Cumpleaños: si se ingresó algo, debe tener formato DD/MM
   if (cumpleInput && !validarCumpleanos(cumpleInput)) {
     alertBox.textContent="❌ Formato de cumpleaños inválido. Usa DD/MM (Ej: 15/08).";
     alertBox.className="alert-box error"; alertBox.style.display="block";
@@ -445,14 +443,12 @@ function generarClave(event) {
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (data.clave) {
-        // Alumno ya existe → mostrar su clave
         document.getElementById("codGenerado").textContent = data.clave;
         containerClave.style.display="block";
         showToast("🔍 Clave recuperada con éxito.","info");
         document.getElementById("form-keygen").reset();
         btn.disabled=false; btn.innerHTML="🔒 Generar Mi Clave Permanente";
       } else {
-        // Nuevo alumno → crear clave
         crearNuevaClave(nombre, docenteInput, telefono||"", correo||"", cumpleInput||"", codigoInput, hp, alertBox, btn, containerClave);
       }
     })
@@ -471,8 +467,6 @@ function crearNuevaClave(nombre, docente, telefono, correo, cumple, codigo, hp, 
   crypto.getRandomValues(aleatorio);
   for (var i=0;i<4;i++) claveNueva+=chars.charAt(aleatorio[i] % chars.length);
 
-  // Todos los campos se incluyen en la firma (con valor vacío si no se proporcionaron)
-  // para que el backend pueda reconstruir el HMAC correctamente.
   var fields = {
     nombre:   nombre,
     clave:    claveNueva,
@@ -494,7 +488,6 @@ function crearNuevaClave(nombre, docente, telefono, correo, cumple, codigo, hp, 
         showToast("🎉 ¡Nueva clave creada!","success");
         document.getElementById("form-keygen").reset();
       } else if (data.result === "duplicated") {
-        // Encontró el alumno entre la búsqueda y la creación (carrera)
         alertBox.textContent=data.message||"❌ Ya existe una clave para este nombre.";
         alertBox.className="alert-box warning"; alertBox.style.display="block";
       } else {
@@ -659,11 +652,8 @@ function renderizarPanelDocente() {
   `;
 
   dashSection.classList.add("visible");
-
-  // Inyectar panel de personalización de marca
   inyectarPanelMarca(dashSection);
 
-  // Event listeners
   document.getElementById("geo-toggle-input").addEventListener("change", toggleGeolocalizacion);
   document.getElementById("btn-clear-all").addEventListener("click", triggerClearAll);
   document.getElementById("btn-lock-return").addEventListener("click", lockAndReturn);
@@ -915,12 +905,10 @@ function inyectarPanelMarca(dashSection) {
   `;
   dashSection.appendChild(wrap);
 
-  // Mostrar/ocultar controles según tipo de media
   document.getElementById("brand-media-tipo").addEventListener("change", function() {
     var tipo=this.value;
     document.getElementById("brand-media-file-wrap").style.display=(tipo==="imagen"||tipo==="video")?"block":"none";
     document.getElementById("brand-media-url-wrap").style.display=(tipo==="url_ext")?"block":"none";
-    // Filtrar el input de archivo según tipo
     var fileInput=document.getElementById("brand-banner-file");
     if(tipo==="imagen") fileInput.accept="image/png,image/jpeg,image/webp";
     else if(tipo==="video") fileInput.accept="video/mp4,video/webm";
@@ -1066,7 +1054,6 @@ function guardarMarca() {
 // MARCA Y AVISO EMERGENTE — carga al inicio
 // ═══════════════════════════════════════════════
 function inicializarMarcaYAviso() {
-  // Usamos el endpoint canónico; el backend mantiene alias para v7.
   fetch(SCRIPT_URL + "?action=obtener_config_marca")
     .then(function(res) { return res.json(); })
     .then(function(data) {
@@ -1074,17 +1061,14 @@ function inicializarMarcaYAviso() {
       aplicarConfigMarcaAlSitio(data.config);
       mostrarAvisoSiCorresponde(data.config);
     })
-    .catch(function() { /* falla silenciosa; el sitio usa valores por defecto del HTML */ });
+    .catch(function() {});
 }
 
 function aplicarConfigMarcaAlSitio(cfg) {
   if (!cfg) return;
-  // Logo
   var logoImg = document.getElementById("brand-logo-img");
   if (logoImg && cfg.logoUrl) { logoImg.src=cfg.logoUrl; logoImg.style.display="block"; }
-  // Favicon
   if (cfg.logoUrl) { var fav=document.getElementById("favicon-link"); if(fav) fav.href=cfg.logoUrl; }
-  // Título
   var titleEl = document.getElementById("brand-title-text");
   if (titleEl && cfg.title) {
     titleEl.textContent=cfg.title;
@@ -1096,7 +1080,6 @@ function aplicarConfigMarcaAlSitio(cfg) {
     var keywords = document.querySelector('meta[name="keywords"]');
     if (keywords) keywords.setAttribute("content", cfg.title+", control de asistencia, aula digital, CENTED");
   }
-  // Logo dentro del aviso
   var avisoLogo = document.getElementById("aviso-logo-img");
   if (avisoLogo && cfg.logoUrl) avisoLogo.src=cfg.logoUrl;
 }
@@ -1117,7 +1100,6 @@ function mostrarAvisoSiCorresponde(cfg) {
   if (textoEl  && cfg.avisoTexto)  textoEl.textContent=cfg.avisoTexto;
   if (botonEl  && cfg.avisoBoton)  botonEl.textContent=cfg.avisoBoton;
 
-  // Construir el elemento de media según el tipo
   if (mediaWrap) {
     mediaWrap.innerHTML="";
     var tipo = cfg.avisoTipoMedia||"none";
@@ -1131,8 +1113,6 @@ function mostrarAvisoSiCorresponde(cfg) {
       mediaWrap.appendChild(img); mediaWrap.classList.add("visible");
 
     } else if (tipo==="video" && cfg.bannerUrl) {
-      // Solo los enlaces de visualización de Drive usan iframe; los archivos
-      // subidos se entregan como video nativo para conservar controles y calidad.
       if (cfg.bannerUrl.indexOf("/preview")!==-1 && cfg.bannerUrl.indexOf("drive.google.com")!==-1) {
         var ifrm=document.createElement("iframe");
         ifrm.src=cfg.bannerUrl; ifrm.className="aviso-media-iframe"+(esVertical?" portrait-frame":"");
@@ -1141,8 +1121,6 @@ function mostrarAvisoSiCorresponde(cfg) {
         ifrm.title="Video del aviso institucional";
         mediaWrap.appendChild(ifrm); mediaWrap.classList.add("visible");
       } else {
-        // Video nativo: autoplay muted es necesario para que los navegadores
-        // móviles permitan iniciar la reproducción sin tocar la pantalla.
         var vid=document.createElement("video");
         vid.src=cfg.bannerUrl; vid.className="aviso-media-video";
         vid.setAttribute("controls",""); vid.setAttribute("preload","auto");
@@ -1161,7 +1139,6 @@ function mostrarAvisoSiCorresponde(cfg) {
       ifrm2.title="Contenido externo del aviso";
       mediaWrap.appendChild(ifrm2); mediaWrap.classList.add("visible");
     }
-    // tipo="none": mediaWrap queda vacío y sin clase visible
   }
 
   overlay.classList.add("visible");
@@ -1220,15 +1197,39 @@ document.addEventListener("DOMContentLoaded", function() {
 
   document.getElementById("form-register").addEventListener("submit",registrarAsistencia);
   document.getElementById("btn-back-register").addEventListener("click",salirDeRegistro);
-  document.getElementById("tab-qr").addEventListener("click",function(){setFirmaTab("qr");});
-  document.getElementById("tab-manual").addEventListener("click",function(){setFirmaTab("manual");});
-  document.getElementById("btn-start-qr").addEventListener("click",iniciarQR);
-  document.getElementById("btn-stop-qr").addEventListener("click",detenerQR);
+
+  // AJUSTE: Autocompletar docente al tipear los 4 caracteres de la clave
+  var regKeyEl = document.getElementById("reg-key");
+  if (regKeyEl) {
+    regKeyEl.addEventListener("input", function(e) {
+      var clave = e.target.value.trim().toUpperCase();
+      if (clave.length === 4) {
+        firmarPayload("buscar_alumno", { clave: clave }, null)
+          .then(function(params) { return fetch(SCRIPT_URL, { method: "POST", body: params }); })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data && data.docente) {
+              var selectDocente = document.getElementById("reg-teacher");
+              if (selectDocente) selectDocente.value = data.docente;
+            }
+          })
+          .catch(function(err) {});
+      }
+    });
+  }
+
+  var tabQrEl = document.getElementById("tab-qr");
+  if (tabQrEl) tabQrEl.addEventListener("click",function(){setFirmaTab("qr");});
+  var tabManEl = document.getElementById("tab-manual");
+  if (tabManEl) tabManEl.addEventListener("click",function(){setFirmaTab("manual");});
+  var btnStartQr = document.getElementById("btn-start-qr");
+  if (btnStartQr) btnStartQr.addEventListener("click",iniciarQR);
+  var btnStopQr = document.getElementById("btn-stop-qr");
+  if (btnStopQr) btnStopQr.addEventListener("click",detenerQR);
 
   document.getElementById("form-keygen").addEventListener("submit",generarClave);
   document.getElementById("btn-back-keygen").addEventListener("click",function(){switchView("view-menu");});
 
-  // Campos opcionales — formateo de cumpleaños solo si el elemento existe
   var birthdayField=document.getElementById("gen-birthday");
   if(birthdayField) birthdayField.addEventListener("input",formatearCumpleanosInput);
 
@@ -1238,7 +1239,6 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("teacher-auth").addEventListener("submit",unlockTeacherPanel);
   document.getElementById("btn-back-teacher").addEventListener("click",function(){switchView("view-menu");});
 
-  // Aviso emergente
   var btnContinuar=document.getElementById("aviso-btn-continuar");
   if(btnContinuar) btnContinuar.addEventListener("click",cerrarAviso);
   var btnX=document.getElementById("aviso-close-x");
