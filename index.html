@@ -519,72 +519,55 @@
 </p>
       </section>
 
-      <!-- ── REGISTRAR ASISTENCIA ───────────────── -->
-      <section id="view-register" class="card-view">
-        <h2 class="view-title">【 登録 】 Registrar Asistencia</h2>
-        <div id="geo-status-box" class="geo-status-box checking">
-          <span class="geo-dot">📍</span>
-          <span id="geo-status-text">Verificando ubicación...</span>
-        </div>
-        <div class="map-status-container">
-          <div class="map-caption">📍 Ubicación del CENTED — debes estar a máx. 1 km</div>
-          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3876.0268373300473!2d-89.10019229999999!3d13.716824399999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f6337fb4732f1a9%3A0x274444715eeeaab5!2sCENTED!5e0!3m2!1sen!2ssv!4v1785780891511!5m2!1sen!2ssv"
-            loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="Mapa CENTED"></iframe>
-        </div>
-        <div id="alertRegistro" class="alert-box"></div>
-        <form id="form-register">
-          <div class="hp-field" aria-hidden="true">
-            <label for="reg-website">Sitio web</label>
-            <input type="text" id="reg-website" name="website" tabindex="-1" autocomplete="off" />
-          </div>
-          <div class="input-group">
-            <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
-            <input type="password" id="reg-key" maxlength="4" placeholder="Ej: F2BQ" required autocomplete="off"
-              style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;" />
-          </div>
-          <div class="input-group">
-            <label for="reg-teacher">Docente *</label>
-            <select id="reg-teacher" required>
-              <option value="" disabled selected>-- Selecciona tu Docente --</option>
-              <option value="Mauricio Alvarado">Mauricio Alvarado</option>
-              <option value="Wilfredo Pineda">Wilfredo Pineda</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label for="reg-group">Grupo *</label>
-            <select id="reg-group" required>
-              <option value="" disabled selected>-- Selecciona --</option>
-              <option value="Mañana">Mañana</option>
-              <option value="Tarde">Tarde</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label>Firma del Docente *</label>
-            <div class="firma-tabs">
-              <button type="button" class="firma-tab active" id="tab-qr">📷 Escanear QR</button>
-              <button type="button" class="firma-tab" id="tab-manual">⌨️ Escribir</button>
-            </div>
-            <div id="firma-panel-qr">
-              <div class="qr-scanner-container">
-                <div id="qr-reader"></div>
-                <div id="qr-status" class="qr-status waiting">📷 Toca "Iniciar Cámara" para escanear el QR del docente</div>
-                <button type="button" id="btn-start-qr" class="btn-secondary" style="width:auto;padding:.6rem 1.5rem;margin-top:.5rem;font-size:.85rem;">📷 Iniciar Cámara</button>
-                <button type="button" id="btn-stop-qr" class="btn-back" style="width:auto;padding:.6rem 1.5rem;font-size:.85rem;display:none;">✕ Detener Cámara</button>
-              </div>
-              <small class="helper-text" style="margin-top:.5rem;display:block;">El docente muestra un QR en pantalla. Escanéalo para rellenar automáticamente la firma.</small>
-            </div>
-            <div id="firma-panel-manual" style="display:none;">
-              <input type="password" id="reg-token" placeholder="Código de validación diaria" autocomplete="off" />
-              <small class="helper-text">El docente proporciona esta clave al inicio de clase.</small>
-            </div>
-          </div>
-          <input type="hidden" id="firma-valor" value="" />
-          <div class="form-actions">
-            <button type="submit" id="btnRegistrar" class="btn-submit">✓ Enviar Asistencia</button>
-            <button type="button" class="btn-back" id="btn-back-register">← Volver</button>
-          </div>
-        </form>
-      </section>
+   <!-- ── REGISTRAR ASISTENCIA ───────────────── -->
+<section id="view-register" class="card-view">
+  <h2 class="view-title">【 登録 】 Registrar Asistencia</h2>
+  <div id="geo-status-box" class="geo-status-box checking">
+    <span class="geo-dot">📍</span>
+    <span id="geo-status-text">Verificando ubicación...</span>
+  </div>
+  <div class="map-status-container">
+    <div class="map-caption">📍 Ubicación del CENTED — debes estar a máx. 1 km</div>
+    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3876.0268373300473!2d-89.10019229999999!3d13.716824399999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f6337fb4732f1a9%3A0x274444715eeeaab5!2sCENTED!5e0!3m2!1sen!2ssv!4v1785780891511!5m2!1sen!2ssv"
+      loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="Mapa CENTED"></iframe>
+  </div>
+  <div id="alertRegistro" class="alert-box"></div>
+  <form id="form-register">
+    <div class="hp-field" aria-hidden="true">
+      <label for="reg-website">Sitio web</label>
+      <input type="text" id="reg-website" name="website" tabindex="-1" autocomplete="off" />
+    </div>
+    <div class="input-group">
+      <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
+      <input type="password" id="reg-key" maxlength="4" placeholder="Ej: F2BQ" required autocomplete="off"
+        style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;" />
+    </div>
+    <div class="input-group">
+      <label for="reg-teacher">Docente <span style="opacity:.5;font-weight:400;text-transform:none;">(opcional)</span></label>
+      <select id="reg-teacher">
+        <option value="" selected>-- Selecciona tu Docente (Opcional) --</option>
+        <option value="Mauricio Alvarado">Mauricio Alvarado</option>
+        <option value="Wilfredo Pineda">Wilfredo Pineda</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label for="reg-group">Grupo *</label>
+      <select id="reg-group" required>
+        <option value="" disabled selected>-- Selecciona --</option>
+        <option value="Mañana">Mañana</option>
+        <option value="Tarde">Tarde</option>
+      </select>
+    </div>
+
+    <!-- Campo oculto mantenido para compatibilidad de script -->
+    <input type="hidden" id="firma-valor" value="" />
+
+    <div class="form-actions">
+      <button type="submit" id="btnRegistrar" class="btn-submit">✓ Enviar Asistencia</button>
+      <button type="button" class="btn-back" id="btn-back-register">← Volver</button>
+    </div>
+  </form>
+</section>
 
       <!-- ── GENERAR CLAVE ───────────────────────── -->
       <section id="view-keygen" class="card-view">
