@@ -542,14 +542,7 @@
       <input type="password" id="reg-key" maxlength="4" placeholder="Ej: F2BQ" required autocomplete="off"
         style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;" />
     </div>
-    <div class="input-group">
-      <label for="reg-teacher">Docente <span style="opacity:.5;font-weight:400;text-transform:none;">(opcional)</span></label>
-      <select id="reg-teacher">
-        <option value="" selected>-- Selecciona tu Docente (Opcional) --</option>
-        <option value="Mauricio Alvarado">Mauricio Alvarado</option>
-        <option value="Wilfredo Pineda">Wilfredo Pineda</option>
-      </select>
-    </div>
+    <input type="hidden" id="reg-teacher" value="" />
     <div class="input-group">
       <label for="reg-group">Grupo *</label>
       <select id="reg-group" required>
