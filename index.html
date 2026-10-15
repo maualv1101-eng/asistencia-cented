@@ -344,24 +344,24 @@
       </div>
     </div>
 
-    <!-- MODAL DE AUTORIZACIÓN DOCENTE PARA MOSTRAR CLAVE -->
-    <div id="modal-auth-clave" style="display:none; position:fixed; inset:0; background:rgba(13,13,13,.75); z-index:25000; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(3px);">
-      <div class="aviso-card" style="max-width:420px; padding:1.5rem; text-align:left;">
-        <h3 style="font-family:var(--fh); font-size:1.2rem; margin-bottom:.5rem;">🔒 Autorización Docente</h3>
-        <p style="font-size:.88rem; opacity:.85; margin-bottom:1rem;" id="modal-auth-student-name">
-          Ingresa la clave docente para consultar la Clave Única de este estudiante:
-        </p>
-        <div class="input-group" style="margin-bottom:1rem;">
-          <label for="auth-admin-pass">Clave Docente / Admin *</label>
-          <input type="password" id="auth-admin-pass" placeholder="••••" autocomplete="off" />
-        </div>
-        <div id="alertAuthClave" class="alert-box"></div>
-        <div class="form-actions row-layout" style="margin-top:1rem;">
-          <button type="button" id="btn-confirm-auth-clave" class="btn-submit" style="padding:.8rem;">✓ Confirmar</button>
-          <button type="button" id="btn-cancel-auth-clave" class="btn-back" style="padding:.8rem;">✕ Cancelar</button>
-        </div>
-      </div>
+   <!-- MODAL DE AUTORIZACIÓN DOCENTE PARA MOSTRAR CLAVE -->
+<div id="modal-auth-clave" style="display:none; position:fixed; inset:0; background:rgba(13,13,13,.75); z-index:25000; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(3px);">
+  <div class="aviso-card" style="max-width:420px; padding:1.5rem; text-align:left;">
+    <h3 style="font-family:var(--fh); font-size:1.2rem; margin-bottom:.5rem;">🔒 Autorización Docente</h3>
+    <p style="font-size:.88rem; opacity:.85; margin-bottom:1rem;" id="modal-auth-student-name">
+      Ingresa la clave del docente para consultar la Clave Única de este estudiante:
+    </p>
+    <div class="input-group" style="margin-bottom:1rem;">
+      <label for="auth-admin-pass">Clave de Seguridad *</label>
+      <input type="password" id="auth-admin-pass" placeholder="••••" autocomplete="off" />
     </div>
+    <div id="alertAuthClave" class="alert-box"></div>
+    <div class="form-actions row-layout" style="margin-top:1rem;">
+      <button type="button" id="btn-confirm-auth-clave" class="btn-submit" style="padding:.8rem;">✓ Confirmar</button>
+      <button type="button" id="btn-cancel-auth-clave" class="btn-back" style="padding:.8rem;">✕ Cancelar</button>
+    </div>
+  </div>
+</div>
 
     <!-- APP PRINCIPAL -->
     <main class="app-container">
