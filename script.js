@@ -173,7 +173,9 @@ function abrirModalAuthClave(nombre) {
   var passInput = document.getElementById("auth-admin-pass");
   var alertBox = document.getElementById("alertAuthClave");
 
-  if (txtStudent) txtStudent.innerHTML = "Ingresa la clave docente/admin para consultar la Clave Única de <strong>" + nombre + "</strong>:";
+  if (txtStudent) {
+    txtStudent.innerHTML = "Ingresa la clave docente para consultar la Clave Única de <strong>" + nombre + "</strong>:";
+  }
   if (passInput) passInput.value = "";
   if (alertBox) { alertBox.style.display = "none"; alertBox.className = "alert-box"; }
   if (modal) { modal.style.display = "flex"; }
