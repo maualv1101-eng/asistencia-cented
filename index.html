@@ -227,24 +227,6 @@
       }
       .map-status-container iframe { width:100%; height:220px; border:none; display:block; }
 
-      /* ── QR ──────────────────────────────────────── */
-      .firma-tabs { display:flex; margin-bottom:1rem; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); overflow:hidden; }
-      .firma-tab { flex:1; padding:.75rem; font-family:var(--fb); font-size:.9rem; font-weight:700; cursor:pointer; border:none; background:var(--bg); color:var(--fg); text-transform:uppercase; letter-spacing:1px; transition:all var(--tr); border-right:var(--bw) solid var(--fg); }
-      .firma-tab:last-child { border-right:none; }
-      .firma-tab.active { background:var(--fg); color:var(--bg); }
-      .qr-scanner-container {
-        border:var(--bw) dashed var(--fg); border-radius:calc(var(--br) - 4px);
-        padding:1rem; background:#000; position:relative;
-        min-height:260px; display:flex; flex-direction:column;
-        align-items:center; justify-content:center; gap:.8rem;
-      }
-      .qr-scanner-container #qr-reader { width:100%; max-width:400px; }
-      .qr-status { font-size:.85rem; font-weight:700; padding:.5rem 1rem; border-radius:20px; text-align:center; }
-      .qr-status.waiting  { background:rgba(255,255,255,.1); color:#ccc; }
-      .qr-status.scanning { background:rgba(43,70,255,.3); color:#7b9fff; }
-      .qr-status.found    { background:rgba(0,199,129,.3); color:#00c781; }
-      .qr-status.error    { background:rgba(255,59,48,.3); color:#ff6b6b; }
-
       /* ── PANEL DOCENTE ───────────────────────────── */
       .registros-container { max-height:220px; overflow-y:auto; border:var(--bw) solid var(--fg); margin-bottom:1.5rem; background:var(--bg); border-radius:calc(var(--br) - 4px); }
       .registro-item { padding:1rem; border-bottom:var(--bw) solid var(--fg); font-size:.9rem; }
@@ -283,120 +265,46 @@
       /* ── MOBILE WARNING ──────────────────────────── */
       .mobile-zoom-warning { display:none; background:#fff3cd; border:var(--bw) solid var(--fg); padding:1rem; margin-bottom:1.5rem; font-size:.85rem; gap:.8rem; align-items:center; box-shadow:4px 4px 0 var(--fg); border-radius:calc(var(--br) - 4px); }
 
-      /* ════════════════════════════════════════════════
-         VENTANA EMERGENTE INSTITUCIONAL — v8
-         Auto-responsiva, soporte imagen / video / URL ext.
-         ════════════════════════════════════════════════ */
+      /* ── VENTANA EMERGENTE INSTITUCIONAL ── */
       #aviso-overlay {
-        position:fixed; inset:0;
-        background:rgba(13,13,13,.6);
+        position:fixed; inset:0; background:rgba(13,13,13,.6);
         display:none; align-items:center; justify-content:center;
-        z-index:20000; padding:1rem;
-        backdrop-filter:blur(3px);
+        z-index:20000; padding:1rem; backdrop-filter:blur(3px);
       }
       #aviso-overlay.visible { display:flex; }
-
       .aviso-card {
-        position:relative;
-        background:var(--bg); color:var(--fg);
-        border:var(--bw) solid var(--fg);
-        border-radius:var(--br);
-        box-shadow:10px 10px 0 var(--fg);
-        width:100%; max-width:480px;
-        max-height:92dvh;
-        overflow-y:auto;
-        padding:0;
-        font-family:var(--fb);
-        animation:avisoIn .3s cubic-bezier(.19,1,.22,1) forwards;
+        position:relative; background:var(--bg); color:var(--fg);
+        border:var(--bw) solid var(--fg); border-radius:var(--br);
+        box-shadow:10px 10px 0 var(--fg); width:100%; max-width:480px;
+        max-height:92dvh; overflow-y:auto; padding:0;
+        font-family:var(--fb); animation:avisoIn .3s cubic-bezier(.19,1,.22,1) forwards;
         display:flex; flex-direction:column;
       }
       @keyframes avisoIn { from{transform:scale(.9) translateY(20px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
-
-      /* Cabecera fija del aviso */
-      .aviso-head {
-        padding:1.4rem 1.4rem .8rem;
-        display:flex; flex-direction:column; align-items:center;
-        gap:.5rem; border-bottom:var(--bw) solid var(--fg);
-        background:var(--bg); position:sticky; top:0; z-index:2;
-      }
-      .aviso-close {
-        position:absolute; top:.7rem; right:.9rem;
-        background:none; border:none; font-size:1.3rem; cursor:pointer;
-        color:var(--fg); opacity:.5; line-height:1; transition:opacity var(--tr);
-      }
+      .aviso-head { padding:1.4rem 1.4rem .8rem; display:flex; flex-direction:column; align-items:center; gap:.5rem; border-bottom:var(--bw) solid var(--fg); background:var(--bg); position:sticky; top:0; z-index:2; }
+      .aviso-close { position:absolute; top:.7rem; right:.9rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:var(--fg); opacity:.5; line-height:1; transition:opacity var(--tr); }
       .aviso-close:hover { opacity:1; }
       .aviso-logo { width:64px; height:64px; object-fit:contain; border-radius:10px; }
-      .aviso-badge {
-        display:inline-flex; align-items:center; gap:.4rem;
-        background:var(--accent); color:#fff;
-        font-size:.7rem; font-weight:800; letter-spacing:1.5px;
-        text-transform:uppercase; padding:.3rem .8rem; border-radius:999px;
-      }
-      .aviso-titulo {
-        font-family:var(--fh); font-size:1.3rem; font-weight:800;
-        text-align:center; line-height:1.2; margin-top:.2rem;
-      }
-
-      /* Cuerpo scrollable del aviso */
+      .aviso-badge { display:inline-flex; align-items:center; gap:.4rem; background:var(--accent); color:#fff; font-size:.7rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; padding:.3rem .8rem; border-radius:999px; }
+      .aviso-titulo { font-family:var(--fh); font-size:1.3rem; font-weight:800; text-align:center; line-height:1.2; margin-top:.2rem; }
       .aviso-body { padding:1rem 1.4rem; flex:1; }
-
-      /* Media: imagen */
-      .aviso-media-wrap {
-        width:100%; border-radius:calc(var(--br) - 4px);
-        border:var(--bw) solid var(--fg);
-        overflow:hidden; margin-bottom:1rem;
-        background:#000; display:none;
-      }
+      .aviso-media-wrap { width:100%; border-radius:calc(var(--br) - 4px); border:var(--bw) solid var(--fg); overflow:hidden; margin-bottom:1rem; background:#000; display:none; }
       .aviso-media-wrap.visible { display:block; }
-      .aviso-media-img {
-        display:block; width:100%; height:auto;
-        max-height:55dvh; object-fit:contain; background:#000;
-      }
+      .aviso-media-img { display:block; width:100%; height:auto; max-height:55dvh; object-fit:contain; background:#000; }
       .aviso-media-img.portrait { max-height:70dvh; }
-
-      /* Media: video nativo (archivos subidos a Drive) */
-      .aviso-media-video {
-        display:block; width:100%; max-height:55dvh;
-        background:#000; border-radius:0;
-      }
-
-      /* Media: iframe (YouTube, Drive preview, URL externa) */
-      .aviso-media-iframe {
-        width:100%; aspect-ratio:16/9;
-        border:none; display:block;
-        border-radius:0;
-      }
+      .aviso-media-video { display:block; width:100%; max-height:55dvh; background:#000; border-radius:0; }
+      .aviso-media-iframe { width:100%; aspect-ratio:16/9; border:none; display:block; border-radius:0; }
       .aviso-media-iframe.portrait-frame { aspect-ratio:9/16; max-height:60dvh; }
-
-      .aviso-texto {
-        font-size:.93rem; line-height:1.55; opacity:.88;
-        margin-bottom:1rem; white-space:pre-line; text-align:center;
-      }
-
-      /* Footer fijo del aviso */
-      .aviso-footer {
-        padding:.8rem 1.4rem 1.2rem;
-        background:var(--bg); position:sticky; bottom:0;
-        border-top:var(--bw) solid var(--fg);
-      }
-      .aviso-btn {
-        display:block; width:100%; padding:.85rem;
-        font-family:var(--fh); font-weight:800; font-size:.95rem;
-        letter-spacing:.5px; text-transform:uppercase;
-        background:var(--accent); color:#fff;
-        border:var(--bw) solid var(--fg);
-        border-radius:calc(var(--br) - 6px); cursor:pointer;
-        box-shadow:4px 4px 0 var(--fg); transition:transform .1s;
-      }
+      .aviso-texto { font-size:.93rem; line-height:1.55; opacity:.88; margin-bottom:1rem; white-space:pre-line; text-align:center; }
+      .aviso-footer { padding:.8rem 1.4rem 1.2rem; background:var(--bg); position:sticky; bottom:0; border-top:var(--bw) solid var(--fg); }
+      .aviso-btn { display:block; width:100%; padding:.85rem; font-family:var(--fh); font-weight:800; font-size:.95rem; letter-spacing:.5px; text-transform:uppercase; background:var(--accent); color:#fff; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 6px); cursor:pointer; box-shadow:4px 4px 0 var(--fg); transition:transform .1s; }
       .aviso-btn:active { transform:translate(2px,2px); box-shadow:2px 2px 0 var(--fg); }
 
-      /* ── ANIMACIONES ─────────────────────────────── */
       @keyframes toastIn    { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
       @keyframes toastOut   { to{transform:translateX(120%);opacity:0} }
       @keyframes pulse      { 0%{opacity:.4} 50%{opacity:1} 100%{opacity:.4} }
       @keyframes slideDown  { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
 
-      /* ── RESPONSIVE ──────────────────────────────── */
       @media (max-width: 480px) {
         body { padding:.75rem; align-items:flex-start; }
         .app-container { padding:1.25rem; box-shadow:6px 6px 0 var(--fg); }
@@ -411,47 +319,51 @@
         .aviso-titulo { font-size:1.1rem; }
         .map-status-container iframe { height:170px; }
       }
-      @media (prefers-reduced-motion: reduce) {
-        *, *::before, *::after { animation-duration:.01ms!important; transition-duration:.01ms!important; }
-      }
     </style>
   </head>
   <body>
     <div class="overlay-texture" aria-hidden="true"></div>
     <div id="toast-box-container" class="toast-container" aria-live="polite"></div>
 
-    <!-- ═══════════════════════════════════════════
-         VENTANA EMERGENTE INSTITUCIONAL v8
-         ═══════════════════════════════════════════ -->
+    <!-- VENTANA EMERGENTE INSTITUCIONAL -->
     <div id="aviso-overlay" role="dialog" aria-modal="true" aria-labelledby="aviso-titulo-txt">
       <div class="aviso-card">
-
         <div class="aviso-head">
           <button type="button" class="aviso-close" id="aviso-close-x" aria-label="Cerrar aviso">✕</button>
           <img id="aviso-logo-img" class="aviso-logo" src="https://grupocented.fyi/LOGO.png" alt="Logo institucional" />
           <span class="aviso-badge">📣 Aviso Institucional</span>
           <h2 class="aviso-titulo" id="aviso-titulo-txt">¡Tenemos un nuevo nombre!</h2>
         </div>
-
         <div class="aviso-body">
-          <!-- Contenedor de media (imagen, video o iframe) -->
-          <div class="aviso-media-wrap" id="aviso-media-wrap">
-            <!-- Se rellena dinámicamente según aviso_tipo_media -->
-          </div>
-
+          <div class="aviso-media-wrap" id="aviso-media-wrap"></div>
           <p class="aviso-texto" id="aviso-texto-txt">A partir de hoy, <strong>Grupo Cented</strong> pasa a ser <strong>Grupo Cented Academy Pro Education</strong>. Seguimos siendo el mismo equipo, la misma comunidad — solo con una nueva identidad.</p>
         </div>
-
         <div class="aviso-footer">
           <button type="button" class="aviso-btn" id="aviso-btn-continuar">Entendido, continuar</button>
         </div>
-
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════
-         APP PRINCIPAL
-         ═══════════════════════════════════════════ -->
+    <!-- MODAL DE AUTORIZACIÓN DOCENTE PARA MOSTRAR CLAVE -->
+    <div id="modal-auth-clave" style="display:none; position:fixed; inset:0; background:rgba(13,13,13,.75); z-index:25000; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(3px);">
+      <div class="aviso-card" style="max-width:420px; padding:1.5rem; text-align:left;">
+        <h3 style="font-family:var(--fh); font-size:1.2rem; margin-bottom:.5rem;">🔒 Autorización Docente</h3>
+        <p style="font-size:.88rem; opacity:.85; margin-bottom:1rem;" id="modal-auth-student-name">
+          Ingresa la clave docente para consultar la Clave Única de este estudiante:
+        </p>
+        <div class="input-group" style="margin-bottom:1rem;">
+          <label for="auth-admin-pass">Clave Docente / Admin *</label>
+          <input type="password" id="auth-admin-pass" placeholder="••••" autocomplete="off" />
+        </div>
+        <div id="alertAuthClave" class="alert-box"></div>
+        <div class="form-actions row-layout" style="margin-top:1rem;">
+          <button type="button" id="btn-confirm-auth-clave" class="btn-submit" style="padding:.8rem;">✓ Confirmar</button>
+          <button type="button" id="btn-cancel-auth-clave" class="btn-back" style="padding:.8rem;">✕ Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- APP PRINCIPAL -->
     <main class="app-container">
       <div class="mobile-zoom-warning">
         <span>📱</span>
@@ -512,55 +424,64 @@
         <p style="font-size:.8rem;opacity:.45;margin-top:1.2rem;text-align:center;">
           © 2026 Tec. Mauricio Alvarado · Depto. Sistemas Informáticos · Grupo Cented Academy Pro Education
         </p>
-      <p style="font-size:.8rem;opacity:.45;margin-top:1.2rem;text-align:center;" >
-  <a href="https://maualvarado1101.wixsite.com/cented" target="_blank" rel="noopener noreferrer">
-    Política de privacidad y tratamiento de datos
-  </a>
-</p>
+        <p style="font-size:.8rem;opacity:.45;margin-top:1.2rem;text-align:center;">
+          <a href="https://maualvarado1101.wixsite.com/cented" target="_blank" rel="noopener noreferrer">
+            Política de privacidad y tratamiento de datos
+          </a>
+        </p>
       </section>
 
-   <!-- ── REGISTRAR ASISTENCIA ───────────────── -->
-<section id="view-register" class="card-view">
-  <h2 class="view-title">【 登録 】 Registrar Asistencia</h2>
-  <div id="geo-status-box" class="geo-status-box checking">
-    <span class="geo-dot">📍</span>
-    <span id="geo-status-text">Verificando ubicación...</span>
-  </div>
-  <div class="map-status-container">
-    <div class="map-caption">📍 Ubicación del CENTED — debes estar a máx. 1 km</div>
-    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3876.0268373300473!2d-89.10019229999999!3d13.716824399999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f6337fb4732f1a9%3A0x274444715eeeaab5!2sCENTED!5e0!3m2!1sen!2ssv!4v1785780891511!5m2!1sen!2ssv"
-      loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="Mapa CENTED"></iframe>
-  </div>
-  <div id="alertRegistro" class="alert-box"></div>
-  <form id="form-register">
-    <div class="hp-field" aria-hidden="true">
-      <label for="reg-website">Sitio web</label>
-      <input type="text" id="reg-website" name="website" tabindex="-1" autocomplete="off" />
-    </div>
-    <div class="input-group">
-      <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
-      <input type="password" id="reg-key" maxlength="4" placeholder="Ej: F2BQ" required autocomplete="off"
-        style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;" />
-    </div>
-    <input type="hidden" id="reg-teacher" value="" />
-    <div class="input-group">
-      <label for="reg-group">Grupo *</label>
-      <select id="reg-group" required>
-        <option value="" disabled selected>-- Selecciona --</option>
-        <option value="Mañana">Mañana</option>
-        <option value="Tarde">Tarde</option>
-      </select>
-    </div>
+      <!-- ── REGISTRAR ASISTENCIA ───────────────── -->
+      <section id="view-register" class="card-view">
+        <h2 class="view-title">【 登録 】 Registrar Asistencia</h2>
+        <div id="geo-status-box" class="geo-status-box checking">
+          <span class="geo-dot">📍</span>
+          <span id="geo-status-text">Verificando ubicación...</span>
+        </div>
+        <div class="map-status-container">
+          <div class="map-caption">📍 Ubicación del CENTED — debes estar a máx. 1 km</div>
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3876.0268373300473!2d-89.10019229999999!3d13.716824399999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f6337fb4732f1a9%3A0x274444715eeeaab5!2sCENTED!5e0!3m2!1sen!2ssv!4v1785780891511!5m2!1sen!2ssv"
+            loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="Mapa CENTED"></iframe>
+        </div>
 
-    <!-- Campo oculto mantenido para compatibilidad de script -->
-    <input type="hidden" id="firma-valor" value="" />
+        <!-- LISTADO DE NOMBRES PARA CONSULTAR/RECORDAR CLAVE ÚNICA -->
+        <div class="input-group">
+          <label for="reg-student-select">💡 ¿Olvidaste tu Clave Única? Busca tu Nombre:</label>
+          <select id="reg-student-select">
+            <option value="" selected>-- Selecciona tu Nombre para recordar clave --</option>
+          </select>
+          <small class="helper-text">Requiere autorización docente para mostrar la Clave Única.</small>
+        </div>
 
-    <div class="form-actions">
-      <button type="submit" id="btnRegistrar" class="btn-submit">✓ Enviar Asistencia</button>
-      <button type="button" class="btn-back" id="btn-back-register">← Volver</button>
-    </div>
-  </form>
-</section>
+        <div id="alertRegistro" class="alert-box"></div>
+        <form id="form-register">
+          <div class="hp-field" aria-hidden="true">
+            <label for="reg-website">Sitio web</label>
+            <input type="text" id="reg-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+          <div class="input-group">
+            <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
+            <input type="password" id="reg-key" maxlength="4" placeholder="Ej: F2BQ" required autocomplete="off"
+              style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;" />
+          </div>
+          <input type="hidden" id="reg-teacher" value="" />
+          <div class="input-group">
+            <label for="reg-group">Grupo *</label>
+            <select id="reg-group" required>
+              <option value="" disabled selected>-- Selecciona --</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+            </select>
+          </div>
+
+          <input type="hidden" id="firma-valor" value="" />
+
+          <div class="form-actions">
+            <button type="submit" id="btnRegistrar" class="btn-submit">✓ Enviar Asistencia</button>
+            <button type="button" class="btn-back" id="btn-back-register">← Volver</button>
+          </div>
+        </form>
+      </section>
 
       <!-- ── GENERAR CLAVE ───────────────────────── -->
       <section id="view-keygen" class="card-view">
@@ -584,7 +505,6 @@
               <option value="Wilfredo Pineda">Wilfredo Pineda</option>
             </select>
           </div>
-          <!-- Teléfono, correo y cumpleaños son OPCIONALES -->
           <div class="input-group">
             <label for="gen-phone">Teléfono <span style="opacity:.5;font-weight:400;text-transform:none;">(opcional)</span></label>
             <input type="tel" id="gen-phone" maxlength="9" placeholder="Ej: 7123-4567" autocomplete="off" inputmode="numeric" />
@@ -596,11 +516,10 @@
             <small class="helper-text">Si lo omites, se guardará como "---".</small>
           </div>
           <div class="input-group">
-            <label for="gen-birthday">Cumpleaños DD/MM <span style="opacity:.5;font-weight:400;text-transform:none;"></span></label>
+            <label for="gen-birthday">Cumpleaños DD/MM</label>
             <input type="text" id="gen-birthday" maxlength="5" placeholder="Ej: 15/08" autocomplete="off" inputmode="numeric" />
             <small class="helper-text">es obligacion al menos que sea menor de edad pida asistencia a su docente</small>
           </div>
-          <!-- Código de excepción oculto — desplegable -->
           <details style="margin-bottom:1rem;">
             <summary style="font-size:.82rem;font-weight:700;cursor:pointer;opacity:.65;text-transform:uppercase;letter-spacing:1px;">
               ¿Tienes un código de excepción?
@@ -646,7 +565,6 @@
         </form>
         <div id="teacher-dashboard" class="hidden-panel"></div>
       </section>
-
     </main>
 
     <script src="script.js"></script>
