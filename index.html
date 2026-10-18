@@ -1,397 +1,175 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grupo Cented Academy Pro Education | AULA DIGITAL</title>
-  <meta name="description" content="Portal oficial para el Control de Asistencia y Aula Digital — Grupo CENTED." />
-  <link rel="icon" id="favicon-link" href="https://grupocented.fyi/LOGO.png" type="image/png" sizes="32x32" />
-  <link rel="apple-touch-icon" href="https://grupocented.fyi/LOGO.png" sizes="180x180" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grupo Cented Academy Pro Education | AULA DIGITAL — SISTEMAS INFORMÁTICOS</title>
+    <link rel="icon" id="favicon-link" href="https://grupocented.fyi/LOGO.png" type="image/png" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
 
-  <style>
-    /* ── ESTILOS INTEGRADOS & REBRANDING ───────────────── */
-    :root {
-      --bg:      #f4f3ef;
-      --fg:      #0d0d0d;
-      --accent:  #2b46ff;
-      --danger:  #ff3b30;
-      --ok:      #00c781;
-      --warn:    #ff9500;
-      --bw:      2px;
-      --br:      12px;
-      --fh:      "Syne", sans-serif;
-      --fb:      "Space Grotesk", sans-serif;
-      --shadow:  12px 12px 0 var(--fg);
-      --tr:      0.2s ease;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; word-break: break-word; }
+    <style>
+      :root {
+        --bg:      #f4f3ef;
+        --fg:      #0d0d0d;
+        --accent:  #2b46ff;
+        --danger:  #ff3b30;
+        --ok:      #00c781;
+        --warn:    #ff9500;
+        --bw:      2px;
+        --br:      12px;
+        --fh:      "Syne", sans-serif;
+        --fb:      "Space Grotesk", sans-serif;
+        --shadow:  12px 12px 0 var(--fg);
+        --tr:      0.2s ease;
+      }
+      * { margin:0; padding:0; box-sizing:border-box; }
 
-    html[data-theme="dark"] {
-      --bg: #14151a; --fg: #f2f2f0;
-      --accent: #6b8bff; --danger: #ff6b60;
-      --ok: #29e0a0; --warn: #ffb340;
-    }
-    html[data-theme="dark"] body { background: var(--bg); color: var(--fg); }
-    html[data-theme="dark"] .app-container { background: #1d1e24; box-shadow: var(--shadow); }
-    html[data-theme="dark"] input, html[data-theme="dark"] select { background: #14151a; color: var(--fg); }
+      html[data-theme="dark"] {
+        --bg: #14151a; --fg: #f2f2f0;
+        --accent: #6b8bff; --danger: #ff6b60;
+        --ok: #29e0a0; --warn: #ffb340;
+      }
+      body { background: var(--bg); color: var(--fg); font-family: var(--fb); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 2rem; }
+      .app-container { width: 100%; max-width: 720px; background: #fff; border: var(--bw) solid var(--fg); border-radius: var(--br); padding: 2.5rem; box-shadow: var(--shadow); position: relative; }
+      html[data-theme="dark"] .app-container { background: #1d1e24; }
 
-    body {
-      background: var(--bg); color: var(--fg);
-      font-family: var(--fb); overflow-x: hidden;
-      min-height: 100vh; display: flex;
-      justify-content: center; align-items: center; padding: 2rem;
-    }
-    .app-container {
-      width: 100%; max-width: 720px; background: #fff;
-      border: var(--bw) solid var(--fg); border-radius: var(--br);
-      padding: 2.5rem; box-shadow: var(--shadow); position: relative; z-index: 10;
-    }
+      .card-view { display: none; }
+      .card-view.active { display: block; }
 
-    .card-view { display: none; }
-    .card-view.active { display: block; animation: fadeIn .35s cubic-bezier(.19,1,.22,1) forwards; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+      .main-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; }
+      .brand .badge { background:var(--fg); color:var(--bg); font-size:.75rem; font-weight:700; padding:.2rem .6rem; letter-spacing:2px; text-transform:uppercase; }
+      .brand h1 { font-family:var(--fh); font-size:1.8rem; font-weight:800; line-height:1.1; margin-top:.5rem; letter-spacing:-1px; }
+      .brand .subtitle { font-size:.85rem; letter-spacing:2px; text-transform:uppercase; opacity:.6; margin-top:.2rem; }
+      .live-status { display:flex; align-items:center; gap:.5rem; font-weight:700; border:var(--bw) solid var(--fg); padding:.4rem .8rem; background:var(--bg); border-radius:calc(var(--br) - 4px); }
+      .status-dot { width:8px; height:8px; background:var(--ok); border-radius:50%; }
 
-    .main-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; flex-wrap:wrap; gap:10px; }
-    .brand .badge { background:var(--fg); color:var(--bg); font-size:.75rem; font-weight:700; padding:.2rem .6rem; letter-spacing:2px; text-transform:uppercase; border-radius:4px; }
-    .brand h1 { font-family:var(--fh); font-size:1.6rem; font-weight:800; line-height:1.1; margin-top:.5rem; letter-spacing:-1px; }
-    .brand .subtitle { font-size:.85rem; letter-spacing:2px; text-transform:uppercase; opacity:.6; margin-top:.2rem; }
-    .live-status { display:flex; align-items:center; gap:.5rem; font-weight:700; border:var(--bw) solid var(--fg); padding:.4rem .8rem; background:var(--bg); border-radius:calc(var(--br) - 4px); white-space:nowrap; }
-    .status-dot { width:8px; height:8px; background:var(--ok); border-radius:50%; animation:pulse 1.5s infinite; }
-    .editorial-line { border:none; height:var(--bw); background:var(--fg); margin-bottom:2rem; }
+      .btn-retro { background:none; border:var(--bw) solid var(--fg); padding:1.5rem; display:flex; align-items:center; text-align:left; cursor:pointer; font-family:var(--fb); color:var(--fg); width:100%; border-radius:calc(var(--br) - 4px); margin-bottom:1rem; text-decoration:none; }
+      .btn-retro:hover { background:var(--fg); color:var(--bg); }
+      .btn-num { font-family:var(--fh); font-size:1.2rem; margin-right:1.5rem; opacity:.4; }
+      .btn-text { font-size:1.2rem; font-weight:700; flex-grow:1; }
 
-    .menu-grid { display:flex; flex-direction:column; gap:1rem; }
-    .btn-retro {
-      background:none; border:var(--bw) solid var(--fg); padding:1.25rem;
-      display:flex; align-items:center; text-align:left; cursor:pointer;
-      font-family:var(--fb); color:var(--fg); transition:all .2s ease;
-      width:100%; text-decoration:none; border-radius:calc(var(--br) - 4px);
-    }
-    .btn-retro:hover { background:var(--fg); color:var(--bg); transform:translateX(6px); }
-    .btn-retro .btn-num { font-family:var(--fh); font-size:1.1rem; margin-right:1.2rem; opacity:.5; }
-    .btn-retro .btn-text { font-size:1.1rem; font-weight:700; flex-grow:1; }
+      .input-group { display:flex; flex-direction:column; gap:.5rem; margin-bottom:1.5rem; }
+      input[type="text"], input[type="password"], select { width:100%; padding:1rem; font-family:var(--fb); font-size:1rem; border:var(--bw) solid var(--fg); background:var(--bg); color:var(--fg); border-radius:calc(var(--br) - 4px); }
+      .btn-submit, .btn-back { padding:1rem; font-family:var(--fb); font-size:1rem; font-weight:700; cursor:pointer; border:var(--bw) solid var(--fg); text-transform:uppercase; width:100%; border-radius:calc(var(--br) - 4px); }
+      .btn-submit { background:var(--accent); color:#fff; }
+      .btn-back { background:transparent; color:var(--fg); margin-top:.5rem; }
 
-    .input-group { display:flex; flex-direction:column; gap:.4rem; margin-bottom:1.2rem; }
-    .input-group label { font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-    input[type="text"], input[type="password"], input[type="tel"], select {
-      width:100%; padding:.85rem; font-family:var(--fb); font-size:1rem;
-      border:var(--bw) solid var(--fg); background:var(--bg); color:var(--fg);
-      outline:none; border-radius:calc(var(--br) - 4px);
-    }
+      .alert-box { padding:1rem; border:var(--bw) solid var(--fg); font-weight:700; margin-bottom:1.5rem; text-transform:uppercase; display:none; border-radius:calc(var(--br) - 4px); }
+      .alert-box.error { background:#ffdad9; color:var(--danger); display:block; }
+      .alert-box.success { background:#d2fbe3; color:#007d4f; display:block; }
 
-    .btn-submit, .btn-back {
-      padding:1rem; font-family:var(--fb); font-size:1rem; font-weight:700;
-      cursor:pointer; border:var(--bw) solid var(--fg); text-transform:uppercase;
-      letter-spacing:1px; width:100%; display:block; border-radius:calc(var(--br) - 4px); transition:all .2s;
-    }
-    .btn-submit { background:var(--accent); color:#fff; border-color:var(--accent); }
-    .btn-submit:hover { background:var(--fg); border-color:var(--fg); }
-    .btn-back { background:transparent; color:var(--fg); margin-top:.5rem; }
-
-    .geo-status-box { display:flex; align-items:center; gap:.8rem; padding:.8rem; margin-bottom:1rem; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); font-size:.85rem; font-weight:700; }
-    .geo-status-box.checking { background:#fff3cd; color:#856404; }
-    .geo-status-box.ok { background:#d2fbe3; color:#007d4f; }
-    .geo-status-box.fail { background:#ffdad9; color:var(--danger); }
-    .geo-status-box.disabled { background:var(--bg); color:#666; }
-
-    /* REBRANDING POPUP */
-    .rebrand-modal-overlay {
-      position: fixed; inset: 0; background: rgba(10, 10, 10, 0.72);
-      backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center;
-      z-index: 9999; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
-    }
-    .rebrand-modal-overlay.is-visible { opacity: 1; pointer-events: auto; }
-    .rebrand-modal-box {
-      background: var(--bg); color: var(--fg); max-width: 460px; width: 100%;
-      border-radius: 14px; border: var(--bw) solid var(--fg); box-shadow: 8px 8px 0 var(--fg);
-      padding: 1.5rem; text-align: center; position: relative;
-    }
-
-    .hp-field { position:absolute!important; left:-9999px!important; opacity:0!important; }
-    .toast-container { position:fixed; top:20px; right:20px; z-index:10000; display:flex; flex-direction:column; gap:10px; max-width:320px; }
-    .toast-card { background:#fff; color:var(--fg); border:var(--bw) solid var(--fg); box-shadow:4px 4px 0 var(--fg); padding:0.8rem 1rem; font-size:.85rem; font-weight:700; border-radius:6px; }
-
-    @keyframes pulse { 0%{opacity:.4} 50%{opacity:1} 100%{opacity:.4} }
-    @media (max-width: 480px) { body { padding:.75rem; } .app-container { padding:1.25rem; } }
-  </style>
-</head>
-<body>
-
-  <div id="toast-box-container" class="toast-container"></div>
-
-  <!-- MODAL EMERGENTE REBRANDING / ANUNCIO -->
-  <div class="rebrand-modal-overlay" id="rebrand-modal-overlay">
-    <div class="rebrand-modal-box">
-      <button type="button" class="rebrand-modal-close" id="rebrand-modal-close">✕</button>
-      <img id="rebrand-modal-logo" class="rebrand-modal-logo" src="https://grupocented.fyi/LOGO.png" alt="Logo" />
-      <span class="rebrand-modal-tag">📢 AVISO INSTITUCIONAL</span>
-      <h2 class="rebrand-modal-title" id="rebrand-modal-title">¡Aviso Importante!</h2>
-      <div id="rebrand-modal-banner-wrap" style="display:none;margin-bottom:1rem;">
-        <img id="rebrand-modal-banner" style="max-width:100%;border-radius:8px;border:var(--bw) solid var(--fg)" alt="Banner" />
+      #aviso-overlay { position:fixed; inset:0; background:rgba(13,13,13,.6); display:none; align-items:center; justify-content:center; z-index:20000; padding:1rem; backdrop-filter:blur(3px); }
+      #aviso-overlay.visible { display:flex; }
+      .aviso-card { background:var(--bg); color:var(--fg); border:var(--bw) solid var(--fg); border-radius:var(--br); width:100%; max-width:480px; padding:1.5rem; text-align:center; }
+    </style>
+  </head>
+  <body>
+    <!-- VENTANA EMERGENTE INSTITUCIONAL -->
+    <div id="aviso-overlay">
+      <div class="aviso-card">
+        <h2 id="aviso-titulo-txt">¡Tenemos un nuevo nombre!</h2>
+        <p id="aviso-texto-txt" style="margin:1rem 0;">A partir de hoy, <strong>Grupo Cented</strong> pasa a ser <strong>Grupo Cented Academy Pro Education</strong>.</p>
+        <button type="button" class="btn-submit" id="aviso-btn-continuar">Entendido, continuar</button>
       </div>
-      <p class="rebrand-modal-text" id="rebrand-modal-text">Bienvenidos al portal oficial del Departamento de Sistemas Informáticos de Grupo CENTED.</p>
-      <button type="button" class="rebrand-modal-accept btn-submit" id="rebrand-modal-accept">Entendido, continuar</button>
     </div>
-  </div>
 
-  <!-- MODAL AUTORIZACIÓN DOCENTE -->
-  <div id="modal-auth-clave" style="display:none; position:fixed; inset:0; background:rgba(13,13,13,.75); z-index:25000; align-items:center; justify-content:center; padding:1rem;">
-    <div class="rebrand-modal-box" style="text-align:left;">
-      <h3 style="font-family:var(--fh); font-size:1.1rem; margin-bottom:.5rem;">🔒 Autorización Docente</h3>
-      <p style="font-size:.85rem; opacity:.85; margin-bottom:1rem;" id="modal-auth-student-name">
-        Ingresa la clave del docente para consultar la Clave Única de este estudiante:
-      </p>
-      <div class="input-group">
-        <label for="auth-admin-pass">Clave de Seguridad *</label>
-        <input type="password" id="auth-admin-pass" placeholder="••••" autocomplete="off" />
-      </div>
-      <div id="alertAuthClave" style="display:none;padding:8px;font-size:0.8rem;font-weight:700;margin-bottom:10px;border-radius:4px;"></div>
-      <button type="button" id="btn-confirm-auth-clave" class="btn-submit" style="padding:.7rem;">✓ Confirmar</button>
-      <button type="button" id="btn-cancel-auth-clave" class="btn-back" style="padding:.7rem;">✕ Cancelar</button>
-    </div>
-  </div>
-
-  <!-- CONTENEDOR PRINCIPAL DEL AULA -->
-  <main class="app-container">
-    <header class="main-header">
-      <div class="brand">
-        <span class="badge">出席 AULA DIGITAL + ASISTENCIA</span>
-        <h1 id="brand-title-text">GRUPO CENTED ACADEMY PRO EDUCATION</h1>
-        <p class="subtitle">DEPARTAMENTO DE SISTEMAS INFORMÁTICOS</p>
-      </div>
-      <div class="live-status">
-        <span class="status-dot"></span>
-        <span id="live-clock">00:00:00 PM</span>
-      </div>
-    </header>
-
-    <hr class="editorial-line" />
-
-    <!-- VISTA 1: MENÚ PRINCIPAL -->
-    <section id="view-menu" class="card-view active">
-      <div class="menu-grid">
-        <button type="button" class="btn-retro" onclick="switchView('view-register')">
-          <span class="btn-num">01</span>
-          <span class="btn-text">Registrar Asistencia</span>
-        </button>
-        <button type="button" class="btn-retro" onclick="switchView('view-keygen')">
-          <span class="btn-num">02</span>
-          <span class="btn-text">Generar Mi Clave Única</span>
-        </button>
-        <button type="button" class="btn-retro" onclick="switchView('view-teacher')">
-          <span class="btn-num">03</span>
-          <span class="btn-text">Ver Registros (Docente)</span>
-        </button>
-        <a class="btn-retro" href="https://maualvarado1101.wixsite.com/my-site-1" target="_blank">
-          <span class="btn-num">04</span>
-          <span class="btn-text">Ir al Aula Digital (Wix) ↗</span>
-        </a>
-      </div>
-
-      <div style="margin-top:1.5rem;height:350px;border:var(--bw) solid var(--fg);border-radius:var(--br);overflow:hidden">
-        <iframe src="https://maualvarado1101.wixsite.com/my-site-1" style="width:100%;height:100%;border:none" title="Aula Digital"></iframe>
-      </div>
-    </section>
-
-    <!-- VISTA 2: REGISTRAR ASISTENCIA -->
-    <section id="view-register" class="card-view">
-      <h2 style="font-family:var(--fh);margin-bottom:1rem">【 登録 】 Registrar Asistencia</h2>
-      <div id="geo-status-box" class="geo-status-box checking">
-        <span id="geo-status-text">Verificando ubicación GPS...</span>
-      </div>
-
-      <div class="input-group">
-        <label for="reg-student-select">💡 ¿Olvidaste tu Clave Única? Busca tu Nombre:</label>
-        <select id="reg-student-select">
-          <option value="" selected>-- Selecciona tu Nombre para recordar clave --</option>
-        </select>
-      </div>
-
-      <div id="alertRegistro" style="display:none;padding:10px;font-weight:700;margin-bottom:1rem;border-radius:6px;"></div>
-
-      <form id="form-register">
-        <div class="hp-field"><input type="text" id="reg-website" tabindex="-1"></div>
+    <!-- MODAL SOLICITUD CLAVE OLVIDADA -->
+    <div id="modal-auth-clave" style="display:none; position:fixed; inset:0; background:rgba(13,13,13,.75); z-index:25000; align-items:center; justify-content:center; padding:1rem;">
+      <div class="aviso-card" style="text-align:left;">
+        <h3>🔒 Autorización Docente</h3>
+        <p id="modal-auth-student-name" style="margin-bottom:1rem;">Ingresa la clave docente para consultar la Clave Única:</p>
         <div class="input-group">
-          <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
-          <input type="password" id="reg-key" maxlength="4" placeholder="Ej: F2BQ" required style="text-transform:uppercase;letter-spacing:4px;font-size:1.2rem;" />
+          <label for="auth-admin-pass">Clave de Seguridad *</label>
+          <input type="password" id="auth-admin-pass" placeholder="••••" />
         </div>
+        <div id="alertAuthClave" class="alert-box"></div>
+        <button type="button" id="btn-confirm-auth-clave" class="btn-submit">✓ Confirmar</button>
+        <button type="button" id="btn-cancel-auth-clave" class="btn-back">✕ Cancelar</button>
+      </div>
+    </div>
+
+    <main class="app-container">
+      <header class="main-header">
+        <div class="brand">
+          <span class="badge">出席 AULA DIGITAL</span>
+          <h1 id="brand-title-text">GRUPO CENTED ACADEMY PRO EDUCATION</h1>
+          <p class="subtitle" id="brand-slogan-text">DEPARTAMENTO DE SISTEMAS INFORMÁTICOS</p>
+        </div>
+        <div class="live-status">
+          <span class="status-dot"></span>
+          <span id="live-clock">00:00:00 PM</span>
+        </div>
+      </header>
+
+      <!-- MENÚ -->
+      <section id="view-menu" class="card-view active">
+        <div class="menu-grid">
+          <button type="button" class="btn-retro" id="btn-menu-register">
+            <span class="btn-num">01</span>
+            <span class="btn-text">Registrar Asistencia</span>
+          </button>
+          <button type="button" class="btn-retro" id="btn-menu-keygen">
+            <span class="btn-num">02</span>
+            <span class="btn-text">Generar Mi Clave Única</span>
+          </button>
+          <a class="btn-retro" href="https://maualvarado1101.wixsite.com/my-site-1" target="_blank" rel="noopener">
+            <span class="btn-num">03</span>
+            <span class="btn-text">Ir al Aula Digital (Wix)</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- REGISTRAR ASISTENCIA -->
+      <section id="view-register" class="card-view">
+        <h2>Registrar Asistencia</h2>
         <div class="input-group">
-          <label for="reg-group">Grupo *</label>
-          <select id="reg-group" required>
-            <option value="" disabled selected>-- Selecciona --</option>
-            <option value="Mañana">Mañana</option>
-            <option value="Tarde">Tarde</option>
+          <label for="reg-student-select">💡 ¿Olvidaste tu Clave? Busca tu Nombre:</label>
+          <select id="reg-student-select">
+            <option value="">-- Selecciona tu Nombre --</option>
           </select>
         </div>
-        <button type="submit" id="btnRegistrar" class="btn-submit">✓ Enviar Asistencia</button>
-        <button type="button" class="btn-back" onclick="switchView('view-menu')">← Volver</button>
-      </form>
-    </section>
+        <div id="alertRegistro" class="alert-box"></div>
+        <form id="form-register">
+          <div class="input-group">
+            <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
+            <input type="password" id="reg-key" maxlength="4" style="text-transform:uppercase;" required />
+          </div>
+          <div class="input-group">
+            <label for="reg-group">Grupo *</label>
+            <select id="reg-group" required>
+              <option value="" disabled selected>-- Selecciona --</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+            </select>
+          </div>
+          <button type="submit" id="btnRegistrar" class="btn-submit">✓ Enviar Asistencia</button>
+          <button type="button" class="btn-back" id="btn-back-register">← Volver</button>
+        </form>
+      </section>
 
-    <!-- VISTA 3: GENERAR CLAVE -->
-    <section id="view-keygen" class="card-view">
-      <h2 style="font-family:var(--fh);margin-bottom:1rem">【 鍵作成 】 Generar Mi Clave</h2>
-      <div id="alertGenerarClave" style="display:none;padding:10px;font-weight:700;margin-bottom:1rem;border-radius:6px;"></div>
-      <form id="form-keygen">
-        <div class="hp-field"><input type="text" id="gen-website" tabindex="-1"></div>
-        <div class="input-group">
-          <label for="gen-name">Nombre Completo *</label>
-          <input type="text" id="gen-name" placeholder="Ej: Tatiana Abigail Flores Ortiz" required />
-        </div>
-        <div class="input-group">
-          <label for="gen-teacher">Docente Principal *</label>
-          <select id="gen-teacher" required>
-            <option value="" disabled selected>-- Selecciona tu Docente --</option>
-            <option value="Mauricio Alvarado">Mauricio Alvarado</option>
-            <option value="Wilfredo Pineda">Wilfredo Pineda</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label for="gen-phone">Teléfono (opcional)</label>
-          <input type="tel" id="gen-phone" placeholder="Ej: 7123-4567" />
-        </div>
-        <div class="input-group">
-          <label for="gen-email">Correo Electrónico (opcional)</label>
-          <input type="text" id="gen-email" placeholder="nombre@correo.com" />
-        </div>
+      <!-- GENERAR CLAVE -->
+      <section id="view-keygen" class="card-view">
+        <h2>Generar Mi Clave Única</h2>
+        <div id="alertGenerarClave" class="alert-box"></div>
+        <form id="form-keygen">
+          <div class="input-group">
+            <label for="gen-name">Nombre Completo *</label>
+            <input type="text" id="gen-name" required />
+          </div>
+          <div class="input-group">
+            <label for="gen-teacher">Docente Principal *</label>
+            <select id="gen-teacher" required>
+              <option value="Mauricio Alvarado">Mauricio Alvarado</option>
+              <option value="Wilfredo Pineda">Wilfredo Pineda</option>
+            </select>
+          </div>
+          <button type="submit" id="btnGenerar" class="btn-submit">🔒 Generar Clave</button>
+          <button type="button" class="btn-back" id="btn-back-keygen">← Volver</button>
+        </form>
+      </section>
+    </main>
 
-        <div id="claveGeneradaContainer" style="display:none;margin:1rem 0;padding:1rem;background:#d2fbe3;border:2px solid #007d4f;border-radius:8px;text-align:center">
-          <span style="font-size:0.85rem;font-weight:700;color:#007d4f">🎉 ¡Tu Clave Permanente es:</span>
-          <div id="codGenerado" style="font-family:var(--fh);font-size:2.5rem;font-weight:800;color:var(--accent);letter-spacing:6px"></div>
-        </div>
-
-        <button type="submit" id="btnGenerar" class="btn-submit">🔒 Generar Mi Clave</button>
-        <button type="button" class="btn-back" onclick="switchView('view-menu')">← Volver</button>
-      </form>
-    </section>
-
-    <!-- VISTA 4: PANEL DOCENTE LOGIN -->
-    <section id="view-teacher" class="card-view">
-      <h2 style="font-family:var(--fh);margin-bottom:1rem">【 管理 】 Acceso Docente</h2>
-      <form id="teacher-auth">
-        <div class="input-group">
-          <label for="teacher-password">Clave de Seguridad Docente *</label>
-          <input type="password" id="teacher-password" placeholder="••••••" required />
-        </div>
-        <button type="submit" class="btn-submit">🔓 Entrar</button>
-        <button type="button" class="btn-back" onclick="switchView('view-menu')">← Volver</button>
-      </form>
-    </section>
-  </main>
-
-  <script>
-    // URL Backend Apps Script
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwD-s-Xy9XTP1r_8YukdBCcCXkYPwRiNtgZRiP-nrHSXy0heasLBBc6pOwp_0d1gTI1/exec";
-    const CENTED_LAT = 13.716795758900204;
-    const CENTED_LNG = -89.1001956388224;
-    const RADIO_KM = 1.0;
-
-    var geoActiva = true, geoOK = false, geoRevisada = false, geoCoords = null;
-    var nombreSeleccionadoParaClave = "";
-
-    function showToast(msg) {
-      var box = document.getElementById("toast-box-container");
-      var t = document.createElement("div");
-      t.className = "toast-card";
-      t.textContent = msg;
-      box.appendChild(t);
-      setTimeout(function() { t.remove(); }, 3500);
-    }
-
-    function switchView(id) {
-      document.querySelectorAll(".card-view").forEach(function(v) { v.classList.remove("active"); });
-      var target = document.getElementById(id);
-      if (target) target.classList.add("active");
-      if (id === 'view-register') {
-        cargarListaEstudiantes();
-        verificarGeo();
-      }
-    }
-
-    function updateClock() {
-      var now = new Date();
-      var h = now.getHours(), m = String(now.getMinutes()).padStart(2,"0"), s = String(now.getSeconds()).padStart(2,"0");
-      var ampm = h >= 12 ? "PM" : "AM";
-      h = h % 12 || 12;
-      document.getElementById("live-clock").textContent = String(h).padStart(2,"0") + ":" + m + ":" + s + " " + ampm;
-    }
-    setInterval(updateClock, 1000); updateClock();
-
-    function cargarListaEstudiantes() {
-      fetch(SCRIPT_URL + "?action=obtener_lista_alumnos")
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data && data.alumnos) {
-            var sel = document.getElementById("reg-student-select");
-            sel.innerHTML = '<option value="" selected>-- Selecciona tu Nombre para recordar clave --</option>';
-            data.alumnos.forEach(function(nom) {
-              var opt = document.createElement("option");
-              opt.value = nom; opt.textContent = nom;
-              sel.appendChild(opt);
-            });
-          }
-        });
-    }
-
-    function verificarGeo() {
-      if (!navigator.geolocation) {
-        geoOK = false; geoRevisada = true;
-        document.getElementById("geo-status-text").textContent = "❌ Tu navegador no soporta GPS.";
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(function(pos) {
-        var R = 6371;
-        var dLat = (pos.coords.latitude - CENTED_LAT) * Math.PI / 180;
-        var dLng = (pos.coords.longitude - CENTED_LNG) * Math.PI / 180;
-        var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(CENTED_LAT*Math.PI/180)*Math.cos(pos.coords.latitude*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
-        var dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-        geoRevisada = true; geoCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        if (dist <= RADIO_KM) {
-          geoOK = true;
-          document.getElementById("geo-status-box").className = "geo-status-box ok";
-          document.getElementById("geo-status-text").textContent = "✅ Ubicación confirmada: Estás en el CENTED (" + Math.round(dist * 1000) + " m)";
-        } else {
-          geoOK = false;
-          document.getElementById("geo-status-box").className = "geo-status-box fail";
-          document.getElementById("geo-status-text").textContent = "❌ Fuera de rango: Estás a " + Math.round(dist * 1000) + " m del CENTED (Máx 1 km)";
-        }
-      }, function() {
-        geoRevisada = true; geoOK = false;
-        document.getElementById("geo-status-box").className = "geo-status-box fail";
-        document.getElementById("geo-status-text").textContent = "❌ Error al obtener GPS.";
-      });
-    }
-
-    // Modal Rebranding / Anuncio Events
-    document.getElementById("rebrand-modal-close").onclick = function() {
-      document.getElementById("rebrand-modal-overlay").classList.remove("is-visible");
-    };
-    document.getElementById("rebrand-modal-accept").onclick = function() {
-      document.getElementById("rebrand-modal-overlay").classList.remove("is-visible");
-    };
-
-    // Cargar Anuncio desde Backend
-    window.onload = function() {
-      fetch(SCRIPT_URL + "?action=obtener_marca")
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data && data.marca) {
-            var m = data.marca;
-            if (m.titulo) document.getElementById("rebrand-modal-title").textContent = m.titulo;
-            if (m.anuncio) document.getElementById("rebrand-modal-text").textContent = m.anuncio;
-            if (m.logo_url) document.getElementById("rebrand-modal-logo").src = m.logo_url;
-            if (m.banner_url) {
-              document.getElementById("rebrand-modal-banner").src = m.banner_url;
-              document.getElementById("rebrand-modal-banner-wrap").style.display = "block";
-            }
-            if (m.aviso_activo) {
-              document.getElementById("rebrand-modal-overlay").classList.add("is-visible");
-            }
-          }
-        });
-    };
-  </script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
