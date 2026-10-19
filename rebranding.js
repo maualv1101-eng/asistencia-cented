@@ -1,5 +1,5 @@
 /* ================================================================
-   rebranding.js (v4) — AULA DIGITAL
+   rebranding.js (v5) — AULA DIGITAL
    Lee la marca y el aviso emergente que se configuran en EVA-DOC
    (pestaña "Config & Marca"). Sin contraseña y sin panel propio.
 
@@ -45,6 +45,34 @@
     }
   }
 
+  function obtenerYoutubeInfo(url) {
+    if (!url) return null;
+    try {
+      var u = new URL(url);
+      if (u.protocol !== "https:") return null;
+      var host = u.hostname.toLowerCase().replace(/^www\./, "");
+      var parts = u.pathname.split("/").filter(Boolean);
+      var id = "";
+      var esShort = false;
+      if (host === "youtu.be") {
+        id = parts[0] || "";
+      } else if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") {
+        if (u.pathname === "/watch") id = u.searchParams.get("v") || "";
+        else if (parts[0] === "shorts" || parts[0] === "embed" || parts[0] === "live") {
+          id = parts[1] || "";
+          esShort = parts[0] === "shorts";
+        }
+      }
+      if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return null;
+      return { id: id, esShort: esShort };
+    } catch (e) { return null; }
+  }
+
+  function urlEmbedYoutube(info) {
+    return "https://www.youtube.com/embed/" + encodeURIComponent(info.id) +
+      "?autoplay=1&mute=0&playsinline=1&rel=0&controls=1";
+  }
+
   function construirMedia(m, wrap) {
     if (!wrap) return;
     wrap.innerHTML = "";
@@ -66,17 +94,35 @@
       v.src = banner;
       v.controls = true;
       v.playsInline = true;
+      v.autoplay = true;
+      v.muted = false;
       wrap.appendChild(v);
     } else if (tipo === "url_ext" && url) {
-      var emb = (typeof convertirYoutubeAEmbed === "function") ? convertirYoutubeAEmbed(url) : "";
-      if (emb) {
+      var youtube = obtenerYoutubeInfo(url);
+      if (youtube) {
         var frame = document.createElement("iframe");
-        frame.className = "aviso-media-iframe" + (vertical ? " portrait-frame" : "");
-        frame.src = emb.replace("autoplay=1&mute=1&", "");
-        frame.allow = "encrypted-media; picture-in-picture";
+        frame.className = "aviso-media-iframe" + ((vertical || youtube.esShort) ? " portrait-frame" : "");
+        frame.src = urlEmbedYoutube(youtube);
+        frame.allow = "autoplay; encrypted-media; picture-in-picture; web-share";
         frame.setAttribute("allowfullscreen", "");
-        frame.title = m.aviso_titulo || "Video del aviso";
+        frame.setAttribute("loading", "eager");
+        frame.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+        frame.title = m.aviso_titulo || (youtube.esShort ? "YouTube Short del aviso" : "Video de YouTube del aviso");
         wrap.appendChild(frame);
+
+        var audioBtn = document.createElement("button");
+        audioBtn.type = "button";
+        audioBtn.className = "aviso-video-audio-btn";
+        audioBtn.textContent = "🔊 Si el navegador bloquea el sonido, toca aquí para reproducir con audio";
+        audioBtn.setAttribute("aria-label", "Reproducir el video de YouTube con sonido");
+        audioBtn.addEventListener("click", function() {
+          // La navegación del iframe se inicia directamente desde el gesto del usuario,
+          // lo que permite a los navegadores autorizar la reproducción con audio.
+          frame.src = urlEmbedYoutube(youtube);
+          audioBtn.textContent = "🔊 Se solicitó la reproducción con sonido";
+          audioBtn.disabled = true;
+        });
+        wrap.appendChild(audioBtn);
       } else if (/^https:\/\//i.test(url)) {
         var a = document.createElement("a");
         a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
