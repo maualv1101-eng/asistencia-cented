@@ -1,341 +1,595 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <!-- ── MEJORAS DE SEO Y METADATOS ────────────────────────── -->
-  <title>Grupo Cented Academy Pro Education | Aula Digital y Asistencia</title>
-  <meta name="description" content="Portal oficial para el Control de Asistencia y Aula Digital de Grupo Cented Academy Pro Education, Departamento de Sistemas Informáticos." />
-  <meta name="keywords" content="Grupo Cented, Academy Pro Education, Aula Digital, Control de Asistencia, Educación, Sistemas Informáticos, El Salvador" />
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://grupocented.fyi/" />
-  
-  <!-- Open Graph / Redes Sociales -->
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Aula Digital | Grupo Cented Academy Pro Education" />
-  <meta property="og:description" content="Portal oficial de asistencia y aula virtual para estudiantes del Departamento de Sistemas Informáticos." />
-  <meta property="og:image" content="https://grupocented.fyi/LOGO.png" />
-  <meta property="og:url" content="https://grupocented.fyi/" />
-  
-  <!-- Datos Estructurados JSON-LD -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    "name": "Grupo Cented Academy Pro Education",
-    "logo": "https://grupocented.fyi/LOGO.png",
-    "url": "https://grupocented.fyi/",
-    "department": {
-      "@type": "Organization",
-      "name": "Departamento de Sistemas Informáticos"
-    }
-  }
-  </script>
-  <!-- ──────────────────────────────────────────────────────── -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://unpkg.com;
+    style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
+    font-src https://fonts.gstatic.com;
+    connect-src https://script.google.com https://script.googleusercontent.com;
+    frame-src https://maualvarado1101.wixsite.com https://www.google.com https://drive.google.com https://www.youtube.com https://www.dropbox.com https://mega.nz https://www.mediafire.com;
+    img-src 'self' https://grupocented.fyi https://lh3.googleusercontent.com https://drive.google.com https://www.dropbox.com https://dl.dropboxusercontent.com https://mega.nz https://www.mediafire.com data: blob:;
+    media-src blob: https://lh3.googleusercontent.com https://drive.google.com https://www.dropbox.com https://dl.dropboxusercontent.com https://mega.nz https://www.mediafire.com;
+    worker-src blob:;
+" />
+      <title>Grupo Cented Academy Pro Education | AULA DIGITAL — SISTEMAS INFORMÁTICOS</title>
+      <meta name="description" content="Portal oficial para el Control de Asistencia — Grupo Cented Academy Pro Education, Departamento de Sistemas Informáticos." />
+      <meta name="keywords" content="Grupo Cented Academy Pro Education, control de asistencia, aula digital, CENTED" />
+      <meta name="robots" content="index, follow" />
+      <meta name="author" content="Grupo Cented Academy Pro Education" />
+      <meta name="googlebot" content="index, follow" />
+      <meta property="og:description" content="Portal oficial de Control de Asistencia y Aula Digital de Grupo Cented Academy Pro Education, Departamento de Sistemas Informáticos." />
+      <meta property="og:image" content="https://grupocented.fyi/LOGO.png" />
+      <meta property="og:site_name" content="Grupo Cented Academy Pro Education" />
+      <meta property="og:locale" content="es_SV" />
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:title" content="Grupo Cented Academy Pro Education | Aula Digital" />
+      <meta name="twitter:image" content="https://grupocented.fyi/LOGO.png" />
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "Grupo Cented Academy Pro Education",
+        "url": "https://grupocented.fyi/",
+        "logo": "https://grupocented.fyi/LOGO.png",
+        "description": "Academia de formación técnica en Sistemas Informáticos, Diseño Gráfico e Informática en El Salvador.",
+        "address": { "@type": "PostalAddress", "addressCountry": "SV" }
+      }
+      </script>
+    <link rel="canonical" href="https://grupocented.fyi/" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Cented Asistencia" />
+    <link rel="icon" id="favicon-link" href="https://grupocented.fyi/LOGO.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="https://grupocented.fyi/LOGO.png" sizes="180x180" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Grupo Cented Academy Pro Education" />
+    <meta property="og:url" content="https://grupocented.fyi/" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
+    <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
 
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://maualvarado1101.wixsite.com https://www.google.com https://drive.google.com https://www.youtube.com; img-src 'self' https://grupocented.fyi https://lh3.googleusercontent.com https://drive.google.com data: blob:; media-src blob: https://lh3.googleusercontent.com https://drive.google.com;" />
-  <meta name="theme-color" content="#000000" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Cented Asistencia" />
-  <link rel="icon" id="favicon-link" href="https://grupocented.fyi/LOGO.png" type="image/png" sizes="32x32" />
-  <link rel="apple-touch-icon" href="https://grupocented.fyi/LOGO.png" sizes="180x180" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  
-  <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+    <style>
+      /* ── TOKENS ─────────────────────────────────── */
+      :root {
+        --bg:      #f4f3ef;
+        --fg:      #0d0d0d;
+        --accent:  #2b46ff;
+        --danger:  #ff3b30;
+        --ok:      #00c781;
+        --warn:    #ff9500;
+        --bw:      2px;
+        --br:      12px;
+        --fh:      "Syne", sans-serif;
+        --fb:      "Space Grotesk", sans-serif;
+        --shadow:  12px 12px 0 var(--fg);
+        --tr:      0.2s ease;
+      }
+      * { margin:0; padding:0; box-sizing:border-box; }
 
-  <style>
-    :root {
-      --bg: #f4f3ef; --fg: #0d0d0d; --accent: #2b46ff; --danger: #ff3b30;
-      --ok: #00c781; --warn: #ff9500; --bw: 2px; --br: 12px;
-      --fh: "Syne", sans-serif; --fb: "Space Grotesk", sans-serif;
-      --shadow: 12px 12px 0 var(--fg); --tr: 0.2s ease;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    html[data-theme="dark"] {
-      --bg: #14151a; --fg: #f2f2f0; --accent: #6b8bff; --danger: #ff6b60;
-      --ok: #29e0a0; --warn: #ffb340;
-    }
-    html[data-theme="dark"] body { background: var(--bg); }
-    html[data-theme="dark"] .app-container { background: #1d1e24; box-shadow: var(--shadow); }
-    html[data-theme="dark"] .brand .badge { background: var(--fg); color: #1d1e24; }
-    html[data-theme="dark"] .overlay-texture { background-image: radial-gradient(rgba(255,255,255,.04) 1px, transparent 0), linear-gradient(rgba(255,255,255,.02) 1px, transparent 0); }
-    html[data-theme="dark"] input[type="text"], html[data-theme="dark"] input[type="password"], html[data-theme="dark"] input[type="tel"], html[data-theme="dark"] select, html[data-theme="dark"] textarea { background: #14151a; color: var(--fg); }
-    html[data-theme="dark"] input:focus, html[data-theme="dark"] select:focus { background: #1d1e24; }
-    html[data-theme="dark"] .toast-card { background: #1d1e24; color: var(--fg); }
-    html[data-theme="dark"] .map-caption, html[data-theme="dark"] .geo-status-box.disabled { background: #14151a; }
-    html[data-theme="dark"] .aviso-card { background: #1d1e24; color: var(--fg); }
-    html { transition: background-color .25s ease; }
-    body, .app-container, input, select, textarea, .toast-card { transition: background-color var(--tr), color var(--tr), border-color var(--tr); }
-    body { background: var(--bg); color: var(--fg); font-family: var(--fb); overflow-x: hidden; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 2rem; }
-    .overlay-texture { position: fixed; inset: 0; background-image: radial-gradient(rgba(0,0,0,.03) 1px, transparent 0), linear-gradient(rgba(13,13,13,.02) 1px, transparent 0); background-size: 24px 24px; pointer-events: none; z-index: 999; }
-    .app-container { width: 100%; max-width: 720px; background: #fff; border: var(--bw) solid var(--fg); border-radius: var(--br); padding: 2.5rem; box-shadow: var(--shadow); position: relative; z-index: 10; }
-    .card-view { display: none; }
-    .card-view.active { display: block; animation: fadeIn .35s cubic-bezier(.19,1,.22,1) forwards; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
-    .main-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; }
-    .brand .badge { background:var(--fg); color:var(--bg); font-size:.75rem; font-weight:700; padding:.2rem .6rem; letter-spacing:2px; text-transform:uppercase; }
-    .brand h1 { font-family:var(--fh); font-size:1.8rem; font-weight:800; line-height:1.1; margin-top:.5rem; letter-spacing:-1px; }
-    .brand .subtitle { font-size:.85rem; letter-spacing:2px; text-transform:uppercase; opacity:.6; margin-top:.2rem; }
-    .live-status { display:flex; align-items:center; gap:.5rem; font-variant-numeric:tabular-nums; font-weight:700; border:var(--bw) solid var(--fg); padding:.4rem .8rem; background:var(--bg); border-radius:calc(var(--br) - 4px); white-space:nowrap; }
-    .status-dot { width:8px; height:8px; background:var(--ok); border-radius:50%; animation:pulse 1.5s infinite; }
-    .editorial-line { border:none; height:var(--bw); background:var(--fg); margin-bottom:2.5rem; }
-    .menu-grid { display:flex; flex-direction:column; gap:1rem; }
-    .btn-retro { background:none; border:var(--bw) solid var(--fg); padding:1.5rem; display:flex; align-items:center; text-align:left; cursor:pointer; font-family:var(--fb); color:var(--fg); transition:all .3s cubic-bezier(.19,1,.22,1); width:100%; text-decoration:none; border-radius:calc(var(--br) - 4px); }
-    .btn-retro .btn-num { font-family:var(--fh); font-size:1.2rem; margin-right:1.5rem; opacity:.4; transition:transform .3s; }
-    .btn-retro .btn-text { font-size:1.2rem; font-weight:700; flex-grow:1; }
-    .btn-retro .btn-arrow { font-size:1.5rem; transform:translateX(-10px); opacity:0; transition:all .3s cubic-bezier(.19,1,.22,1); }
-    .btn-retro:hover { background:var(--fg); color:var(--bg); transform:translateX(8px); }
-    .btn-retro:hover .btn-num { transform:scale(1.2); opacity:1; color:var(--accent); }
-    .btn-retro:hover .btn-arrow { transform:translateX(0); opacity:1; }
-    .view-title { font-family:var(--fh); font-size:1.4rem; margin-bottom:2rem; text-transform:uppercase; letter-spacing:-.5px; }
-    .input-group { display:flex; flex-direction:column; gap:.5rem; margin-bottom:1.5rem; }
-    .input-group label { font-size:.9rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-    input[type="text"], input[type="password"], input[type="tel"], select, textarea { width:100%; padding:1rem; font-family:var(--fb); font-size:1rem; border:var(--bw) solid var(--fg); background:var(--bg); color:var(--fg); outline:none; transition:all var(--tr); border-radius:calc(var(--br) - 4px); }
-    input:focus, select:focus, textarea:focus { background:#fff; box-shadow:4px 4px 0 var(--accent); border-color:var(--accent); }
-    .helper-text { font-size:.8rem; opacity:.6; margin-top:.2rem; }
-    .alert-box { padding:1rem; border:var(--bw) solid var(--fg); font-weight:700; margin-bottom:1.5rem; text-transform:uppercase; font-size:.9rem; display:none; border-radius:calc(var(--br) - 4px); }
-    .alert-box.error { background:#ffdad9; color:var(--danger); display:block; }
-    .alert-box.success { background:#d2fbe3; color:#007d4f; display:block; }
-    .alert-box.warning { background:#fff3cd; color:#856404; display:block; }
-    .alert-box.info { background:#e8f0ff; color:var(--accent); display:block; }
-    .form-actions { display:flex; flex-direction:column; gap:.8rem; margin-top:2rem; }
-    .btn-submit, .btn-back, .btn-secondary { padding:1rem; font-family:var(--fb); font-size:1rem; font-weight:700; cursor:pointer; border:var(--bw) solid var(--fg); text-transform:uppercase; letter-spacing:1px; transition:all var(--tr); text-align:center; width:100%; display:block; border-radius:calc(var(--br) - 4px); }
-    .btn-submit { background:var(--accent); color:#fff; border-color:var(--accent); }
-    .btn-submit:hover:not(:disabled) { background:var(--fg); border-color:var(--fg); transform:translateY(-2px); }
-    .btn-submit:disabled { background:#ccc !important; border-color:#ccc !important; color:#666 !important; cursor:not-allowed; }
-    .btn-back { background:transparent; color:var(--fg); }
-    .btn-back:hover { background:var(--bg); transform:translateY(-2px); }
-    .btn-secondary { background:var(--bg); color:var(--fg); border-color:var(--fg); }
-    .btn-secondary:hover { background:var(--fg); color:var(--bg); }
-    .theme-toggle-row { display:flex; align-items:center; justify-content:space-between; padding:1rem; margin-bottom:1.5rem; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); background:var(--bg); margin-bottom:1rem; }
-    .theme-toggle-label { font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:.5rem; }
-    .toggle-switch { position:relative; width:52px; height:28px; cursor:pointer; flex-shrink:0; }
-    .toggle-switch input { opacity:0; width:0; height:0; }
-    .toggle-slider { position:absolute; inset:0; background:#ccc; border-radius:28px; border:var(--bw) solid var(--fg); transition:background .3s; }
-    .toggle-slider::before { content:""; position:absolute; width:20px; height:20px; left:2px; top:2px; background:#fff; border-radius:50%; transition:transform .3s; border:1px solid #ccc; }
-    .toggle-switch input:checked + .toggle-slider { background:var(--ok); border-color:#007d4f; }
-    .toggle-switch input:checked + .toggle-slider::before { transform:translateX(24px); }
-    .geo-status-box { display:flex; align-items:center; gap:.8rem; padding:.9rem 1rem; margin-bottom:1.5rem; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); font-size:.88rem; font-weight:700; }
-    .geo-status-box.checking { background:#fff3cd; border-color:var(--warn); color:#856404; }
-    .geo-status-box.ok { background:#d2fbe3; border-color:var(--ok); color:#007d4f; }
-    .geo-status-box.fail { background:#ffdad9; border-color:var(--danger); color:var(--danger); }
-    .geo-status-box.disabled { background:var(--bg); border-color:#aaa; color:#666; }
-    .map-status-container { border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); overflow:hidden; margin-bottom:1.5rem; box-shadow:4px 4px 0 var(--fg); }
-    .map-caption { padding:.6rem 1rem; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; background:var(--bg); border-bottom:var(--bw) solid var(--fg); }
-    .map-status-container iframe { width:100%; height:220px; border:none; display:block; }
-    .toast-container { position:fixed; top:20px; right:20px; z-index:10000; display:flex; flex-direction:column; gap:10px; max-width:320px; }
-    .toast-card { background:#fff; color:var(--fg); border:var(--bw) solid var(--fg); box-shadow:4px 4px 0 var(--fg); padding:1rem; font-family:var(--fb); font-size:.9rem; font-weight:700; animation:toastIn .3s cubic-bezier(.19,1,.22,1) forwards; border-radius:calc(var(--br) - 4px); }
-    .toast-card.success { border-color:var(--ok); box-shadow:4px 4px 0 var(--ok); }
-    .toast-card.info { border-color:var(--accent); box-shadow:4px 4px 0 var(--accent); }
-    .toast-card.warning { border-color:var(--warn); box-shadow:4px 4px 0 var(--warn); }
-    .aula-iframe-container { width:100%; height:80vh; overflow:hidden; border-radius:8px; }
-    .aula-iframe-container iframe { width:100%; height:100%; border:none; }
-    .hp-field { position:absolute!important; left:-9999px!important; top:-9999px!important; width:1px!important; height:1px!important; overflow:hidden!important; opacity:0!important; pointer-events:none!important; }
-    .mobile-zoom-warning { display:none; background:#fff3cd; border:var(--bw) solid var(--fg); padding:1rem; margin-bottom:1.5rem; font-size:.85rem; gap:.8rem; align-items:center; box-shadow:4px 4px 0 var(--fg); border-radius:calc(var(--br) - 4px); }
-    
-    #aviso-overlay { position:fixed; inset:0; background:rgba(13,13,13,.6); display:none; align-items:center; justify-content:center; z-index:20000; padding:1rem; backdrop-filter:blur(3px); }
-    #aviso-overlay.visible { display:flex; }
-    .aviso-card { position:relative; background:var(--bg); color:var(--fg); border:var(--bw) solid var(--fg); border-radius:var(--br); box-shadow:10px 10px 0 var(--fg); width:100%; max-width:480px; max-height:92dvh; overflow-y:auto; padding:0; font-family:var(--fb); animation:avisoIn .3s cubic-bezier(.19,1,.22,1) forwards; display:flex; flex-direction:column; }
-    @keyframes avisoIn { from{transform:scale(.9) translateY(20px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
-    .aviso-head { padding:1.4rem 1.4rem .8rem; display:flex; flex-direction:column; align-items:center; gap:.5rem; border-bottom:var(--bw) solid var(--fg); background:var(--bg); position:sticky; top:0; z-index:2; }
-    .aviso-close { position:absolute; top:.7rem; right:.9rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:var(--fg); opacity:.5; line-height:1; transition:opacity var(--tr); }
-    .aviso-close:hover { opacity:1; }
-    .aviso-logo { width:64px; height:64px; object-fit:contain; border-radius:10px; }
-    .aviso-badge { display:inline-flex; align-items:center; gap:.4rem; background:var(--accent); color:#fff; font-size:.7rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; padding:.3rem .8rem; border-radius:999px; }
-    .aviso-titulo { font-family:var(--fh); font-size:1.3rem; font-weight:800; text-align:center; line-height:1.2; margin-top:.2rem; }
-    .aviso-body { padding:1rem 1.4rem; flex:1; }
-    .aviso-media-wrap { width:100%; border-radius:calc(var(--br) - 4px); border:var(--bw) solid var(--fg); overflow:hidden; margin-bottom:1rem; background:#000; display:none; }
-    .aviso-media-wrap.visible { display:block; }
-    .aviso-media-img { display:block; width:100%; height:auto; max-height:55dvh; object-fit:contain; background:#000; }
-    .aviso-texto { font-size:.93rem; line-height:1.55; opacity:.88; margin-bottom:1rem; white-space:pre-line; text-align:center; }
-    .aviso-footer { padding:.8rem 1.4rem 1.2rem; background:var(--bg); position:sticky; bottom:0; border-top:var(--bw) solid var(--fg); }
-    .aviso-btn { display:block; width:100%; padding:.85rem; font-family:var(--fh); font-weight:800; font-size:.95rem; letter-spacing:.5px; text-transform:uppercase; background:var(--accent); color:#fff; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 6px); cursor:pointer; box-shadow:4px 4px 0 var(--fg); transition:transform .1s; }
-    .aviso-btn:active { transform:translate(2px,2px); box-shadow:2px 2px 0 var(--fg); }
-    @keyframes toastIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
-    @keyframes toastOut { to{transform:translateX(120%);opacity:0} }
-    @keyframes pulse { 0%{opacity:.4} 50%{opacity:1} 100%{opacity:.4} }
-    @media (max-width: 480px) { body { padding:.75rem; align-items:flex-start; } .app-container { padding:1.25rem; box-shadow:6px 6px 0 var(--fg); } .main-header { flex-direction:column; gap:1rem; } .live-status { width:100%; justify-content:center; } .toast-container { left:10px; right:10px; max-width:none; } .mobile-zoom-warning { display:flex; } .aula-iframe-container { height:50vh; } .aviso-card { max-width:100%; border-radius:calc(var(--br) - 2px); box-shadow:6px 6px 0 var(--fg); } .aviso-titulo { font-size:1.1rem; } .map-status-container iframe { height:170px; } }
-  </style>
-</head>
-<body>
-  <div class="overlay-texture" aria-hidden="true"></div>
-  <div id="toast-box-container" class="toast-container" aria-live="polite"></div>
+      /* ── DARK MODE ───────────────────────────────── */
+      html[data-theme="dark"] {
+        --bg: #14151a; --fg: #f2f2f0;
+        --accent: #6b8bff; --danger: #ff6b60;
+        --ok: #29e0a0; --warn: #ffb340;
+      }
+      html[data-theme="dark"] body              { background: var(--bg); }
+      html[data-theme="dark"] .app-container    { background: #1d1e24; box-shadow: var(--shadow); }
+      html[data-theme="dark"] .brand .badge     { background: var(--fg); color: #1d1e24; }
+      html[data-theme="dark"] .overlay-texture  {
+        background-image: radial-gradient(rgba(255,255,255,.04) 1px, transparent 0),
+                          linear-gradient(rgba(255,255,255,.02) 1px, transparent 0);
+      }
+      html[data-theme="dark"] input[type="text"],
+      html[data-theme="dark"] input[type="password"],
+      html[data-theme="dark"] input[type="tel"],
+      html[data-theme="dark"] select,
+      html[data-theme="dark"] textarea           { background: #14151a; color: var(--fg); }
+      html[data-theme="dark"] input:focus,
+      html[data-theme="dark"] select:focus       { background: #1d1e24; }
+      html[data-theme="dark"] .toast-card        { background: #1d1e24; color: var(--fg); }
+      html[data-theme="dark"] .map-caption,
+      html[data-theme="dark"] .geo-status-box.disabled { background: #14151a; }
+      html[data-theme="dark"] .aviso-card        { background: #1d1e24; color: var(--fg); }
+      html { transition: background-color .25s ease; }
+      body, .app-container, input, select, textarea, .toast-card {
+        transition: background-color var(--tr), color var(--tr), border-color var(--tr);
+      }
 
-  <!-- VENTANA EMERGENTE INSTITUCIONAL -->
-  <div id="aviso-overlay" role="dialog" aria-modal="true" aria-labelledby="aviso-titulo-txt">
-    <div class="aviso-card">
-      <div class="aviso-head">
-        <button type="button" class="aviso-close" id="aviso-close-x" aria-label="Cerrar aviso">✕</button>
-        <img id="aviso-logo-img" class="aviso-logo" src="https://grupocented.fyi/LOGO.png" alt="Logo institucional" />
-        <span class="aviso-badge">📣 Aviso Institucional</span>
-        <h2 class="aviso-titulo" id="aviso-titulo-txt">¡Tenemos un nuevo nombre!</h2>
-      </div>
-      <div class="aviso-body">
-        <div class="aviso-media-wrap" id="aviso-media-wrap">
-          <img id="aviso-media-img" class="aviso-media-img" src="" alt="Aviso" style="display:none;" />
+      /* ── LAYOUT ──────────────────────────────────── */
+      body {
+        background: var(--bg); color: var(--fg);
+        font-family: var(--fb); overflow-x: hidden;
+        min-height: 100vh; display: flex;
+        justify-content: center; align-items: center; padding: 2rem;
+      }
+      .overlay-texture {
+        position: fixed; inset: 0;
+        background-image: radial-gradient(rgba(0,0,0,.03) 1px, transparent 0),
+                          linear-gradient(rgba(13,13,13,.02) 1px, transparent 0);
+        background-size: 24px 24px; pointer-events: none; z-index: 999;
+      }
+      .app-container {
+        width: 100%; max-width: 720px; background: #fff;
+        border: var(--bw) solid var(--fg); border-radius: var(--br);
+        padding: 2.5rem; box-shadow: var(--shadow);
+        position: relative; z-index: 10;
+      }
+
+      /* ── VISTAS ──────────────────────────────────── */
+      .card-view { display: none; }
+      .card-view.active {
+        display: block;
+        animation: fadeIn .35s cubic-bezier(.19,1,.22,1) forwards;
+      }
+      @keyframes fadeIn { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+
+      /* ── HEADER ──────────────────────────────────── */
+      .main-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; }
+      .brand .badge { background:var(--fg); color:var(--bg); font-size:.75rem; font-weight:700; padding:.2rem .6rem; letter-spacing:2px; text-transform:uppercase; }
+      .brand h1 { font-family:var(--fh); font-size:1.8rem; font-weight:800; line-height:1.1; margin-top:.5rem; letter-spacing:-1px; }
+      .brand .subtitle { font-size:.85rem; letter-spacing:2px; text-transform:uppercase; opacity:.6; margin-top:.2rem; }
+      #brand-logo-img { display:none; max-width:64px; max-height:64px; margin:.4rem 0; }
+      .live-status { display:flex; align-items:center; gap:.5rem; font-variant-numeric:tabular-nums; font-weight:700; border:var(--bw) solid var(--fg); padding:.4rem .8rem; background:var(--bg); border-radius:calc(var(--br) - 4px); white-space:nowrap; }
+      .status-dot { width:8px; height:8px; background:var(--ok); border-radius:50%; animation:pulse 1.5s infinite; }
+      .editorial-line { border:none; height:var(--bw); background:var(--fg); margin-bottom:2.5rem; }
+
+      /* ── MENÚ ────────────────────────────────────── */
+      .menu-grid { display:flex; flex-direction:column; gap:1rem; }
+      .btn-retro {
+        background:none; border:var(--bw) solid var(--fg); padding:1.5rem;
+        display:flex; align-items:center; text-align:left; cursor:pointer;
+        font-family:var(--fb); color:var(--fg);
+        transition:all .3s cubic-bezier(.19,1,.22,1);
+        width:100%; text-decoration:none; border-radius:calc(var(--br) - 4px);
+      }
+      .btn-retro .btn-num  { font-family:var(--fh); font-size:1.2rem; margin-right:1.5rem; opacity:.4; transition:transform .3s; }
+      .btn-retro .btn-text { font-size:1.2rem; font-weight:700; flex-grow:1; }
+      .btn-retro .btn-arrow { font-size:1.5rem; transform:translateX(-10px); opacity:0; transition:all .3s cubic-bezier(.19,1,.22,1); }
+      .btn-retro:hover { background:var(--fg); color:var(--bg); transform:translateX(8px); }
+      .btn-retro:hover .btn-num   { transform:scale(1.2); opacity:1; color:var(--accent); }
+      .btn-retro:hover .btn-arrow { transform:translateX(0); opacity:1; }
+
+      /* ── FORMULARIOS ─────────────────────────────── */
+      .view-title { font-family:var(--fh); font-size:1.4rem; margin-bottom:2rem; text-transform:uppercase; letter-spacing:-.5px; }
+      .input-group { display:flex; flex-direction:column; gap:.5rem; margin-bottom:1.5rem; }
+      .input-group label { font-size:.9rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+      input[type="text"], input[type="password"], input[type="tel"], select, textarea {
+        width:100%; padding:1rem; font-family:var(--fb); font-size:1rem;
+        border:var(--bw) solid var(--fg); background:var(--bg); color:var(--fg);
+        outline:none; transition:all var(--tr); border-radius:calc(var(--br) - 4px);
+      }
+      input:focus, select:focus, textarea:focus {
+        background:#fff; box-shadow:4px 4px 0 var(--accent); border-color:var(--accent);
+      }
+      .helper-text { font-size:.8rem; opacity:.6; margin-top:.2rem; }
+
+      /* ── ALERTS ──────────────────────────────────── */
+      .alert-box {
+        padding:1rem; border:var(--bw) solid var(--fg); font-weight:700;
+        margin-bottom:1.5rem; text-transform:uppercase; font-size:.9rem;
+        display:none; border-radius:calc(var(--br) - 4px);
+      }
+      .alert-box.error   { background:#ffdad9; color:var(--danger); display:block; }
+      .alert-box.success { background:#d2fbe3; color:#007d4f; display:block; }
+      .alert-box.warning { background:#fff3cd; color:#856404; display:block; }
+      .alert-box.info    { background:#e8f0ff; color:var(--accent); display:block; }
+
+      /* ── BOTONES ─────────────────────────────────── */
+      .form-actions { display:flex; flex-direction:column; gap:.8rem; margin-top:2rem; }
+      .form-actions.row-layout { flex-direction:row; }
+      .btn-submit, .btn-back, .btn-danger, .btn-secondary {
+        padding:1rem; font-family:var(--fb); font-size:1rem; font-weight:700;
+        cursor:pointer; border:var(--bw) solid var(--fg);
+        text-transform:uppercase; letter-spacing:1px; transition:all var(--tr);
+        text-align:center; width:100%; display:block; border-radius:calc(var(--br) - 4px);
+      }
+      .btn-submit   { background:var(--accent); color:#fff; border-color:var(--accent); }
+      .btn-submit:hover:not(:disabled) { background:var(--fg); border-color:var(--fg); transform:translateY(-2px); }
+      .btn-submit:disabled { background:#ccc !important; border-color:#ccc !important; color:#666 !important; cursor:not-allowed; }
+      .btn-back     { background:transparent; color:var(--fg); }
+      .btn-back:hover { background:var(--bg); transform:translateY(-2px); }
+      .btn-danger   { background:var(--danger); color:#fff; border-color:var(--danger); flex:1; }
+      .btn-danger:hover { background:var(--fg); border-color:var(--fg); }
+      .btn-secondary { background:var(--bg); color:var(--fg); border-color:var(--fg); }
+      .btn-secondary:hover { background:var(--fg); color:var(--bg); }
+
+      /* ── TOGGLE SWITCH ───────────────────────────── */
+      .geo-toggle-row, .theme-toggle-row {
+        display:flex; align-items:center; justify-content:space-between;
+        padding:1rem; margin-bottom:1.5rem;
+        border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px);
+        background:var(--bg);
+      }
+      .theme-toggle-row { margin-bottom:1rem; }
+      .geo-toggle-label { font-size:.9rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+      .geo-toggle-label span, .theme-toggle-label { display:block; font-size:.75rem; font-weight:400; opacity:.6; text-transform:none; margin-top:.2rem; }
+      .theme-toggle-label { font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:.5rem; }
+      .toggle-switch { position:relative; width:52px; height:28px; cursor:pointer; flex-shrink:0; }
+      .toggle-switch input { opacity:0; width:0; height:0; }
+      .toggle-slider {
+        position:absolute; inset:0; background:#ccc;
+        border-radius:28px; border:var(--bw) solid var(--fg); transition:background .3s;
+      }
+      .toggle-slider::before {
+        content:""; position:absolute; width:20px; height:20px;
+        left:2px; top:2px; background:#fff; border-radius:50%;
+        transition:transform .3s; border:1px solid #ccc;
+      }
+      .toggle-switch input:checked + .toggle-slider { background:var(--ok); border-color:#007d4f; }
+      .toggle-switch input:checked + .toggle-slider::before { transform:translateX(24px); }
+
+      /* ── GEO STATUS ──────────────────────────────── */
+      .geo-status-box {
+        display:flex; align-items:center; gap:.8rem; padding:.9rem 1rem;
+        margin-bottom:1.5rem; border:var(--bw) solid var(--fg);
+        border-radius:calc(var(--br) - 4px); font-size:.88rem; font-weight:700;
+      }
+      .geo-status-box.checking { background:#fff3cd; border-color:var(--warn); color:#856404; }
+      .geo-status-box.ok       { background:#d2fbe3; border-color:var(--ok); color:#007d4f; }
+      .geo-status-box.fail     { background:#ffdad9; border-color:var(--danger); color:var(--danger); }
+      .geo-status-box.disabled { background:var(--bg); border-color:#aaa; color:#666; }
+      .geo-dot { font-size:1.2rem; flex-shrink:0; }
+
+      /* ── MAPA ────────────────────────────────────── */
+      .map-status-container {
+        border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px);
+        overflow:hidden; margin-bottom:1.5rem; box-shadow:4px 4px 0 var(--fg);
+      }
+      .map-caption {
+        padding:.6rem 1rem; font-size:.78rem; font-weight:700;
+        text-transform:uppercase; letter-spacing:.5px;
+        background:var(--bg); border-bottom:var(--bw) solid var(--fg);
+      }
+      .map-status-container iframe { width:100%; height:220px; border:none; display:block; }
+
+      /* ── PANEL DOCENTE ───────────────────────────── */
+      .registros-container { max-height:220px; overflow-y:auto; border:var(--bw) solid var(--fg); margin-bottom:1.5rem; background:var(--bg); border-radius:calc(var(--br) - 4px); }
+      .registro-item { padding:1rem; border-bottom:var(--bw) solid var(--fg); font-size:.9rem; }
+      .registro-item:last-child { border-bottom:none; }
+      .hidden-panel { display:none; }
+      .hidden-panel.visible { display:block; animation:slideDown .4s ease forwards; }
+      .excel-embed-container { width:100%; height:380px; border:var(--bw) solid var(--fg); box-shadow:4px 4px 0 var(--fg); margin-bottom:1.5rem; background:#fff; overflow-y:auto; border-radius:calc(var(--br) - 4px); }
+      .stats-counter-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem; }
+      .stat-box { border:var(--bw) solid var(--fg); padding:1.5rem 1rem; text-align:center; background:var(--bg); border-radius:calc(var(--br) - 4px); }
+      .stat-box .stat-num { display:block; font-family:var(--fh); font-size:2.8rem; font-weight:800; line-height:1; margin-bottom:.5rem; }
+      .stat-box .stat-label { font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:.7; }
+      .brand-panel-title { font-family:var(--fh); font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; }
+      .brand-step { border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); padding:1rem; margin-bottom:1rem; background:var(--bg); }
+      .brand-step-label { display:flex; align-items:center; gap:.5rem; font-weight:700; text-transform:uppercase; font-size:.85rem; margin-bottom:.6rem; }
+      .brand-step-num { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:var(--accent); color:#fff; font-size:.75rem; font-weight:800; flex-shrink:0; }
+      .brand-preview-img   { max-width:120px; max-height:120px; border:var(--bw) solid var(--fg); border-radius:8px; margin-top:.6rem; display:none; object-fit:cover; }
+      .brand-preview-banner{ max-width:100%; max-height:220px; border:var(--bw) solid var(--fg); border-radius:8px; margin-top:.6rem; display:none; object-fit:cover; }
+      .brand-status-msg { font-size:.8rem; padding:.6rem .8rem; border-radius:8px; margin-bottom:1rem; display:none; }
+      .brand-status-msg.ok   { display:block; background:rgba(0,199,129,.12); color:var(--ok); border:1px solid var(--ok); }
+      .brand-status-msg.warn { display:block; background:rgba(255,149,0,.12); color:var(--warn); border:1px solid var(--warn); }
+
+      /* ── TOAST ───────────────────────────────────── */
+      .toast-container { position:fixed; top:20px; right:20px; z-index:10000; display:flex; flex-direction:column; gap:10px; max-width:320px; }
+      .toast-card { background:#fff; color:var(--fg); border:var(--bw) solid var(--fg); box-shadow:4px 4px 0 var(--fg); padding:1rem; font-family:var(--fb); font-size:.9rem; font-weight:700; animation:toastIn .3s cubic-bezier(.19,1,.22,1) forwards; border-radius:calc(var(--br) - 4px); }
+      .toast-card.success { border-color:var(--ok);     box-shadow:4px 4px 0 var(--ok); }
+      .toast-card.info    { border-color:var(--accent);  box-shadow:4px 4px 0 var(--accent); }
+      .toast-card.warning { border-color:var(--warn);   box-shadow:4px 4px 0 var(--warn); }
+
+      /* ── IFRAME AULA ─────────────────────────────── */
+      .aula-iframe-container { width:100%; height:80vh; overflow:hidden; border-radius:8px; }
+      .aula-iframe-container iframe { width:100%; height:100%; border:none; }
+
+      /* ── HONEYPOT ────────────────────────────────── */
+      .hp-field { position:absolute!important; left:-9999px!important; top:-9999px!important; width:1px!important; height:1px!important; overflow:hidden!important; opacity:0!important; pointer-events:none!important; }
+
+      /* ── MOBILE WARNING ──────────────────────────── */
+      .mobile-zoom-warning { display:none; background:#fff3cd; border:var(--bw) solid var(--fg); padding:1rem; margin-bottom:1.5rem; font-size:.85rem; gap:.8rem; align-items:center; box-shadow:4px 4px 0 var(--fg); border-radius:calc(var(--br) - 4px); }
+
+      /* ── VENTANA EMERGENTE INSTITUCIONAL ── */
+      #aviso-overlay {
+        position:fixed; inset:0; background:rgba(13,13,13,.6);
+        display:none; align-items:center; justify-content:center;
+        z-index:20000; padding:1rem; backdrop-filter:blur(3px);
+      }
+      #aviso-overlay.visible { display:flex; }
+      .aviso-card {
+        position:relative; background:var(--bg); color:var(--fg);
+        border:var(--bw) solid var(--fg); border-radius:var(--br);
+        box-shadow:10px 10px 0 var(--fg); width:100%; max-width:480px;
+        max-height:92dvh; overflow-y:auto; padding:0;
+        font-family:var(--fb); animation:avisoIn .3s cubic-bezier(.19,1,.22,1) forwards;
+        display:flex; flex-direction:column;
+      }
+      @keyframes avisoIn { from{transform:scale(.9) translateY(20px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+      .aviso-head { padding:1.4rem 1.4rem .8rem; display:flex; flex-direction:column; align-items:center; gap:.5rem; border-bottom:var(--bw) solid var(--fg); background:var(--bg); position:sticky; top:0; z-index:2; }
+      .aviso-close { position:absolute; top:.7rem; right:.9rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:var(--fg); opacity:.5; line-height:1; transition:opacity var(--tr); }
+      .aviso-close:hover { opacity:1; }
+      .aviso-logo { width:64px; height:64px; object-fit:contain; border-radius:10px; }
+      .aviso-badge { display:inline-flex; align-items:center; gap:.4rem; background:var(--accent); color:#fff; font-size:.7rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; padding:.3rem .8rem; border-radius:999px; }
+      .aviso-titulo { font-family:var(--fh); font-size:1.3rem; font-weight:800; text-align:center; line-height:1.2; margin-top:.2rem; }
+      .aviso-body { padding:1rem 1.4rem; flex:1; }
+      .aviso-media-wrap { width:100%; border-radius:calc(var(--br) - 4px); border:var(--bw) solid var(--fg); overflow:hidden; margin-bottom:1rem; background:#000; display:none; }
+      .aviso-media-wrap.visible { display:block; }
+      .aviso-media-img { display:block; width:100%; height:auto; max-height:55dvh; object-fit:contain; background:#000; }
+      .aviso-media-img.portrait { max-height:70dvh; }
+      .aviso-media-video { display:block; width:100%; max-height:55dvh; background:#000; border-radius:0; }
+      .aviso-media-iframe { width:100%; aspect-ratio:16/9; border:none; display:block; border-radius:0; }
+      .aviso-media-iframe.portrait-frame { aspect-ratio:9/16; max-height:60dvh; }
+      .aviso-texto { font-size:.93rem; line-height:1.55; opacity:.88; margin-bottom:1rem; white-space:pre-line; text-align:center; }
+      .aviso-footer { padding:.8rem 1.4rem 1.2rem; background:var(--bg); position:sticky; bottom:0; border-top:var(--bw) solid var(--fg); }
+      .aviso-btn { display:block; width:100%; padding:.85rem; font-family:var(--fh); font-weight:800; font-size:.95rem; letter-spacing:.5px; text-transform:uppercase; background:var(--accent); color:#fff; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 6px); cursor:pointer; box-shadow:4px 4px 0 var(--fg); transition:transform .1s; }
+      .aviso-btn:active { transform:translate(2px,2px); box-shadow:2px 2px 0 var(--fg); }
+
+      @keyframes toastIn    { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+      @keyframes toastOut   { to{transform:translateX(120%);opacity:0} }
+      @keyframes pulse      { 0%{opacity:.4} 50%{opacity:1} 100%{opacity:.4} }
+      @keyframes slideDown  { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+
+      @media (max-width: 480px) {
+        body { padding:.75rem; align-items:flex-start; }
+        .app-container { padding:1.25rem; box-shadow:6px 6px 0 var(--fg); }
+        .main-header { flex-direction:column; gap:1rem; }
+        .live-status { width:100%; justify-content:center; }
+        .form-actions.row-layout { flex-direction:column; }
+        .toast-container { left:10px; right:10px; max-width:none; }
+        .mobile-zoom-warning { display:flex; }
+        .aula-iframe-container { height:50vh; }
+        .stats-counter-grid { gap:.8rem; }
+        .aviso-card { max-width:100%; border-radius:calc(var(--br) - 2px); box-shadow:6px 6px 0 var(--fg); }
+        .aviso-titulo { font-size:1.1rem; }
+        .map-status-container iframe { height:170px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="overlay-texture" aria-hidden="true"></div>
+    <div id="toast-box-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- VENTANA EMERGENTE INSTITUCIONAL -->
+    <div id="aviso-overlay" role="dialog" aria-modal="true" aria-labelledby="aviso-titulo-txt">
+      <div class="aviso-card">
+        <div class="aviso-head">
+          <button type="button" class="aviso-close" id="aviso-close-x" aria-label="Cerrar aviso">✕</button>
+          <img id="aviso-logo-img" class="aviso-logo" src="https://grupocented.fyi/LOGO.png" alt="Logo institucional" />
+          <span class="aviso-badge">📣 Aviso Institucional</span>
+          <h2 class="aviso-titulo" id="aviso-titulo-txt">¡Tenemos un nuevo nombre!</h2>
         </div>
-        <p class="aviso-texto" id="aviso-texto-txt">A partir de hoy, <strong>Grupo Cented</strong> pasa a ser <strong>Grupo Cented Academy Pro Education</strong>. Seguimos siendo el mismo equipo, la misma comunidad — solo con una nueva identidad.</p>
+        <div class="aviso-body">
+          <div class="aviso-media-wrap" id="aviso-media-wrap"></div>
+          <p class="aviso-texto" id="aviso-texto-txt">A partir de hoy, <strong>Grupo Cented</strong> pasa a ser <strong>Grupo Cented Academy Pro Education</strong>. Seguimos siendo el mismo equipo, la misma comunidad — solo con una nueva identidad.</p>
+        </div>
+        <div class="aviso-footer">
+          <button type="button" class="aviso-btn" id="aviso-btn-continuar">Entendido, continuar</button>
+        </div>
       </div>
-      <div class="aviso-footer">
-        <button type="button" class="aviso-btn" id="aviso-btn-continuar">Entendido, continuar</button>
-      </div>
+    </div>
+
+   <!-- MODAL DE AUTORIZACIÓN DOCENTE PARA MOSTRAR CLAVE -->
+<div id="modal-auth-clave" style="display:none; position:fixed; inset:0; background:rgba(13,13,13,.75); z-index:25000; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(3px);">
+  <div class="aviso-card" style="max-width:420px; padding:1.5rem; text-align:left;">
+    <h3 style="font-family:var(--fh); font-size:1.2rem; margin-bottom:.5rem;">🔒 Autorización Docente</h3>
+    <p style="font-size:.88rem; opacity:.85; margin-bottom:1rem;" id="modal-auth-student-name">
+      Ingresa la clave del docente para consultar la Clave Única de este estudiante:
+    </p>
+    <div class="input-group" style="margin-bottom:1rem;">
+      <label for="auth-admin-pass">Clave de Seguridad *</label>
+      <input type="password" id="auth-admin-pass" placeholder="••••" autocomplete="off" />
+    </div>
+    <div id="alertAuthClave" class="alert-box"></div>
+    <div class="form-actions row-layout" style="margin-top:1rem;">
+      <button type="button" id="btn-confirm-auth-clave" class="btn-submit" style="padding:.8rem;">✓ Confirmar</button>
+      <button type="button" id="btn-cancel-auth-clave" class="btn-back" style="padding:.8rem;">✕ Cancelar</button>
     </div>
   </div>
+</div>
 
-  <main class="app-container">
-    <div class="mobile-zoom-warning">
-      <span>📱</span>
-      <p><strong>¿Se ve muy grande?</strong> Activa la <strong>"Vista de computadora"</strong> en los 3 puntos de tu navegador.</p>
-    </div>
-
-    <header class="main-header">
-      <div class="brand">
-        <span class="badge">出席 AULA DIGITAL + ASISTENCIA</span>
-        <h1 id="brand-title-text">GRUPO CENTED ACADEMY PRO EDUCATION</h1>
-        <p class="subtitle">DEPARTAMENTO DE SISTEMAS INFORMÁTICOS</p>
-      </div>
-      <div class="live-status">
-        <span class="status-dot"></span>
-        <span id="live-clock">00:00:00 PM</span>
-      </div>
-    </header>
-
-    <hr class="editorial-line" />
-
-    <!-- ── MENÚ PRINCIPAL ──────────────────────────── -->
-    <section id="view-menu" class="card-view active">
-      <div class="theme-toggle-row">
-        <span class="theme-toggle-label"><span id="theme-icon">🌙</span> Modo Oscuro</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="theme-toggle-input" />
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="menu-grid">
-        <button type="button" class="btn-retro" id="btn-menu-register">
-          <span class="btn-num">01</span>
-          <span class="btn-text">Registrar Asistencia</span>
-          <span class="btn-arrow">→</span>
-        </button>
-        <button type="button" class="btn-retro" id="btn-menu-keygen">
-          <span class="btn-num">02</span>
-          <span class="btn-text">Generar Mi Clave Única</span>
-          <span class="btn-arrow">→</span>
-        </button>
-        <a class="btn-retro" href="https://maualvarado1101.wixsite.com/my-site-1" target="_blank" rel="noopener noreferrer">
-          <span class="btn-num">03</span>
-          <span class="btn-text">Ir al Aula Digital</span>
-          <span class="btn-arrow">↗</span>
-        </a>
-      </div>
-      
-      <!-- IFRAME AULA DIGITAL WIX -->
-      <div class="aula-iframe-container" style="margin-top:1.5rem;">
-        <iframe src="https://maualvarado1101.wixsite.com/my-site-1" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" loading="lazy" title="Aula Digital Grupo Cented Academy Pro Education"></iframe>
-      </div>
-      
-      <p style="font-size:.8rem;opacity:.45;margin-top:1.2rem;text-align:center;">
-        © 2026 Tec. Mauricio Alvarado · Depto. Sistemas Informáticos · Grupo Cented Academy Pro Education
-      </p>
-    </section>
-
-    <!-- ── REGISTRAR ASISTENCIA ────────────────────── -->
-    <section id="view-register" class="card-view">
-      <h2 class="view-title">【 登録 】 Registrar Asistencia</h2>
-      <div id="geo-status-box" class="geo-status-box checking">
-        <span class="geo-dot">📍</span>
-        <span id="geo-status-text">Verificando ubicación...</span>
-      </div>
-      <div class="map-status-container">
-        <div class="map-caption">📍 Ubicación del CENTED — debes estar a máx. 1 km</div>
-        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3876.0268373300473!2d-89.10019229999999!3d13.716824399999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f6337fb4732f1a9%3A0x274444715eeeaab5!2sCENTED!5e0!3m2!1sen!2ssv!4v1785780891511!5m2!1sen!2ssv" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="Mapa CENTED"></iframe>
+    <!-- APP PRINCIPAL -->
+    <main class="app-container">
+      <div class="mobile-zoom-warning">
+        <span>📱</span>
+        <p><strong>¿Se ve muy grande?</strong> Activa la <strong>"Vista de computadora"</strong> en los 3 puntos de tu navegador.</p>
       </div>
 
-      <div id="alertRegistro" class="alert-box"></div>
-      <form id="form-register">
-        <div class="hp-field" aria-hidden="true">
-          <label for="reg-website">Sitio web</label>
-          <input type="text" id="reg-website" name="website" tabindex="-1" autocomplete="off" />
+      <header class="main-header">
+        <div class="brand">
+          <span class="badge">出席 AULA DIGITAL + ASISTENCIA</span>
+          <img id="brand-logo-img" alt="" />
+          <h1 id="brand-title-text">GRUPO CENTED ACADEMY PRO EDUCATION</h1>
+          <p class="subtitle">DEPARTAMENTO DE SISTEMAS INFORMÁTICOS</p>
         </div>
-        <div class="input-group">
-          <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
-          <input type="password" id="reg-key" maxlength="4" placeholder="Ej: F2BQ" required autocomplete="off" style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;" />
-          <small class="helper-text" style="color:var(--accent);">💡 ¿Olvidaste tu clave? Pídele a tu docente que la revise en su plataforma (EVA-DOC).</small>
+        <div class="live-status">
+          <span class="status-dot"></span>
+          <span id="live-clock">00:00:00 PM</span>
         </div>
-        <input type="hidden" id="reg-teacher" value="" />
+      </header>
+
+      <hr class="editorial-line" />
+
+      <!-- ── MENÚ ────────────────────────────────── -->
+      <section id="view-menu" class="card-view active">
+        <div class="theme-toggle-row">
+          <span class="theme-toggle-label"><span id="theme-icon">🌙</span> Modo Oscuro</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="theme-toggle-input" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="menu-grid">
+          <button type="button" class="btn-retro" id="btn-menu-register">
+            <span class="btn-num">01</span>
+            <span class="btn-text">Registrar Asistencia</span>
+            <span class="btn-arrow">→</span>
+          </button>
+          <button type="button" class="btn-retro" id="btn-menu-keygen">
+            <span class="btn-num">02</span>
+            <span class="btn-text">Generar Mi Clave Única</span>
+            <span class="btn-arrow">→</span>
+          </button>
+          <button type="button" class="btn-retro" id="btn-menu-teacher">
+            <span class="btn-num">03</span>
+            <span class="btn-text">Ver Registros (Docente)</span>
+            <span class="btn-arrow">→</span>
+          </button>
+          <a class="btn-retro" href="https://maualvarado1101.wixsite.com/my-site-1" target="_blank" rel="noopener noreferrer">
+            <span class="btn-num">04</span>
+            <span class="btn-text">Ir al Aula Digital</span>
+            <span class="btn-arrow">↗</span>
+          </a>
+        </div>
+        <div class="aula-iframe-container" style="margin-top:1.5rem;">
+          <iframe src="https://maualvarado1101.wixsite.com/my-site-1"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+            loading="lazy" title="Aula Digital Grupo Cented Academy Pro Education">
+          </iframe>
+        </div>
+        <p style="font-size:.8rem;opacity:.45;margin-top:1.2rem;text-align:center;">
+          © 2026 Tec. Mauricio Alvarado · Depto. Sistemas Informáticos · Grupo Cented Academy Pro Education
+        </p>
+        <p style="font-size:.8rem;opacity:.45;margin-top:1.2rem;text-align:center;">
+          <a href="https://maualvarado1101.wixsite.com/cented" target="_blank" rel="noopener noreferrer">
+            Política de privacidad y tratamiento de datos
+          </a>
+        </p>
+      </section>
+
+      <!-- ── REGISTRAR ASISTENCIA ───────────────── -->
+      <section id="view-register" class="card-view">
+        <h2 class="view-title">【 登録 】 Registrar Asistencia</h2>
+        <div id="geo-status-box" class="geo-status-box checking">
+          <span class="geo-dot">📍</span>
+          <span id="geo-status-text">Verificando ubicación...</span>
+        </div>
+        <div class="map-status-container">
+          <div class="map-caption">📍 Ubicación del CENTED — debes estar a máx. 1 km</div>
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3876.0268373300473!2d-89.10019229999999!3d13.716824399999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f6337fb4732f1a9%3A0x274444715eeeaab5!2sCENTED!5e0!3m2!1sen!2ssv!4v1785780891511!5m2!1sen!2ssv"
+            loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="Mapa CENTED"></iframe>
+        </div>
+
+        <!-- LISTADO DE NOMBRES PARA CONSULTAR/RECORDAR CLAVE ÚNICA -->
         <div class="input-group">
-          <label for="reg-group">Grupo *</label>
-          <select id="reg-group" required>
-            <option value="" disabled selected>-- Selecciona --</option>
-            <option value="Mañana">Mañana</option>
-            <option value="Tarde">Tarde</option>
+          <label for="reg-student-select">💡 ¿Olvidaste tu Clave Única? Busca tu Nombre:</label>
+          <select id="reg-student-select">
+            <option value="" selected>-- Selecciona tu Nombre para recordar clave --</option>
           </select>
+          <small class="helper-text">Requiere autorización docente para mostrar la Clave Única.</small>
         </div>
 
-        <input type="hidden" id="firma-valor" value="" />
-
-        <div class="form-actions">
-          <button type="submit" id="btnRegistrar" class="btn-submit">✓ Enviar Asistencia</button>
-          <button type="button" class="btn-back" id="btn-back-register">← Volver</button>
-        </div>
-      </form>
-    </section>
-
-    <!-- ── GENERAR CLAVE ───────────────────────────── -->
-    <section id="view-keygen" class="card-view">
-      <h2 class="view-title">【 鍵作成 】 Generar Mi Clave</h2>
-      <div id="alertGenerarClave" class="alert-box"></div>
-      <form id="form-keygen">
-        <div class="hp-field" aria-hidden="true">
-          <label for="gen-website">Sitio web</label>
-          <input type="text" id="gen-website" name="website" tabindex="-1" autocomplete="off" />
-        </div>
-        <div class="input-group">
-          <label for="gen-name">Nombre Completo *</label>
-          <input type="text" id="gen-name" placeholder="Ej: Tatiana Abigail Flores Ortiz" required autocomplete="off" />
-          <small class="helper-text">Nombre y al menos un apellido, mayúscula inicial en cada palabra.</small>
-        </div>
-        <div class="input-group">
-          <label for="gen-teacher">Docente Principal *</label>
-          <select id="gen-teacher" required>
-            <option value="" disabled selected>-- Selecciona tu Docente --</option>
-            <option value="Mauricio Alvarado">Mauricio Alvarado</option>
-            <option value="Wilfredo Pineda">Wilfredo Pineda</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label for="gen-phone">Teléfono <span style="opacity:.5;font-weight:400;text-transform:none;">(opcional)</span></label>
-          <input type="tel" id="gen-phone" maxlength="9" placeholder="Ej: 7123-4567" autocomplete="off" inputmode="numeric" />
-        </div>
-        <div class="input-group">
-          <label for="gen-email">Correo Electrónico <span style="opacity:.5;font-weight:400;text-transform:none;">(opcional)</span></label>
-          <input type="text" id="gen-email" placeholder="Ej: nombre@correo.com" autocomplete="off" />
-        </div>
-        <div class="input-group">
-          <label for="gen-birthday">Cumpleaños DD/MM</label>
-          <input type="text" id="gen-birthday" maxlength="5" placeholder="Ej: 15/08" autocomplete="off" inputmode="numeric" />
-        </div>
-        
-        <div id="claveGeneradaContainer" style="display:none;margin-top:1.5rem;margin-bottom:1.5rem;">
-          <div class="alert-box success" style="display:block;margin-bottom:.5rem;">🎉 ¡Clave lista! Guárdala, es permanente:</div>
-          <div class="stat-box" id="claveCapturaArea" style="padding:1rem;background:#fff;border:var(--bw) solid var(--fg);text-align:center;border-radius:12px;">
-            <span id="codGenerado" style="font-family:var(--fh);font-size:2.5rem;font-weight:800;color:var(--accent);letter-spacing:8px;"></span>
+        <div id="alertRegistro" class="alert-box"></div>
+        <form id="form-register">
+          <div class="hp-field" aria-hidden="true">
+            <label for="reg-website">Sitio web</label>
+            <input type="text" id="reg-website" name="website" tabindex="-1" autocomplete="off" />
           </div>
-          <button type="button" id="btn-guardar-clave-captura" class="btn-secondary" style="margin-top:.8rem;">📸 Guardar Clave (Captura)</button>
-        </div>
-        <div class="form-actions">
-          <button type="submit" id="btnGenerar" class="btn-submit">🔒 Generar Mi Clave Permanente</button>
-          <button type="button" class="btn-back" id="btn-back-keygen">← Volver</button>
-        </div>
-      </form>
-    </section>
+          <div class="input-group">
+            <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
+            <input type="password" id="reg-key" maxlength="4" placeholder="Ej: F2BQ" required autocomplete="off"
+              style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;" />
+          </div>
+          <input type="hidden" id="reg-teacher" value="" />
+          <div class="input-group">
+            <label for="reg-group">Grupo *</label>
+            <select id="reg-group" required>
+              <option value="" disabled selected>-- Selecciona --</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+            </select>
+          </div>
 
-  </main>
+          <input type="hidden" id="firma-valor" value="" />
 
-  <script src="script.js"></script>
-  <script src="rebranding.js"></script>
-</body>
+          <div class="form-actions">
+            <button type="submit" id="btnRegistrar" class="btn-submit">✓ Enviar Asistencia</button>
+            <button type="button" class="btn-back" id="btn-back-register">← Volver</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ── GENERAR CLAVE ───────────────────────── -->
+      <section id="view-keygen" class="card-view">
+        <h2 class="view-title">【 鍵作成 】 Generar Mi Clave</h2>
+        <div id="alertGenerarClave" class="alert-box"></div>
+        <form id="form-keygen">
+          <div class="hp-field" aria-hidden="true">
+            <label for="gen-website">Sitio web</label>
+            <input type="text" id="gen-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+          <div class="input-group">
+            <label for="gen-name">Nombre Completo *</label>
+            <input type="text" id="gen-name" placeholder="Ej: Tatiana Abigail Flores Ortiz" required autocomplete="off" />
+            <small class="helper-text">Nombre y al menos un apellido, mayúscula inicial en cada palabra.</small>
+          </div>
+          <div class="input-group">
+            <label for="gen-teacher">Docente Principal *</label>
+            <select id="gen-teacher" required>
+              <option value="" disabled selected>-- Selecciona tu Docente --</option>
+              <option value="Mauricio Alvarado">Mauricio Alvarado</option>
+              <option value="Wilfredo Pineda">Wilfredo Pineda</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="gen-phone">Teléfono <span style="opacity:.5;font-weight:400;text-transform:none;">(opcional)</span></label>
+            <input type="tel" id="gen-phone" maxlength="9" placeholder="Ej: 7123-4567" autocomplete="off" inputmode="numeric" />
+            <small class="helper-text">8 dígitos. Si lo omites, se guardará como "---".</small>
+          </div>
+          <div class="input-group">
+            <label for="gen-email">Correo Electrónico <span style="opacity:.5;font-weight:400;text-transform:none;">(opcional)</span></label>
+            <input type="text" id="gen-email" placeholder="Ej: nombre@correo.com" autocomplete="off" />
+            <small class="helper-text">Si lo omites, se guardará como "---".</small>
+          </div>
+          <div class="input-group">
+            <label for="gen-birthday">Cumpleaños DD/MM</label>
+            <input type="text" id="gen-birthday" maxlength="5" placeholder="Ej: 15/08" autocomplete="off" inputmode="numeric" />
+            <small class="helper-text">es obligacion al menos que sea menor de edad pida asistencia a su docente</small>
+          </div>
+          <details style="margin-bottom:1rem;">
+            <summary style="font-size:.82rem;font-weight:700;cursor:pointer;opacity:.65;text-transform:uppercase;letter-spacing:1px;">
+              ¿Tienes un código de excepción?
+            </summary>
+            <div class="input-group" style="margin-top:.6rem;margin-bottom:0;">
+              <label for="gen-override">Código de excepción</label>
+              <input type="password" id="gen-override" placeholder="Solo si el docente te lo proporcionó" autocomplete="off" />
+              <small class="helper-text">Permite omitir ciertas validaciones. Déjalo en blanco si no lo tienes.</small>
+            </div>
+          </details>
+          <div id="claveGeneradaContainer" style="display:none;margin-top:1.5rem;margin-bottom:1.5rem;">
+            <div class="alert-box success" style="display:block;margin-bottom:.5rem;">🎉 ¡Clave lista! Guárdala, es permanente:</div>
+            <div class="stat-box" id="claveCapturaArea" style="padding:1rem;background:#fff;">
+              <span id="codGenerado" style="font-family:var(--fh);font-size:2.5rem;font-weight:800;color:var(--accent);letter-spacing:8px;"></span>
+            </div>
+            <button type="button" id="btn-guardar-clave-captura" class="btn-secondary" style="margin-top:.8rem;">📸 Guardar Clave (Captura)</button>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="btnGenerar" class="btn-submit">🔒 Generar Mi Clave Permanente</button>
+            <button type="button" class="btn-back" id="btn-back-keygen">← Volver</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ── PANEL DOCENTE ──────────────────────── -->
+      <section id="view-teacher" class="card-view">
+        <h2 class="view-title">【 管理 】 Panel del Docente</h2>
+        <div id="alertVerRegistros" class="alert-box"></div>
+        <form id="teacher-auth">
+          <div class="hp-field" aria-hidden="true">
+            <label for="teacher-website">Sitio web</label>
+            <input type="text" id="teacher-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+          <div class="input-group">
+            <label for="teacher-password">Clave de Validación Docente *</label>
+            <input type="password" id="teacher-password" placeholder="••••••" required autocomplete="off" />
+            <small class="helper-text">La clave cambia cada día. Revisa tu correo para obtenerla.</small>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="btnAccederRegistros" class="btn-submit">🔓 Entrar</button>
+            <button type="button" class="btn-back" id="btn-back-teacher">← Volver</button>
+          </div>
+        </form>
+        <div id="teacher-dashboard" class="hidden-panel"></div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+    <!-- [ACTUALIZADO] marca y aviso desde EVA-DOC (Config & Marca) -->
+    <script src="rebranding.js" defer></script>
+  </body>
 </html>
