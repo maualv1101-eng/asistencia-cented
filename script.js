@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRETwXEmmZEDquMDQ5fcCe43_GOGFaHEewi_KGOJHI6mfH_Tc5WUxn-qiRe6JHW2d5/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNt3oBOHP2yjysmXCoe9TuKRa6DLhSw4D1NAqCCqjscrJQOriZpAKNg3Rdl4avQwnU/exec";
 
 const CENTED_LAT = 13.716795758900204;
 const CENTED_LNG = -89.1001956388224;
@@ -128,10 +128,18 @@ function irAlInicioDePagina() { window.scrollTo({ top:0, left:0, behavior:"smoot
 
 // ── Geolocalización ───────────────────────
 function obtenerEstadoGeoGlobal() {
-  return fetch(SCRIPT_URL + "?action=obtener_geo_estado")
+  return fetch(SCRIPT_URL + "?action=obtener_geo_estado&_=" + Date.now(), { cache: "no-store" })
     .then(function(res) { return res.json(); })
-    .then(function(data) { geoActiva = data.geo_activa !== false; return geoActiva; })
-    .catch(function() { geoActiva = true; return true; });
+    .then(function(data) {
+      if (!data || typeof data.geo_activa !== "boolean") throw new Error("Estado GPS inválido");
+      geoActiva = data.geo_activa;
+      return geoActiva;
+    })
+    .catch(function() {
+      // Cierre seguro: si el servidor no responde, no se omite el control GPS.
+      geoActiva = true;
+      return true;
+    });
 }
 
 function actualizarGeoUI(estado, texto) {
