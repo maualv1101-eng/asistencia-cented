@@ -1,13 +1,12 @@
 /* ================================================================
-   rebranding.js (v3) — AULA DIGITAL
+   rebranding.js (v4) — AULA DIGITAL
    Lee la marca y el aviso emergente que se configuran en EVA-DOC
    (pestaña "Config & Marca"). Sin contraseña y sin panel propio.
 
    - Aplica título, eslogan y logo institucional.
    - Muestra el aviso emergente SOLO si está activo en EVA-DOC.
-   - El aviso aparece UNA vez por visitante y por versión: no vuelve
-     a aparecer al recargar, salvo que el docente cambie el aviso o
-     lo reactive (eso cambia "aviso_version").
+   - El aviso aparece una vez por sesión y versión; se vuelve a consultar
+     sin caché al entrar y cambia de versión cuando se edita o reactiva.
    Requiere: SCRIPT_URL (declarado en script.js) y los ids del index.
    ================================================================ */
 (function () {
@@ -15,7 +14,7 @@
 
   var DEFAULT_TITLE = "GRUPO CENTED ACADEMY PRO EDUCATION";
   var DEFAULT_SLOGAN = "DEPARTAMENTO DE SISTEMAS INFORMÁTICOS";
-  var KEY_PREFIX = "cented_aviso_visto_";
+  var KEY_PREFIX = "cented_aviso_sesion_";
 
   function $(id) { return document.getElementById(id); }
 
@@ -24,11 +23,11 @@
   }
 
   function leerVisto(version) {
-    try { return localStorage.getItem(KEY_PREFIX + version) === "1"; } catch (e) { return false; }
+    try { return sessionStorage.getItem(KEY_PREFIX + version) === "1"; } catch (e) { return false; }
   }
 
   function marcarVisto(version) {
-    try { localStorage.setItem(KEY_PREFIX + version, "1"); } catch (e) { /* navegador sin almacenamiento */ }
+    try { sessionStorage.setItem(KEY_PREFIX + version, "1"); } catch (e) { /* navegador sin almacenamiento */ }
   }
 
   function aplicarMarca(m) {
@@ -47,6 +46,7 @@
   }
 
   function construirMedia(m, wrap) {
+    if (!wrap) return;
     wrap.innerHTML = "";
     wrap.classList.remove("visible");
     var tipo = m.aviso_tipo_media || "";
@@ -100,8 +100,8 @@
     var ov = $("aviso-overlay");
     if (!ov) return;
 
-    $("aviso-titulo-txt").textContent = m.aviso_titulo || "Aviso institucional";
-    $("aviso-texto-txt").textContent = m.aviso_texto || "";
+    var titulo = $("aviso-titulo-txt"); if (titulo) titulo.textContent = m.aviso_titulo || "Aviso institucional";
+    var texto = $("aviso-texto-txt"); if (texto) texto.textContent = m.aviso_texto || "";
 
     var logo = $("aviso-logo-img");
     if (logo) {
@@ -126,24 +126,33 @@
     ov.classList.add("visible");
   }
 
-  function procesarAviso(m) {
-    if (!m.aviso_activo) return;
-    var version = m.aviso_version || ((m.aviso_titulo || "") + "|" + (m.aviso_texto || "")).slice(0, 120);
-    if (leerVisto(version)) return;
-    setTimeout(function () { mostrarAviso(m, version); }, 600);
+  function valorActivo(value) {
+    return value === true || value === 1 || String(value).toLowerCase() === "true" || String(value) === "1";
   }
 
-  function cargarMarca() {
+  function procesarAviso(m) {
+    if (!valorActivo(m.aviso_activo)) return;
+    var version = m.aviso_version || ((m.aviso_titulo || "") + "|" + (m.aviso_texto || "") + "|" + (m.banner_url || "")).slice(0, 180);
+    if (leerVisto(version)) return;
+    setTimeout(function () { mostrarAviso(m, version); }, 350);
+  }
+
+  function cargarMarca(intento) {
+    intento = intento || 0;
     var url = backendUrl();
     if (!url) return;
-    fetch(url + "?action=obtener_marca", { cache: "no-store" })
-      .then(function (res) { return res.json(); })
+    var sep = url.indexOf("?") === -1 ? "?" : "&";
+    fetch(url + sep + "action=obtener_marca&_=" + Date.now(), { cache: "no-store", redirect: "follow" })
+      .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
       .then(function (d) {
-        if (!d || d.result !== "success" || !d.marca) return;
+        if (!d || d.result !== "success" || !d.marca) throw new Error("Respuesta de marca vacía");
         aplicarMarca(d.marca);
         procesarAviso(d.marca);
       })
-      .catch(function () { /* sin conexión: se mantiene el contenido por defecto */ });
+      .catch(function () {
+        // Reintentos breves reducen los casos en que el aviso no llega al entrar al Aula.
+        if (intento < 2) setTimeout(function () { cargarMarca(intento + 1); }, 900 * (intento + 1));
+      });
   }
 
   if (document.readyState === "loading") {
