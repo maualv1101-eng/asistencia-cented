@@ -247,13 +247,6 @@
       }
       .map-status-container iframe { width:100%; height:220px; border:none; display:block; }
 
-      /* ── PANEL DOCENTE ───────────────────────────── */
-      .registros-container { max-height:220px; overflow-y:auto; border:var(--bw) solid var(--fg); margin-bottom:1.5rem; background:var(--bg); border-radius:calc(var(--br) - 4px); }
-      .registro-item { padding:1rem; border-bottom:var(--bw) solid var(--fg); font-size:.9rem; }
-      .registro-item:last-child { border-bottom:none; }
-      .hidden-panel { display:none; }
-      .hidden-panel.visible { display:block; animation:slideDown .4s ease forwards; }
-      .excel-embed-container { width:100%; height:380px; border:var(--bw) solid var(--fg); box-shadow:4px 4px 0 var(--fg); margin-bottom:1.5rem; background:#fff; overflow-y:auto; border-radius:calc(var(--br) - 4px); }
       .stats-counter-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem; }
       .stat-box { border:var(--bw) solid var(--fg); padding:1.5rem 1rem; text-align:center; background:var(--bg); border-radius:calc(var(--br) - 4px); }
       .stat-box .stat-num { display:block; font-family:var(--fh); font-size:2.8rem; font-weight:800; line-height:1; margin-bottom:.5rem; }
@@ -563,28 +556,6 @@
             <button type="button" class="btn-back" id="btn-back-keygen">← Volver</button>
           </div>
         </form>
-      </section>
-
-      <!-- ── PANEL DOCENTE ──────────────────────── -->
-      <section id="view-teacher" class="card-view">
-        <h2 class="view-title">【 管理 】 Panel del Docente</h2>
-        <div id="alertVerRegistros" class="alert-box"></div>
-        <form id="teacher-auth">
-          <div class="hp-field" aria-hidden="true">
-            <label for="teacher-website">Sitio web</label>
-            <input type="text" id="teacher-website" name="website" tabindex="-1" autocomplete="off" />
-          </div>
-          <div class="input-group">
-            <label for="teacher-password">Clave de Validación Docente *</label>
-            <input type="password" id="teacher-password" placeholder="••••••" required autocomplete="off" />
-            <small class="helper-text">La clave cambia cada día. Revisa tu correo para obtenerla.</small>
-          </div>
-          <div class="form-actions">
-            <button type="submit" id="btnAccederRegistros" class="btn-submit">🔓 Entrar</button>
-            <button type="button" class="btn-back" id="btn-back-teacher">← Volver</button>
-          </div>
-        </form>
-        <div id="teacher-dashboard" class="hidden-panel"></div>
       </section>
     </main>
 
