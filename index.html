@@ -307,7 +307,9 @@
       .aviso-media-img.portrait { max-height:70dvh; }
       .aviso-media-video { display:block; width:100%; max-height:55dvh; background:#000; border-radius:0; }
       .aviso-media-iframe { width:100%; aspect-ratio:16/9; border:none; display:block; border-radius:0; }
-      .aviso-media-iframe.portrait-frame { aspect-ratio:9/16; max-height:60dvh; }
+      .aviso-media-iframe.portrait-frame { width:min(100%,360px); height:min(60dvh,640px); aspect-ratio:9/16; max-height:60dvh; margin:0 auto; }
+      .aviso-video-audio-btn { display:block; width:100%; margin:.65rem auto 0; padding:.7rem .9rem; border:1px solid var(--fg); border-radius:calc(var(--br) - 6px); background:var(--accent); color:#fff; font:700 .9rem var(--fh); cursor:pointer; }
+      .aviso-video-audio-btn:disabled { opacity:.75; cursor:default; }
       .aviso-texto { font-size:.93rem; line-height:1.55; opacity:.88; margin-bottom:1rem; white-space:pre-line; text-align:center; }
       .aviso-footer { padding:.8rem 1.4rem 1.2rem; background:var(--bg); position:sticky; bottom:0; border-top:var(--bw) solid var(--fg); }
       .aviso-btn { display:block; width:100%; padding:.85rem; font-family:var(--fh); font-weight:800; font-size:.95rem; letter-spacing:.5px; text-transform:uppercase; background:var(--accent); color:#fff; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 6px); cursor:pointer; box-shadow:4px 4px 0 var(--fg); transition:transform .1s; }
@@ -465,6 +467,8 @@
             <option value="" selected>-- Selecciona tu Nombre para recordar clave --</option>
           </select>
           <small class="helper-text">Requiere autorización docente para mostrar la Clave Única.</small>
+          <small class="helper-text" id="reg-student-list-status" role="status" aria-live="polite">La lista se carga al abrir Registro de asistencia.</small>
+          <button type="button" id="btn-reload-students" class="btn-back" style="display:none;width:100%;margin-top:.5rem;">↻ Recargar nombres</button>
         </div>
 
         <div id="alertRegistro" class="alert-box"></div>
