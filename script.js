@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNt3oBOHP2yjysmXCoe9TuKRa6DLhSw4D1NAqCCqjscrJQOriZpAKNg3Rdl4avQwnU/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3ZYrJsSSKbEZg3mRarzddxHPq3HJ4si0WeZiTO-iu-sGQY12TbgNf8ueMPlho5tok/exec";
 
 const CENTED_LAT = 13.716795758900204;
 const CENTED_LNG = -89.1001956388224;
@@ -9,6 +9,9 @@ var geoActiva    = true;
 var geoOK        = false;
 var geoRevisada  = false;
 var geoCoords    = null;
+var nombreSeleccionadoParaClave = "";
+var listaAlumnosCargada = false;
+var listaAlumnosCargando = false;
 
 const THEME_STORAGE_KEY = "cented_theme";
 
@@ -69,6 +72,167 @@ function sanitizarInput(str) {
   return s;
 }
 
+
+// ── RECORDAR CLAVE: lista pública de nombres, clave solo tras validar admin ──
+function setEstadoListaAlumnos(texto) {
+  var estado = document.getElementById("reg-student-list-status");
+  if (estado) estado.textContent = texto;
+}
+
+function cargarListaEstudiantesSelect(intento, forzar) {
+  intento = intento || 0;
+  var select = document.getElementById("reg-student-select");
+  if (!select || listaAlumnosCargando || (listaAlumnosCargada && !forzar)) return;
+
+  listaAlumnosCargando = true;
+  select.disabled = true;
+  setEstadoListaAlumnos("Cargando nombres de la hoja Claves…");
+  var retryBtn = document.getElementById("btn-reload-students");
+  if (retryBtn) { retryBtn.disabled = true; retryBtn.style.display = "none"; }
+
+  var sep = SCRIPT_URL.indexOf("?") === -1 ? "?" : "&";
+  var url = SCRIPT_URL + sep + "action=obtener_lista_alumnos&_=" + Date.now();
+  fetch(url, { cache: "no-store", redirect: "follow" })
+    .then(function(res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
+    .then(function(data) {
+      if (!data || data.result !== "success" || !Array.isArray(data.alumnos)) {
+        throw new Error("Respuesta de lista inválida");
+      }
+      var nombres = [];
+      var vistos = Object.create(null);
+      data.alumnos.forEach(function(valor) {
+        var nombre = typeof valor === "string" ? valor.trim() : "";
+        var clave = nombre.toLocaleLowerCase("es");
+        if (nombre && !vistos[clave]) { vistos[clave] = true; nombres.push(nombre); }
+      });
+      nombres.sort(function(a, b) { return a.localeCompare(b, "es", { sensitivity: "base" }); });
+
+      var seleccionado = select.value;
+      select.innerHTML = "";
+      var placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "-- Selecciona tu Nombre para recordar clave --";
+      placeholder.selected = true;
+      select.appendChild(placeholder);
+      nombres.forEach(function(nombre) {
+        var opt = document.createElement("option");
+        opt.value = nombre;
+        opt.textContent = nombre;
+        select.appendChild(opt);
+      });
+      if (seleccionado && nombres.indexOf(seleccionado) !== -1) select.value = seleccionado;
+
+      listaAlumnosCargada = true;
+      select.dataset.loaded = "true";
+      select.disabled = false;
+      setEstadoListaAlumnos(nombres.length
+        ? "Lista cargada: " + nombres.length + " estudiantes. La clave se muestra solo con autorización docente."
+        : "La hoja Claves no devolvió nombres; revisa que haya datos desde la fila 2 en la columna A.");
+      if (retryBtn) retryBtn.style.display = "none";
+    })
+    .catch(function() {
+      listaAlumnosCargada = false;
+      if (intento < 2) {
+        setEstadoListaAlumnos("No se pudo conectar con la lista; reintentando (" + (intento + 1) + "/2)…");
+        window.setTimeout(function() { cargarListaEstudiantesSelect(intento + 1, true); }, 700 * (intento + 1));
+      } else {
+        select.innerHTML = "";
+        var errorOption = document.createElement("option");
+        errorOption.value = "";
+        errorOption.textContent = "Lista no disponible — vuelve a cargar";
+        errorOption.selected = true;
+        select.appendChild(errorOption);
+        select.disabled = true;
+        setEstadoListaAlumnos("No se pudo cargar la lista. Revisa la conexión y toca «Recargar nombres». ");
+        if (retryBtn) { retryBtn.disabled = false; retryBtn.style.display = "block"; }
+      }
+    })
+    .then(function() { listaAlumnosCargando = false; }, function() { listaAlumnosCargando = false; });
+}
+
+function mostrarErrorConsultaClave(mensaje) {
+  var alertBox = document.getElementById("alertAuthClave");
+  if (!alertBox) return;
+  alertBox.textContent = mensaje;
+  alertBox.className = "alert-box error";
+  alertBox.style.display = "block";
+}
+
+function abrirModalAuthClave(nombre) {
+  nombreSeleccionadoParaClave = sanitizarInput(nombre || "");
+  if (!nombreSeleccionadoParaClave) return;
+  var modal = document.getElementById("modal-auth-clave");
+  var texto = document.getElementById("modal-auth-student-name");
+  var pass = document.getElementById("auth-admin-pass");
+  var alerta = document.getElementById("alertAuthClave");
+  if (texto) texto.textContent = "Para consultar la Clave Única de " + nombreSeleccionadoParaClave + ", ingresa la autorización docente.";
+  if (pass) pass.value = "";
+  if (alerta) { alerta.textContent = ""; alerta.style.display = "none"; }
+  if (modal) modal.style.display = "flex";
+  if (pass) pass.focus();
+}
+
+function cerrarModalAuthClave() {
+  var modal = document.getElementById("modal-auth-clave");
+  var pass = document.getElementById("auth-admin-pass");
+  var select = document.getElementById("reg-student-select");
+  if (modal) modal.style.display = "none";
+  if (pass) pass.value = "";
+  if (select) select.value = "";
+  nombreSeleccionadoParaClave = "";
+}
+
+function procesarConsultaClaveOlvidada() {
+  var pass = document.getElementById("auth-admin-pass");
+  var alerta = document.getElementById("alertAuthClave");
+  var btn = document.getElementById("btn-confirm-auth-clave");
+  var claveAdmin = pass ? pass.value.trim() : "";
+  if (!nombreSeleccionadoParaClave) {
+    mostrarErrorConsultaClave("Selecciona primero el nombre del estudiante.");
+    return;
+  }
+  if (!claveAdmin) {
+    mostrarErrorConsultaClave("Ingresa la clave de autorización docente.");
+    if (pass) pass.focus();
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.textContent = "VERIFICANDO…"; }
+  if (alerta) alerta.style.display = "none";
+
+  firmarPayload("consultar_clave_olvidada", {
+    nombre: nombreSeleccionadoParaClave,
+    clave_admin: claveAdmin
+  }, null)
+    .then(function(params) { return fetch(SCRIPT_URL, { method: "POST", body: params }); })
+    .then(function(res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+    .then(function(data) {
+      if (data && data.result === "success" && /^[A-Z0-9]{4}$/.test(String(data.clave || "").toUpperCase())) {
+        var docente = sanitizarInput(String(data.docente || ""));
+        if (!docente) {
+          mostrarErrorConsultaClave("La columna D (docente) está vacía para este nombre en la hoja Claves. No se completó el registro.");
+          return;
+        }
+        var keyInput = document.getElementById("reg-key");
+        var teacherInput = document.getElementById("reg-teacher");
+        if (keyInput) keyInput.value = String(data.clave).toUpperCase();
+        if (teacherInput) teacherInput.value = docente;
+        showToast("Clave recuperada y docente asignado al formulario.", "success");
+        cerrarModalAuthClave();
+      } else {
+        mostrarErrorConsultaClave((data && data.message) || "No se encontró la clave del estudiante.");
+      }
+    })
+    .catch(function() { mostrarErrorConsultaClave("Error de conexión al consultar la hoja Claves. Intenta de nuevo."); })
+    .then(function() {
+      if (btn) { btn.disabled = false; btn.textContent = "✓ Confirmar"; }
+    }, function() {
+      if (btn) { btn.disabled = false; btn.textContent = "✓ Confirmar"; }
+    });
+}
+
 // ── Feedback ──────────────────────────────
 function vibrar(tipo) {
   if (!("vibrate" in navigator)) return;
@@ -120,6 +284,7 @@ function switchView(viewId) {
   target.classList.add("active");
   if (viewId === "view-register") {
     geoOK = false; geoRevisada = false;
+    cargarListaEstudiantesSelect(0, true);
     obtenerEstadoGeoGlobal().then(function() { verificarGeolocalizacion(); });
   }
 }
@@ -405,6 +570,30 @@ function toggleTema() {
 // ── INIT ──
 document.addEventListener("DOMContentLoaded", function() {
   inicializarTema();
+  cargarListaEstudiantesSelect();
+
+  var studentSelect = document.getElementById("reg-student-select");
+  if (studentSelect) {
+    studentSelect.addEventListener("change", function() {
+      if (this.value) abrirModalAuthClave(this.value);
+    });
+    studentSelect.addEventListener("focus", function() {
+      if (!listaAlumnosCargada && !listaAlumnosCargando) cargarListaEstudiantesSelect();
+    });
+  }
+  var retryList = document.getElementById("btn-reload-students");
+  if (retryList) retryList.addEventListener("click", function() {
+    listaAlumnosCargada = false;
+    cargarListaEstudiantesSelect(0, true);
+  });
+  var authConfirm = document.getElementById("btn-confirm-auth-clave");
+  if (authConfirm) authConfirm.addEventListener("click", procesarConsultaClaveOlvidada);
+  var authCancel = document.getElementById("btn-cancel-auth-clave");
+  if (authCancel) authCancel.addEventListener("click", cerrarModalAuthClave);
+  var authPass = document.getElementById("auth-admin-pass");
+  if (authPass) authPass.addEventListener("keydown", function(ev) {
+    if (ev.key === "Enter") { ev.preventDefault(); procesarConsultaClaveOlvidada(); }
+  });
 
   var themeInput=document.getElementById("theme-toggle-input");
   if(themeInput) themeInput.addEventListener("change",toggleTema);
