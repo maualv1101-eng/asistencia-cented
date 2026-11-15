@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwG5c5Ya4ebV3Lprl55E4MKtrfjCycDCJp5j_wACFLwncV7q-qYfm0gUSVO6c-qp--V/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDT4F3E1Rl8Vvqc3ZNP_cNJEayhMbFXlIWWy3Mk0GfJuGKtp03o-NoXjTxJH5GoKvw/exec";
 
 const CENTED_LAT = 13.716795758900204;
 const CENTED_LNG = -89.1001956388224;
@@ -544,6 +544,94 @@ function capturarClave() {
   .finally(function() { if(boton){boton.disabled=false;boton.innerHTML=txt;} });
 }
 
+// ── CAJA DEL MISTERIO (BUZÓN ANÓNIMO AL CORREO) ──
+function escaparHtmlMisterio(str) {
+  return String(str || "")
+    .replace(/&/g, "&")
+    .replace(/</g, "<")
+    .replace(/>/g, ">")
+    .replace(/"/g, """)
+    .replace(/'/g, "'");
+}
+
+function agregarBurbujaMisterio(texto, esUsuario) {
+  var feed = document.getElementById("mystery-chat-feed");
+  if (!feed) return;
+  var bubble = document.createElement("div");
+  if (esUsuario) {
+    bubble.style.cssText =
+      "align-self:flex-end; max-width:85%; background:var(--accent); color:#ffffff; " +
+      "border:var(--bw) solid var(--fg); padding:.75rem 1rem; border-radius:12px 12px 2px 12px; " +
+      "font-size:.88rem; line-height:1.45; box-shadow:3px 3px 0 var(--fg); word-break:break-word;";
+    bubble.innerHTML =
+      "<div style='font-size:.68rem; opacity:.85; font-weight:700; text-transform:uppercase; margin-bottom:.2rem;'>Anónimo</div>" +
+      "<div>" + escaparHtmlMisterio(texto).replace(/\n/g, "<br>") + "</div>";
+  } else {
+    bubble.style.cssText =
+      "align-self:flex-start; max-width:85%; background:var(--fg); color:var(--bg); " +
+      "padding:.75rem 1rem; border-radius:12px 12px 12px 2px; font-size:.85rem; line-height:1.45;";
+    bubble.textContent = texto;
+  }
+  feed.appendChild(bubble);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+function enviarMensajeMisterio(event) {
+  event.preventDefault();
+  var hp       = (document.getElementById("mys-website")||{}).value||"";
+  var alertBox = document.getElementById("alertMystery");
+  var msgInput = document.getElementById("mys-message");
+  var btn      = document.getElementById("btnEnviarMisterio");
+
+  if (hp.trim() !== "") return;
+
+  var mensaje = (msgInput ? msgInput.value : "").trim().slice(0, 800)
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+    .replace(/^[=+\-@\t\r]+/, "");
+
+  if (mensaje.length < 3) {
+    alertBox.textContent = "❌ Escribe un mensaje antes de enviar.";
+    alertBox.className = "alert-box warning";
+    alertBox.style.display = "block";
+    vibrar("aviso");
+    return;
+  }
+
+  alertBox.style.display = "none";
+  btn.disabled = true;
+  btn.innerHTML = "⚡ ENVIANDO ANÓNIMAMENTE...";
+
+  firmarPayload("caja_misterio", { mensaje: mensaje, hp: hp }, null)
+    .then(function(params) { return fetch(SCRIPT_URL, { method: "POST", body: params }); })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data && data.result === "success") {
+        vibrar("exito");
+        agregarBurbujaMisterio(mensaje, true);
+        agregarBurbujaMisterio("✅ Mensaje enviado. Le llegó directamente al correo del docente de forma 100% anónima.", false);
+        msgInput.value = "";
+        var counter = document.getElementById("mys-char-count");
+        if (counter) counter.textContent = "0 / 800 caracteres · 100% anónimo y privado";
+        showToast("✓ Mensaje anónimo enviado.", "success");
+      } else {
+        vibrar("error");
+        alertBox.textContent = (data && data.message) || "❌ No se pudo enviar el mensaje.";
+        alertBox.className = "alert-box error";
+        alertBox.style.display = "block";
+      }
+    })
+    .catch(function() {
+      vibrar("error");
+      alertBox.textContent = "❌ ERROR DE RED. Verifica tu internet e intenta de nuevo.";
+      alertBox.className = "alert-box error";
+      alertBox.style.display = "block";
+    })
+    .finally(function() {
+      btn.disabled = false;
+      btn.innerHTML = "✉️ Enviar Mensaje Anónimo";
+    });
+}
+
 // ── TEMA ──
 function aplicarTema(tema) {
   var oscuro=tema==="dark";
@@ -600,6 +688,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
   document.getElementById("btn-menu-register").addEventListener("click",function(){switchView("view-register");});
   document.getElementById("btn-menu-keygen").addEventListener("click",function(){switchView("view-keygen");});
+  var btnMystery=document.getElementById("btn-menu-mystery");
+  if(btnMystery) btnMystery.addEventListener("click",function(){switchView("view-mystery");});
 
   document.getElementById("form-register").addEventListener("submit",registrarAsistencia);
   document.getElementById("btn-back-register").addEventListener("click",function(){switchView("view-menu");});
@@ -626,6 +716,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
   document.getElementById("form-keygen").addEventListener("submit",generarClave);
   document.getElementById("btn-back-keygen").addEventListener("click",function(){switchView("view-menu");});
+
+  var formMystery=document.getElementById("form-mystery");
+  if(formMystery) formMystery.addEventListener("submit",enviarMensajeMisterio);
+  var btnBackMystery=document.getElementById("btn-back-mystery");
+  if(btnBackMystery) btnBackMystery.addEventListener("click",function(){switchView("view-menu");});
+
+  var mysTextarea=document.getElementById("mys-message");
+  var mysCounter=document.getElementById("mys-char-count");
+  if(mysTextarea && mysCounter) {
+    mysTextarea.addEventListener("input", function() {
+      mysCounter.textContent = mysTextarea.value.length + " / 800 caracteres · 100% anónimo y privado";
+    });
+  }
 
   var birthdayField=document.getElementById("gen-birthday");
   if(birthdayField) birthdayField.addEventListener("input",formatearCumpleanosInput);
