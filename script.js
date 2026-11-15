@@ -746,3 +746,109 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycby5whpgO3AnwENYrV_Ov-oyGo5cpaH8EXVnsnoiKwJeT-UgQ7qPkH145H5VHR-W1N-P/exec";
+
+let ultimaAccionFallida = null;
+
+function mostrarError503(detalleTecnico, callbackReintento) {
+  const modal = document.getElementById("eva-error-503");
+  const detalleEl = document.getElementById("eva-503-detalle");
+  const btnReintentar = document.getElementById("eva-503-reintentar");
+
+  detalleEl.textContent = "Detalle: " + (detalleTecnico || "El backend de Google Apps Script no respondió.");
+  ultimaAccionFallida = typeof callbackReintento === "function" ? callbackReintento : null;
+  btnReintentar.style.display = ultimaAccionFallida ? "inline-block" : "none";
+  btnReintentar.disabled = false;
+  btnReintentar.textContent = "Reintentar ahora";
+
+  modal.classList.add("activo");
+}
+
+function ocultarError503() {
+  document.getElementById("eva-error-503").classList.remove("activo");
+}
+
+document.getElementById("eva-503-cerrar").addEventListener("click", ocultarError503);
+
+document.getElementById("eva-503-reintentar").addEventListener("click", async function () {
+  if (!ultimaAccionFallida) return;
+  this.disabled = true;
+  this.textContent = "Reconectando...";
+  ocultarError503();
+  await ultimaAccionFallida();
+});
+
+/**
+ * Wrapper optimizado para comunicarse con Google Apps Script.
+ * @param {Object} opciones - { method: "GET"|"POST", params: Object|URLSearchParams, timeoutMs: number, onRetry: Function }
+ */
+async function fetchBackendGAS(opciones = {}) {
+  const method = (opciones.method || "GET").toUpperCase();
+  const timeoutMs = opciones.timeoutMs || 12000; // 12s límite antes de declarar 503
+  const maxReintentos = method === "GET" ? 1 : 0; // Solo reintenta lecturas GET para proteger nonces HMAC en POST
+
+  let url = GAS_BACKEND_URL;
+  const fetchConfig = { method, cache: "no-store" };
+
+  if (method === "GET" && opciones.params) {
+    const qs = new URLSearchParams(opciones.params).toString();
+    if (qs) url += (url.includes("?") ? "&" : "?") + qs;
+  } else if (method === "POST" && opciones.params) {
+    fetchConfig.body = opciones.params instanceof URLSearchParams
+      ? opciones.params
+      : new URLSearchParams(opciones.params);
+  }
+
+  for (let intento = 0; intento <= maxReintentos; intento++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    fetchConfig.signal = controller.signal;
+
+    try {
+      if (!navigator.onLine) {
+        throw { code: 503, motivo: "Sin conexión a internet en el dispositivo." };
+      }
+
+      const respuesta = await fetch(url, fetchConfig);
+      clearTimeout(timer);
+
+      // Si Google devuelve 429, 500, 502, 503 o 504
+      if (respuesta.status >= 500 || respuesta.status === 429) {
+        throw { code: 503, motivo: `Servidor temporalmente saturado (HTTP ${respuesta.status}).` };
+      }
+
+      // Verificar que sea JSON real y no una página HTML de error de Google
+      const textoCrudo = await respuesta.text();
+      let data;
+      try {
+        data = JSON.parse(textoCrudo);
+      } catch (_) {
+        throw { code: 503, motivo: "El backend devolvió una respuesta inválida o está en mantenimiento." };
+      }
+
+      // Si el propio .gs devolvió un código 503 estructurado
+      if (data && (data.code === 503 || data.status === "503 Service Unavailable")) {
+        throw { code: 503, motivo: data.message || "Servicio ocupado, intenta de nuevo." };
+      }
+
+      return data;
+
+    } catch (err) {
+      clearTimeout(timer);
+
+      // Si aún queda reintento en GET, esperar 1.2s y reintentar silenciosamente
+      if (intento < maxReintentos) {
+        await new Promise(r => setTimeout(r, 1200));
+        continue;
+      }
+
+      const motivoFinal = err.name === "AbortError"
+        ? `Tiempo de espera agotado (${timeoutMs / 1000}s sin respuesta del backend).`
+        : (err.motivo || "No se pudo establecer conexión con el servidor de Google.");
+
+      mostrarError503(motivoFinal, opciones.onRetry);
+      throw { code: 503, status: "503 Service Unavailable", message: motivoFinal };
+    }
+  }
+}
