@@ -335,6 +335,98 @@
         .aviso-titulo { font-size:1.1rem; }
         .map-status-container iframe { height:170px; }
       }
+
+      /* Banner / Modal optimizado 503 Service Unavailable */
+.eva-503-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(4px);
+  animation: evaFadeIn 0.2s ease-out;
+}
+.eva-503-overlay.activo {
+  display: flex;
+}
+.eva-503-card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  color: #1e293b;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  border-top: 5px solid #ef4444;
+  text-align: center;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+.eva-503-badge {
+  display: inline-block;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+}
+.eva-503-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  color: #0f172a;
+}
+.eva-503-card p {
+  margin: 0 0 1.25rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: #475569;
+}
+.eva-503-detalle {
+  display: block;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-bottom: 1.25rem;
+  word-break: break-word;
+}
+.eva-503-actions {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+}
+.eva-503-btn {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+}
+.eva-503-btn:active { transform: scale(0.98); }
+.eva-503-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.eva-503-btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+.eva-503-btn-secondary {
+  background: #e2e8f0;
+  color: #334155;
+}
+@keyframes evaFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
     </style>
   </head>
   <body>
@@ -660,5 +752,19 @@
     <script src="script.js"></script>
     <!-- [ACTUALIZADO] marca y aviso desde EVA-DOC (Config & Marca) -->
     <script src="rebranding.js" defer></script>
+    <div id="eva-error-503" class="eva-503-overlay" role="alertdialog" aria-modal="true" aria-labelledby="eva-503-titulo">
+  <div class="eva-503-card">
+    <span class="eva-503-badge">ERROR 503 · SERVICE UNAVAILABLE</span>
+    <h3 id="eva-503-titulo">Servicio no disponible</h3>
+    <p id="eva-503-mensaje">
+      El servidor no respondió a tiempo o está recibiendo muchas solicitudes. Por favor, intenta nuevamente en unos segundos.
+    </p>
+    <code id="eva-503-detalle" class="eva-503-detalle">Motivo: Tiempo de espera agotado con el servidor</code>
+    <div class="eva-503-actions">
+      <button type="button" id="eva-503-cerrar" class="eva-503-btn eva-503-btn-secondary">Cerrar</button>
+      <button type="button" id="eva-503-reintentar" class="eva-503-btn eva-503-btn-primary">Reintentar ahora</button>
+    </div>
+  </div>
+</div>
   </body>
 </html>
