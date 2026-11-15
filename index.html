@@ -90,7 +90,8 @@
       html[data-theme="dark"] select,
       html[data-theme="dark"] textarea           { background: #14151a; color: var(--fg); }
       html[data-theme="dark"] input:focus,
-      html[data-theme="dark"] select:focus       { background: #1d1e24; }
+      html[data-theme="dark"] select:focus,
+      html[data-theme="dark"] textarea:focus     { background: #1d1e24; }
       html[data-theme="dark"] .toast-card        { background: #1d1e24; color: var(--fg); }
       html[data-theme="dark"] .map-caption,
       html[data-theme="dark"] .geo-status-box.disabled { background: #14151a; }
@@ -424,7 +425,40 @@
             <span class="btn-text">Ir al Aula Digital</span>
             <span class="btn-arrow">↗</span>
           </a>
+          <button type="button" class="btn-retro" id="btn-menu-mystery">
+            <span class="btn-num">04</span>
+            <span class="btn-text">Caja del Misterio</span>
+            <span class="btn-arrow">→</span>
+          </button>
         </div>
+
+        <!-- ── COMUNIDAD Y GRUPOS OFICIALES (WHATSAPP & PLAYLIST) ── -->
+        <div class="comunidad-links-container" style="margin-top:1.5rem; margin-bottom:1.25rem; display:flex; flex-direction:column; gap:.75rem;">
+          <div style="font-size:.82rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:.8; display:flex; align-items:center; gap:.4rem;">
+            <span>💬</span> GRUPOS DE WHATSAPP Y PLAYLIST COLABORATIVA
+          </div>
+          
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:.65rem;">
+            <!-- Curso de Verano -->
+            <a href="https://chat.whatsapp.com/HAdxuMHzKgaHz2fveoQn5d" target="_blank" rel="noopener noreferrer" class="btn-community-link whatsapp-link" style="display:flex; align-items:center; gap:.6rem; padding:.8rem 1rem; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); background:#25D366; color:#ffffff; font-weight:700; font-size:.85rem; text-decoration:none; box-shadow:3px 3px 0 var(--fg); transition:all var(--tr);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.099 4.017 4.014-1.052zm12.359-6.495c-.298-.149-1.764-.87-2.037-.97-.272-.099-.47-.149-.669.149-.198.297-.768.97-.941 1.168-.173.198-.347.223-.645.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347z"/></svg>
+              <span>Grupo Curso de Verano</span>
+            </a>
+
+            <!-- Grupo Matutino -->
+            <a href="https://chat.whatsapp.com/LImpnjogjcUKiBJNeNu2FP" target="_blank" rel="noopener noreferrer" class="btn-community-link whatsapp-link" style="display:flex; align-items:center; gap:.6rem; padding:.8rem 1rem; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); background:#25D366; color:#ffffff; font-weight:700; font-size:.85rem; text-decoration:none; box-shadow:3px 3px 0 var(--fg); transition:all var(--tr);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.099 4.017 4.014-1.052zm12.359-6.495c-.298-.149-1.764-.87-2.037-.97-.272-.099-.47-.149-.669.149-.198.297-.768.97-.941 1.168-.173.198-.347.223-.645.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347z"/></svg>
+              <span>Grupo Matutino</span>
+            </a>
+          </div>
+
+          <!-- Playlist Colaborativa Spotify -->
+          <a href="https://open.spotify.com/playlist/3tX9NHZxN9VdFGjUtzTKrF?si=999dc49a422a45b8&pt=4b9d224defdf265bc8c3c0616d8519b4" target="_blank" rel="noopener noreferrer" class="btn-community-link spotify-link" style="display:flex; align-items:center; justify-content:center; gap:.6rem; padding:.85rem 1rem; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); background:#1DB954; color:#ffffff; font-weight:700; font-size:.85rem; text-decoration:none; box-shadow:3px 3px 0 var(--fg); transition:all var(--tr);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+            <span>🎵 Playlist Colaborativa (Únete en Spotify)</span>
+          </a>
+        </div>
+
         <div class="aula-iframe-container" style="margin-top:1.5rem;">
           <iframe src="https://maualvarado1101.wixsite.com/my-site-1"
             sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-downloads"
@@ -565,32 +599,6 @@
               <small class="helper-text">Permite omitir ciertas validaciones. Déjalo en blanco si no lo tienes.</small>
             </div>
           </details>
-<!-- ── COMUNIDAD Y GRUPOS OFICIALES (WHATSAPP & PLAYLIST) ── -->
-          <div class="comunidad-links-container" style="margin-top:1.25rem; margin-bottom:1.25rem; display:flex; flex-direction:column; gap:.75rem;">
-            <div style="font-size:.82rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:.8; display:flex; align-items:center; gap:.4rem;">
-              <span>💬</span> GRUPOS DE WHATSAPP Y PLAYLIST COLABORATIVA
-            </div>
-            
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:.65rem;">
-              <!-- Curso de Verano -->
-              <a href="https://chat.whatsapp.com/HAdxuMHzKgaHz2fveoQn5d" target="_blank" rel="noopener noreferrer" class="btn-community-link whatsapp-link" style="display:flex; align-items:center; gap:.6rem; padding:.8rem 1rem; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); background:#25D366; color:#ffffff; font-weight:700; font-size:.85rem; text-decoration:none; box-shadow:3px 3px 0 var(--fg); transition:all var(--tr);">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.099 4.017 4.014-1.052zm12.359-6.495c-.298-.149-1.764-.87-2.037-.97-.272-.099-.47-.149-.669.149-.198.297-.768.97-.941 1.168-.173.198-.347.223-.645.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347z"/></svg>
-                <span>Grupo Curso de Verano</span>
-              </a>
-
-              <!-- Grupo Matutino -->
-              <a href="https://chat.whatsapp.com/LImpnjogjcUKiBJNeNu2FP" target="_blank" rel="noopener noreferrer" class="btn-community-link whatsapp-link" style="display:flex; align-items:center; gap:.6rem; padding:.8rem 1rem; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); background:#25D366; color:#ffffff; font-weight:700; font-size:.85rem; text-decoration:none; box-shadow:3px 3px 0 var(--fg); transition:all var(--tr);">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.099 4.017 4.014-1.052zm12.359-6.495c-.298-.149-1.764-.87-2.037-.97-.272-.099-.47-.149-.669.149-.198.297-.768.97-.941 1.168-.173.198-.347.223-.645.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347z"/></svg>
-                <span>Grupo Matutino</span>
-              </a>
-            </div>
-
-            <!-- Playlist Colaborativa YouTube Music -->
-            <a href="https://music.youtube.com/playlist?list=PLKAXhjkEhtas&jct=xYWG910PjmdLmXT2btfplg" target="_blank" rel="noopener noreferrer" class="btn-community-link ytmusic-link" style="display:flex; align-items:center; justify-content:center; gap:.6rem; padding:.85rem 1rem; border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); background:#ff0000; color:#ffffff; font-weight:700; font-size:.85rem; text-decoration:none; box-shadow:3px 3px 0 var(--fg); transition:all var(--tr);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M12 0C5.376 0 0 5.376 0 12s5.376 12 12 12 12-5.376 12-12S18.624 0 12 0zm0 19.2c-3.972 0-7.2-3.228-7.2-7.2s3.228-7.2 7.2-7.2 7.2 3.228 7.2 7.2-3.228 7.2-7.2 7.2zm-2.4-10.8v7.2l6-3.6-6-3.6z"/></svg>
-              <span>🎵 Playlist Colaborativa (Únete en YouTube Music)</span>
-            </a>
-          </div>
           <div id="claveGeneradaContainer" style="display:none;margin-top:1.5rem;margin-bottom:1.5rem;">
             <div class="alert-box success" style="display:block;margin-bottom:.5rem;">🎉 ¡Clave lista! Guárdala, es permanente:</div>
             <div class="stat-box" id="claveCapturaArea" style="padding:1rem;background:#fff;">
@@ -601,6 +609,50 @@
           <div class="form-actions">
             <button type="submit" id="btnGenerar" class="btn-submit">🔒 Generar Mi Clave Permanente</button>
             <button type="button" class="btn-back" id="btn-back-keygen">← Volver</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ── CAJA DEL MISTERIO (BUZÓN ANÓNIMO) ──── -->
+      <section id="view-mystery" class="card-view">
+        <h2 class="view-title">【 匿名箱 】 Caja del Misterio</h2>
+
+        <div style="border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); background:var(--bg); padding:1rem; margin-bottom:1.25rem; box-shadow:4px 4px 0 var(--fg); font-size:.85rem; line-height:1.55;">
+          <p style="font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:.4rem; color:var(--accent);">
+            🕵️ Buzón 100% Anónimo y Privado
+          </p>
+          <p style="margin-bottom:.5rem;">
+            ¿Tienes alguna duda de la clase, sugerencia, comentario o petición que te da pena hacer en público? Escríbelo aquí para enviárselo directamente a tu docente.
+          </p>
+          <p style="font-size:.8rem; opacity:.88; border-top:1px dashed var(--fg); padding-top:.5rem;">
+            <strong>Disclaimer de Privacidad:</strong> Este buzón es <strong>100% privado y anónimo</strong>. No se solicitan ni serán revelados tus datos ni tu identidad bajo ninguna circunstancia. Por favor, mantén un <strong>buen lenguaje y respeto</strong> al redactar tu mensaje.
+          </p>
+        </div>
+
+        <!-- Lienzo tipo Chat -->
+        <div id="mystery-chat-feed" style="border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); background:var(--bg); padding:1rem; min-height:200px; max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:.75rem; margin-bottom:1.25rem;">
+          <div style="align-self:flex-start; max-width:85%; background:var(--fg); color:var(--bg); padding:.75rem 1rem; border-radius:12px 12px 12px 2px; font-size:.88rem; line-height:1.45;">
+            👋 Bienvenido a la Caja del Misterio. Escribe abajo tu duda, sugerencia o petición; le llegará al correo del docente de forma 100% anónima.
+          </div>
+        </div>
+
+        <div id="alertMystery" class="alert-box"></div>
+
+        <form id="form-mystery">
+          <div class="hp-field" aria-hidden="true">
+            <label for="mys-website">Sitio web</label>
+            <input type="text" id="mys-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <div class="input-group" style="margin-bottom:1rem;">
+            <label for="mys-message">Escribe tu mensaje anónimo *</label>
+            <textarea id="mys-message" rows="3" maxlength="800" required placeholder="Escribe aquí tu sugerencia, duda o petición para la clase..."></textarea>
+            <small class="helper-text" id="mys-char-count">0 / 800 caracteres · 100% anónimo y privado</small>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btnEnviarMisterio" class="btn-submit">✉️ Enviar Mensaje Anónimo</button>
+            <button type="button" class="btn-back" id="btn-back-mystery">← Volver</button>
           </div>
         </form>
       </section>
