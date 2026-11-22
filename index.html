@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
+      base-uri 'self';
+      object-src 'none';
+      form-action 'self';
       script-src 'self' https://unpkg.com https://accounts.google.com;
       style-src 'self' https://fonts.googleapis.com https://accounts.google.com 'unsafe-inline';
       font-src https://fonts.gstatic.com;
@@ -50,8 +53,7 @@
     <meta property="og:title" content="Grupo Cented Academy Pro Education" />
     <meta property="og:url" content="https://grupocented.fyi/" />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
-    <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+    <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
@@ -98,6 +100,10 @@
       html[data-theme="dark"] .map-caption,
       html[data-theme="dark"] .geo-status-box.disabled { background: #14151a; }
       html[data-theme="dark"] .aviso-card { background: #1d1e24; color: var(--fg); }
+      html[data-theme="dark"] .eva-503-card { background: #1d1e24; color: var(--fg); border: var(--bw) solid var(--fg); border-top: 5px solid var(--danger); }
+      html[data-theme="dark"] .eva-503-card h3 { color: var(--fg); }
+      html[data-theme="dark"] .eva-503-card p { color: #c7cad3; }
+      html[data-theme="dark"] .eva-503-detalle { background: #14151a; border-color: #2f3340; color: #b6bac5; }
       html { transition: background-color .25s ease; }
       body, .app-container, input, select, textarea, .toast-card {
         transition: background-color var(--tr), color var(--tr), border-color var(--tr);
@@ -136,9 +142,11 @@
       .brand .badge { background:var(--fg); color:var(--bg); font-size:.75rem; font-weight:700; padding:.2rem .6rem; letter-spacing:2px; text-transform:uppercase; }
       .brand h1 { font-family:var(--fh); font-size:1.8rem; font-weight:800; line-height:1.1; margin-top:.5rem; letter-spacing:-1px; }
       .brand .subtitle { font-size:.85rem; letter-spacing:2px; text-transform:uppercase; opacity:.6; margin-top:.2rem; }
-      #brand-logo-img { display:none; max-width:64px; max-height:64px; margin:.4rem 0; }
+      #brand-logo-img { display:none; max-width:64px; max-height:64px; margin:.4rem 0; border-radius:8px; }
       .live-status { display:flex; align-items:center; gap:.5rem; font-variant-numeric:tabular-nums; font-weight:700; border:var(--bw) solid var(--fg); padding:.4rem .8rem; background:var(--bg); border-radius:calc(var(--br) - 4px); white-space:nowrap; }
-      .status-dot { width:8px; height:8px; background:var(--ok); border-radius:50%; animation:pulse 1.5s infinite; }
+      .status-dot { width:8px; height:8px; background:var(--ok); border-radius:50%; animation:pulse 1.5s infinite; transition:background-color .2s ease; }
+      .status-dot.slow { background:var(--warn); }
+      .status-dot.offline { background:var(--danger); animation:none; }
       .editorial-line { border:none; height:var(--bw); background:var(--fg); margin-bottom:2.5rem; }
 
       /* ── MENÚ ────────────────────────────────────── */
@@ -170,6 +178,12 @@
         background:#fff; box-shadow:4px 4px 0 var(--accent); border-color:var(--accent);
       }
       .helper-text { font-size:.8rem; opacity:.6; margin-top:.2rem; }
+      .btn-link-clear {
+        background:none; border:none; padding:0; margin-top:.35rem;
+        font-family:var(--fb); font-size:.8rem; font-weight:700;
+        color:var(--accent); cursor:pointer; text-align:left; text-decoration:underline;
+        display:none;
+      }
       .google-autofill-box {
         padding: 1rem;
         margin-bottom: 1.5rem;
@@ -265,15 +279,6 @@
       .stat-box { border:var(--bw) solid var(--fg); padding:1.5rem 1rem; text-align:center; background:var(--bg); border-radius:calc(var(--br) - 4px); }
       .stat-box .stat-num { display:block; font-family:var(--fh); font-size:2.8rem; font-weight:800; line-height:1; margin-bottom:.5rem; }
       .stat-box .stat-label { font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:.7; }
-      .brand-panel-title { font-family:var(--fh); font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; }
-      .brand-step { border:var(--bw) solid var(--fg); border-radius:calc(var(--br) - 4px); padding:1rem; margin-bottom:1rem; background:var(--bg); }
-      .brand-step-label { display:flex; align-items:center; gap:.5rem; font-weight:700; text-transform:uppercase; font-size:.85rem; margin-bottom:.6rem; }
-      .brand-step-num { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:var(--accent); color:#fff; font-size:.75rem; font-weight:800; flex-shrink:0; }
-      .brand-preview-img { max-width:120px; max-height:120px; border:var(--bw) solid var(--fg); border-radius:8px; margin-top:.6rem; display:none; object-fit:cover; }
-      .brand-preview-banner{ max-width:100%; max-height:220px; border:var(--bw) solid var(--fg); border-radius:8px; margin-top:.6rem; display:none; object-fit:cover; }
-      .brand-status-msg { font-size:.8rem; padding:.6rem .8rem; border-radius:8px; margin-bottom:1rem; display:none; }
-      .brand-status-msg.ok { display:block; background:rgba(0,199,129,.12); color:var(--ok); border:1px solid var(--ok); }
-      .brand-status-msg.warn { display:block; background:rgba(255,149,0,.12); color:var(--warn); border:1px solid var(--warn); }
 
       /* ── TOAST ───────────────────────────────────── */
       .toast-container { position:fixed; top:20px; right:20px; z-index:10000; display:flex; flex-direction:column; gap:10px; max-width:320px; }
@@ -332,7 +337,6 @@
       @keyframes toastIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
       @keyframes toastOut { to{transform:translateX(120%);opacity:0} }
       @keyframes pulse { 0%{opacity:.4} 50%{opacity:1} 100%{opacity:.4} }
-      @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
 
       @media (max-width: 480px) {
         body { padding:.75rem; align-items:flex-start; }
@@ -353,7 +357,7 @@
       .eva-503-overlay {
         position: fixed;
         inset: 0;
-        z-index: 9999;
+        z-index: 26000;
         display: none;
         align-items: center;
         justify-content: center;
@@ -362,9 +366,7 @@
         backdrop-filter: blur(4px);
         animation: evaFadeIn 0.2s ease-out;
       }
-      .eva-503-overlay.activo {
-        display: flex;
-      }
+      .eva-503-overlay.activo { display: flex; }
       .eva-503-card {
         width: 100%;
         max-width: 420px;
@@ -389,17 +391,8 @@
         border-radius: 999px;
         margin-bottom: 0.75rem;
       }
-      .eva-503-card h3 {
-        margin: 0 0 0.5rem;
-        font-size: 1.25rem;
-        color: #0f172a;
-      }
-      .eva-503-card p {
-        margin: 0 0 1.25rem;
-        font-size: 0.92rem;
-        line-height: 1.5;
-        color: #475569;
-      }
+      .eva-503-card h3 { margin: 0 0 0.5rem; font-size: 1.25rem; color: #0f172a; }
+      .eva-503-card p { margin: 0 0 1.25rem; font-size: 0.92rem; line-height: 1.5; color: #475569; }
       .eva-503-detalle {
         display: block;
         background: #f8fafc;
@@ -411,11 +404,7 @@
         margin-bottom: 1.25rem;
         word-break: break-word;
       }
-      .eva-503-actions {
-        display: flex;
-        gap: 0.65rem;
-        justify-content: center;
-      }
+      .eva-503-actions { display: flex; gap: 0.65rem; justify-content: center; }
       .eva-503-btn {
         flex: 1;
         padding: 0.65rem 1rem;
@@ -428,18 +417,9 @@
       }
       .eva-503-btn:active { transform: scale(0.98); }
       .eva-503-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-      .eva-503-btn-primary {
-        background: #2563eb;
-        color: #ffffff;
-      }
-      .eva-503-btn-secondary {
-        background: #e2e8f0;
-        color: #334155;
-      }
-      @keyframes evaFadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
+      .eva-503-btn-primary { background: #2563eb; color: #ffffff; }
+      .eva-503-btn-secondary { background: #e2e8f0; color: #334155; }
+      @keyframes evaFadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
   </head>
   <body>
@@ -494,11 +474,12 @@
       <header class="main-header">
         <div class="brand">
           <span class="badge">出席 AULA DIGITAL + ASISTENCIA</span>
+          <img id="brand-logo-img" alt="Logo institucional" />
           <h1 id="brand-title-text">GRUPO CENTED ACADEMY PRO EDUCATION</h1>
           <p class="subtitle">DEPARTAMENTO DE SISTEMAS INFORMÁTICOS</p>
         </div>
-        <div class="live-status">
-          <span class="status-dot"></span>
+        <div class="live-status" id="live-status-pill" title="Estado de conexión con el servidor">
+          <span class="status-dot" id="live-status-dot"></span>
           <span id="live-clock">00:00:00 PM</span>
         </div>
       </header>
@@ -636,6 +617,9 @@
             <label for="reg-key">Tu Clave Única (4 caracteres) *</label>
             <input type="password" id="reg-key" maxlength="4" placeholder="Ej: F2BQ" required autocomplete="off"
               style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;" />
+            <button type="button" id="btn-clear-saved-key" class="btn-link-clear">
+              ✕ No soy yo (borrar clave guardada en este dispositivo)
+            </button>
           </div>
           <input type="hidden" id="reg-teacher" value="" />
           <div class="input-group">
@@ -673,7 +657,7 @@
 
           <div class="input-group">
             <label for="gen-name">Nombre Completo *</label>
-            <input type="text" id="gen-name" name="name" placeholder="Ej: Tatiana Abigail Flores Ortiz" required autocomplete="name" />
+            <input type="text" id="gen-name" name="name" maxlength="120" placeholder="Ej: Tatiana Abigail Flores Ortiz" required autocomplete="name" />
             <small class="helper-text">Nombre y al menos un apellido, mayúscula inicial en cada palabra.</small>
           </div>
           <div class="input-group">
@@ -686,17 +670,17 @@
           </div>
           <div class="input-group">
             <label for="gen-phone">Teléfono <span style="opacity:.5;font-weight:400;text-transform:none;">(opcional)</span></label>
-            <input type="tel" id="gen-phone" name="tel" maxlength="9" placeholder="Ej: 7123-4567" autocomplete="tel-national" inputmode="numeric" />
+            <input type="tel" id="gen-phone" name="tel" maxlength="9" pattern="[267][0-9]{3}-[0-9]{4}" title="8 dígitos empezando con 2, 6 o 7 (Ej: 7123-4567)" placeholder="Ej: 7123-4567" autocomplete="tel-national" inputmode="numeric" />
             <small class="helper-text">8 dígitos. Si lo omites, se guardará como "---".</small>
           </div>
           <div class="input-group">
             <label for="gen-email">Correo Electrónico <span style="opacity:.5;font-weight:400;text-transform:none;">(opcional)</span></label>
-            <input type="email" id="gen-email" name="email" placeholder="Ej: nombre@correo.com" autocomplete="email" inputmode="email" />
+            <input type="email" id="gen-email" name="email" maxlength="120" placeholder="Ej: nombre@correo.com" autocomplete="email" inputmode="email" />
             <small class="helper-text">Si lo omites, se guardará como "---".</small>
           </div>
           <div class="input-group">
             <label for="gen-birthday">Cumpleaños DD/MM</label>
-            <input type="text" id="gen-birthday" maxlength="5" placeholder="Ej: 15/08" autocomplete="off" inputmode="numeric" />
+            <input type="text" id="gen-birthday" maxlength="5" pattern="(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])" title="Formato DD/MM (Ej: 15/08)" placeholder="Ej: 15/08" autocomplete="off" inputmode="numeric" />
             <small class="helper-text">es obligacion al menos que sea menor de edad pida asistencia a su docente</small>
           </div>
           <details style="margin-bottom:1rem;">
