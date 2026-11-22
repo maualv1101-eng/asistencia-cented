@@ -48,8 +48,8 @@ asistencia-cented/
 
 ## 🛡️ Seguridad y Privacidad
 
-- Consulta nuestra política de reporte responsable en [SECURITY.md](https://www.google.com/search?q=./SECURITY.md).
-- Consulta el aviso sobre el tratamiento de datos en [politica\_privacidad\_cented.pdf](https://www.google.com/search?q=./politica_privacidad_cented.pdf).
+- Consulta nuestra política de reporte responsable en [SECURITY.md](https://www.google.com/search?q=./SECURITY.md)
+- Consulta el aviso sobre el tratamiento de datos en [politica\_privacidad\_cented]([https://www.google.com/search?q=./politica_privacidad_cented.pdf](https://maualvarado1101.wixsite.com/cented))
 
 ---
 
