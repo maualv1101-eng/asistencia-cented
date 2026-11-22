@@ -13,7 +13,7 @@ const COOKIE_CLAVE_UNICA = "cented_clave_unica";
 const SESSION_KEY_ALUMNOS = "cented_lista_alumnos_v1";
 const ALUMNOS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 const COOLDOWN_ERROR_MS = 2500;
-const SPLASH_DURACION_MS = 4000;
+const SPLASH_DURACION_MS = 10000;
 
 let geoActivaGlobal = true;
 let coordsActuales = null;
