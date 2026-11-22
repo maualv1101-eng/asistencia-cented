@@ -13,12 +13,77 @@ const COOKIE_CLAVE_UNICA = "cented_clave_unica";
 const SESSION_KEY_ALUMNOS = "cented_lista_alumnos_v1";
 const ALUMNOS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 const COOLDOWN_ERROR_MS = 2500;
+const SPLASH_DURACION_MS = 3000;
 
 let geoActivaGlobal = true;
 let coordsActuales = null;
 let estudianteSeleccionadoClave = "";
 let googleButtonRenderizado = false;
 let ultimaAccionFallida = null;
+
+// ── PANTALLA DE BIENVENIDA (SPLASH EN TIEMPO REAL) ──────────────────
+
+function actualizarFechaYHoraSplash() {
+  const fechaEl = document.getElementById("splash-fecha");
+  const horaEl = document.getElementById("splash-hora");
+  const ahora = new Date();
+
+  if (fechaEl) {
+    try {
+      const fechaStr = new Intl.DateTimeFormat("es-SV", {
+        timeZone: ZONA_HORARIA_SV,
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      }).format(ahora);
+      fechaEl.textContent = fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1);
+    } catch (_) {
+      fechaEl.textContent = ahora.toLocaleDateString("es-SV");
+    }
+  }
+
+  if (horaEl) {
+    try {
+      const horaStr = new Intl.DateTimeFormat("en-US", {
+        timeZone: ZONA_HORARIA_SV,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+      }).format(ahora);
+      horaEl.textContent = horaStr;
+    } catch (_) {
+      horaEl.textContent = ahora.toLocaleTimeString();
+    }
+  }
+}
+
+function iniciarSplashBienvenida() {
+  const splash = document.getElementById("cented-splash");
+  if (!splash) return;
+
+  const splashLogo = document.getElementById("splash-logo-img");
+  if (splashLogo) {
+    splashLogo.addEventListener("error", () => {
+      if (!splashLogo.dataset.fallbackUsed) {
+        splashLogo.dataset.fallbackUsed = "1";
+        splashLogo.src = "LOGO.png";
+      }
+    });
+  }
+
+  actualizarFechaYHoraSplash();
+  const timerReloj = setInterval(actualizarFechaYHoraSplash, 1000);
+
+  setTimeout(() => {
+    splash.classList.add("is-hiding");
+    setTimeout(() => {
+      clearInterval(timerReloj);
+      splash.style.display = "none";
+    }, 520);
+  }, SPLASH_DURACION_MS);
+}
 
 // ── SANITIZACIÓN, ESTADO DE RED Y UTILIDADES DE UI ──────────────────
 
@@ -1090,6 +1155,7 @@ async function enviarMensajeMisterio(e) {
 // ── INICIALIZACIÓN GENERAL ──────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
+  iniciarSplashBienvenida();
   actualizarReloj();
   setInterval(actualizarReloj, 1000);
   inicializarTema();
