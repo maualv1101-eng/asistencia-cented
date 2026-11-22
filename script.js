@@ -1,13 +1,21 @@
-// FRONTEND — Portal Aula Digital & Asistencia CENTED
+// FRONTEND
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5whpgO3AnwENYrV_Ov-oyGo5cpaH8EXVnsnoiKwJeT-UgQ7qPkH145H5VHR-W1N-P/exec";
 window.SCRIPT_URL = SCRIPT_URL;
 
+// (OAuth 2.0 Web)
+const GOOGLE_CLIENT_ID = "512310432623-bd9rb3vpefk70i9gblg8ol25qhqrio8f.apps.googleusercontent.com";
+
 const ZONA_HORARIA_SV = "America/El_Salvador";
+const STORAGE_KEY_BORRADOR = "cented_borrador_clave";
+const STORAGE_KEY_CLAVE_UNICA = "cented_clave_unica";
+const COOKIE_BORRADOR = "cented_borrador_clave";
+const COOKIE_CLAVE_UNICA = "cented_clave_unica";
 
 let geoActivaGlobal = true;
 let coordsActuales = null;
 let estudianteSeleccionadoClave = "";
+let googleButtonRenderizado = false;
 
 // ── UTILIDADES DE UI Y SANITIZACIÓN DOM ─────────────────────────────
 
@@ -58,6 +66,157 @@ function cambiarVista(idVista) {
   if (destino) {
     destino.classList.add("active");
   }
+}
+
+// ── COOKIES Y ALMACENAMIENTO LOCAL (RECORDAR DATOS DEL ALUMNO) ──────
+
+function guardarCookie(nombre, valor, dias = 180) {
+  try {
+    const exp = new Date(Date.now() + dias * 86400000).toUTCString();
+    document.cookie =
+      encodeURIComponent(nombre) +
+      "=" +
+      encodeURIComponent(valor) +
+      "; expires=" +
+      exp +
+      "; path=/; SameSite=Lax";
+  } catch (_) {}
+}
+
+function leerCookie(nombre) {
+  try {
+    const prefijo = encodeURIComponent(nombre) + "=";
+    const partes = document.cookie.split(";");
+    for (let i = 0; i < partes.length; i++) {
+      const c = partes[i].trim();
+      if (c.indexOf(prefijo) === 0) {
+        return decodeURIComponent(c.substring(prefijo.length));
+      }
+    }
+  } catch (_) {}
+  return "";
+}
+
+function guardarBorradorClave() {
+  const datos = {
+    nombre: (document.getElementById("gen-name")?.value || "").trim(),
+    docente: (document.getElementById("gen-teacher")?.value || "").trim(),
+    telefono: (document.getElementById("gen-phone")?.value || "").trim(),
+    correo: (document.getElementById("gen-email")?.value || "").trim(),
+    cumple: (document.getElementById("gen-birthday")?.value || "").trim()
+  };
+  const json = JSON.stringify(datos);
+  try {
+    localStorage.setItem(STORAGE_KEY_BORRADOR, json);
+  } catch (_) {}
+  guardarCookie(COOKIE_BORRADOR, json, 180);
+}
+
+function cargarBorradorClave() {
+  let raw = "";
+  try {
+    raw = localStorage.getItem(STORAGE_KEY_BORRADOR) || "";
+  } catch (_) {}
+  if (!raw) raw = leerCookie(COOKIE_BORRADOR);
+  if (!raw) return;
+
+  try {
+    const datos = JSON.parse(raw);
+    const setIfEmpty = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val && !String(el.value || "").trim()) {
+        el.value = val;
+      }
+    };
+    setIfEmpty("gen-name", datos.nombre);
+    setIfEmpty("gen-teacher", datos.docente);
+    setIfEmpty("gen-phone", datos.telefono);
+    setIfEmpty("gen-email", datos.correo);
+    setIfEmpty("gen-birthday", datos.cumple);
+  } catch (_) {}
+}
+
+function guardarClaveLocal(clave) {
+  if (!clave) return;
+  const limpia = String(clave).trim().toUpperCase();
+  try {
+    localStorage.setItem(STORAGE_KEY_CLAVE_UNICA, limpia);
+  } catch (_) {}
+  guardarCookie(COOKIE_CLAVE_UNICA, limpia, 365);
+}
+
+function cargarClaveLocalEnRegistro() {
+  const regKey = document.getElementById("reg-key");
+  if (!regKey || regKey.value.trim()) return;
+
+  let guardada = "";
+  try {
+    guardada = localStorage.getItem(STORAGE_KEY_CLAVE_UNICA) || "";
+  } catch (_) {}
+  if (!guardada) guardada = leerCookie(COOKIE_CLAVE_UNICA);
+
+  if (guardada && guardada.length === 4) {
+    regKey.value = guardada;
+  }
+}
+
+// ── GOOGLE SIGN-IN (RELLENAR NOMBRE + GMAIL EN 1 CLIC) ───────────────
+
+function decodificarJwtPayload(token) {
+  const base64Url = token.split(".")[1];
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+function capitalizarNombre(texto) {
+  return String(texto || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toLocaleUpperCase("es") + p.slice(1).toLocaleLowerCase("es"))
+    .join(" ");
+}
+
+function manejarRespuestaGoogle(response) {
+  try {
+    const data = decodificarJwtPayload(response.credential);
+    const inputName = document.getElementById("gen-name");
+    const inputEmail = document.getElementById("gen-email");
+
+    if (inputName && data.name) {
+      inputName.value = capitalizarNombre(data.name);
+    }
+    if (inputEmail && data.email) {
+      inputEmail.value = String(data.email).trim().toLowerCase();
+    }
+
+    guardarBorradorClave();
+    mostrarToast("Nombre y Gmail rellenados desde Google.", "success");
+  } catch (_) {
+    mostrarToast("No se pudieron leer los datos de Google.", "warning");
+  }
+}
+
+function inicializarGoogleAutoFill() {
+  if (googleButtonRenderizado) return;
+  const contenedor = document.getElementById("google-autofill-btn");
+  if (!contenedor || !window.google?.accounts?.id) return;
+  if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.indexOf("TU_CLIENT_ID") === 0) return;
+
+  window.google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: manejarRespuestaGoogle
+  });
+
+  window.google.accounts.id.renderButton(contenedor, {
+    theme: "outline",
+    size: "large",
+    text: "continue_with",
+    locale: "es"
+  });
+  googleButtonRenderizado = true;
 }
 
 // ── RELOJ EN VIVO (EL SALVADOR) Y TEMA OSCURO ───────────────────────
@@ -423,6 +582,7 @@ async function confirmarAuthClave() {
       const regTeacher = document.getElementById("reg-teacher");
       if (regKey) regKey.value = res.clave;
       if (regTeacher && res.docente) regTeacher.value = res.docente;
+      guardarClaveLocal(res.clave);
 
       mostrarAlerta(
         "alertRegistro",
@@ -489,6 +649,7 @@ async function manejarRegistroAsistencia(e) {
     const res = await postBackend(payload);
 
     if (res.result === "success") {
+      guardarClaveLocal(clave);
       mostrarAlerta(
         "alertRegistro",
         "success",
@@ -574,6 +735,9 @@ async function manejarGenerarClave(e) {
     const res = await postBackend(payload);
 
     if (res.result === "success" && res.clave) {
+      guardarBorradorClave();
+      guardarClaveLocal(res.clave);
+
       const box = document.getElementById("claveGeneradaContainer");
       const codEl = document.getElementById("codGenerado");
       if (codEl) codEl.textContent = res.clave;
@@ -696,11 +860,14 @@ document.addEventListener("DOMContentLoaded", () => {
   actualizarReloj();
   setInterval(actualizarReloj, 1000);
   inicializarTema();
+  cargarBorradorClave();
+  inicializarGoogleAutoFill();
 
   // Navegación del menú principal
   document.getElementById("btn-menu-register")?.addEventListener("click", () => {
     limpiarAlerta("alertRegistro");
     cambiarVista("view-register");
+    cargarClaveLocalEnRegistro();
     verificarEstadoGeoYUbicacion();
     cargarListaAlumnos();
   });
@@ -708,6 +875,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-menu-keygen")?.addEventListener("click", () => {
     limpiarAlerta("alertGenerarClave");
     cambiarVista("view-keygen");
+    cargarBorradorClave();
+    inicializarGoogleAutoFill();
   });
 
   document.getElementById("btn-menu-mystery")?.addEventListener("click", () => {
@@ -736,6 +905,14 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("gen-birthday")?.addEventListener("input", formatearCumpleInput);
   document.getElementById("btn-guardar-clave-captura")?.addEventListener("click", descargarCapturaClave);
 
+  // Guardar borrador automático mientras escribe en Generar Clave
+  ["gen-name", "gen-teacher", "gen-phone", "gen-email", "gen-birthday"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", guardarBorradorClave);
+    el.addEventListener("change", guardarBorradorClave);
+  });
+
   // Caja del Misterio
   document.getElementById("form-mystery")?.addEventListener("submit", enviarMensajeMisterio);
   document.getElementById("mys-message")?.addEventListener("input", (e) => {
@@ -746,6 +923,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+window.addEventListener("load", inicializarGoogleAutoFill);
 
 const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycby5whpgO3AnwENYrV_Ov-oyGo5cpaH8EXVnsnoiKwJeT-UgQ7qPkH145H5VHR-W1N-P/exec";
 
@@ -769,9 +948,9 @@ function ocultarError503() {
   document.getElementById("eva-error-503").classList.remove("activo");
 }
 
-document.getElementById("eva-503-cerrar").addEventListener("click", ocultarError503);
+document.getElementById("eva-503-cerrar")?.addEventListener("click", ocultarError503);
 
-document.getElementById("eva-503-reintentar").addEventListener("click", async function () {
+document.getElementById("eva-503-reintentar")?.addEventListener("click", async function () {
   if (!ultimaAccionFallida) return;
   this.disabled = true;
   this.textContent = "Reconectando...";
