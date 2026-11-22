@@ -1,6 +1,6 @@
 // FRONTEND — Portal Aula Digital & Asistencia CENTED
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5whpgO3AnwENYrV_Ov-oyGo5cpaH8EXVnsnoiKwJeT-UgQ7qPkH145H5VHR-W1N-P/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpddc7Vp6bpn1hWXXlNXbuX6ULYm_lH9O530Dinzf2D1f36ofQBWm0pzlnZOJ4NeLY/exec";
 window.SCRIPT_URL = SCRIPT_URL;
 
 const GOOGLE_CLIENT_ID = "512310432623-bd9rb3vpefk70i9gblg8ol25qhqrio8f.apps.googleusercontent.com";
