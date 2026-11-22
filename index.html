@@ -81,7 +81,7 @@
         z-index: 30000;
         background: linear-gradient(160deg, #ffffff 0%, #f3f4f6 45%, #d4d4d8 78%, #18181b 100%);
         background-size: 220% 220%;
-        animation: splashBgShift 4s ease-in-out forwards;
+        animation: splashBgShift 10s ease-in-out forwards;
         color: #0a0a0a;
         display: flex;
         align-items: center;
@@ -158,7 +158,7 @@
       .cented-splash-dedicatoria-wrap {
         width: 100%;
         max-width: 470px;
-        height: clamp(125px, 23vh, 175px);
+        height: clamp(150px, 27vh, 215px);
         margin-top: 0.75rem;
         overflow: hidden;
         position: relative;
@@ -173,7 +173,7 @@
         line-height: 1.5;
         color: #27272a;
         padding: 0 0.5rem;
-        animation: splashTextRise 4s cubic-bezier(.25,.1,.25,1) forwards;
+        animation: splashTextRise 10s linear forwards;
       }
       .cented-splash-dedicatoria p {
         margin: 0;
@@ -202,7 +202,7 @@
         height: 100%;
         background: #09090b;
         transform-origin: left center;
-        animation: splashProgress 4s linear forwards;
+        animation: splashProgress 10s linear forwards;
       }
       @keyframes splashBgShift {
         0% { background-position: 0% 0%; }
@@ -218,10 +218,10 @@
         to { opacity: 1; transform: scale(1); }
       }
       @keyframes splashTextRise {
-        0% { opacity: 0; transform: translateY(58%); }
-        14% { opacity: 1; }
-        88% { opacity: 1; }
-        100% { opacity: 0.92; transform: translateY(-42%); }
+        0% { opacity: 0; transform: translateY(72%); }
+        8% { opacity: 1; }
+        92% { opacity: 1; }
+        100% { opacity: 0.92; transform: translateY(-68%); }
       }
       @keyframes splashProgress {
         from { transform: scaleX(0); }
@@ -594,12 +594,13 @@
 
         <div class="cented-splash-dedicatoria-wrap" aria-label="Mensaje de bienvenida institucional">
           <div class="cented-splash-dedicatoria">
-            <p>Durante demasiado tiempo, el aprendizaje solo ocurría dentro de cuatro paredes.</p>
+            <p>Gracias por asistir, por dar lo mejor de ti y por esforzarte clase a clase, incluso en los días en que aprender parece un reto.</p>
+            <p class="ded-strong">Tu constancia y tus ganas de superarte son lo que le da vida a esta academia.</p>
+            <p>Durante demasiado tiempo, el aprendizaje solo ocurría dentro de cuatro paredes, limitado a un horario y a un salón.</p>
             <p class="ded-strong">Hoy, eso cambia.</p>
-            <p>El Aula Digital de Grupo Cented Academy Pro Education es tu espacio de aprendizaje extendido: un lugar que va más allá del salón de clases, más allá del horario y más allá de los límites de la educación tradicional.</p>
-            <p>Esta plataforma fue diseñada con un solo propósito: brindarle a cada estudiante un espacio moderno, organizado y accesible para reforzar, practicar y crecer.</p>
-            <p>Todo lo que necesitas está aquí. Tus materiales, tus prácticas, tus recursos: todo en un solo lugar, disponible cuando lo necesites. Selecciona tu grupo desde tu horario de clases y aprovecha al máximo todo lo que este espacio tiene para ofrecerte.</p>
-            <p class="ded-strong">Tu aprendizaje no termina cuando termina la clase. Comienza aquí.</p>
+            <p>El Aula Digital de Grupo Cented Academy Pro Education es tu espacio de aprendizaje extendido: un lugar diseñado para que el conocimiento te acompañe a donde vayas, practiques sin miedo a equivocarte y transformes cada duda en una nueva habilidad.</p>
+            <p>Aquí tienes tus materiales, tus prácticas y tus recursos en un solo lugar, disponibles cada vez que decidas dar un paso más.</p>
+            <p class="ded-strong">El futuro no se espera. Se programa, se diseña y se construye desde hoy. Tu aprendizaje no termina cuando termina la clase: comienza aquí.</p>
             <p class="ded-firma">— Equipo Académico de Grupo Cented Academy Pro Education</p>
           </div>
         </div>
