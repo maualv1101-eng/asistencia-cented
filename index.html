@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src 'self' https://unpkg.com;
-      style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
+      script-src 'self' https://unpkg.com https://accounts.google.com;
+      style-src 'self' https://fonts.googleapis.com https://accounts.google.com 'unsafe-inline';
       font-src https://fonts.gstatic.com;
-      connect-src https://script.google.com https://script.googleusercontent.com;
-      frame-src https://maualvarado1101.wixsite.com https://www.google.com https://drive.google.com https://www.youtube.com https://www.dropbox.com https://mega.nz https://www.mediafire.com;
+      connect-src https://script.google.com https://script.googleusercontent.com https://accounts.google.com;
+      frame-src https://accounts.google.com https://maualvarado1101.wixsite.com https://www.google.com https://drive.google.com https://www.youtube.com https://www.dropbox.com https://mega.nz https://www.mediafire.com;
       img-src 'self' https://grupocented.fyi https://lh3.googleusercontent.com https://drive.google.com https://www.dropbox.com https://dl.dropboxusercontent.com https://mega.nz https://www.mediafire.com data: blob:;
       media-src blob: https://lh3.googleusercontent.com https://drive.google.com https://www.dropbox.com https://dl.dropboxusercontent.com https://mega.nz https://www.mediafire.com;
       worker-src blob:;
@@ -52,6 +52,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
     <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
       /* ── TOKENS ─────────────────────────────────── */
@@ -85,6 +86,7 @@
                           linear-gradient(rgba(255,255,255,.02) 1px, transparent 0);
       }
       html[data-theme="dark"] input[type="text"],
+      html[data-theme="dark"] input[type="email"],
       html[data-theme="dark"] input[type="password"],
       html[data-theme="dark"] input[type="tel"],
       html[data-theme="dark"] select,
@@ -159,7 +161,7 @@
       .view-title { font-family:var(--fh); font-size:1.4rem; margin-bottom:2rem; text-transform:uppercase; letter-spacing:-.5px; }
       .input-group { display:flex; flex-direction:column; gap:.5rem; margin-bottom:1.5rem; }
       .input-group label { font-size:.9rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-      input[type="text"], input[type="password"], input[type="tel"], select, textarea {
+      input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select, textarea {
         width:100%; padding:1rem; font-family:var(--fb); font-size:1rem;
         border:var(--bw) solid var(--fg); background:var(--bg); color:var(--fg);
         outline:none; transition:all var(--tr); border-radius:calc(var(--br) - 4px);
@@ -168,6 +170,17 @@
         background:#fff; box-shadow:4px 4px 0 var(--accent); border-color:var(--accent);
       }
       .helper-text { font-size:.8rem; opacity:.6; margin-top:.2rem; }
+      .google-autofill-box {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border: var(--bw) solid var(--fg);
+        border-radius: calc(var(--br) - 4px);
+        background: var(--bg);
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+        align-items: flex-start;
+      }
 
       /* ── ALERTS ──────────────────────────────────── */
       .alert-box {
@@ -337,96 +350,96 @@
       }
 
       /* Banner / Modal optimizado 503 Service Unavailable */
-.eva-503-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(4px);
-  animation: evaFadeIn 0.2s ease-out;
-}
-.eva-503-overlay.activo {
-  display: flex;
-}
-.eva-503-card {
-  width: 100%;
-  max-width: 420px;
-  background: #ffffff;
-  color: #1e293b;
-  border-radius: 16px;
-  padding: 1.75rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
-  border-top: 5px solid #ef4444;
-  text-align: center;
-  font-family: system-ui, -apple-system, sans-serif;
-}
-.eva-503-badge {
-  display: inline-block;
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-  font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
-  padding: 0.25rem 0.7rem;
-  border-radius: 999px;
-  margin-bottom: 0.75rem;
-}
-.eva-503-card h3 {
-  margin: 0 0 0.5rem;
-  font-size: 1.25rem;
-  color: #0f172a;
-}
-.eva-503-card p {
-  margin: 0 0 1.25rem;
-  font-size: 0.92rem;
-  line-height: 1.5;
-  color: #475569;
-}
-.eva-503-detalle {
-  display: block;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.78rem;
-  color: #64748b;
-  margin-bottom: 1.25rem;
-  word-break: break-word;
-}
-.eva-503-actions {
-  display: flex;
-  gap: 0.65rem;
-  justify-content: center;
-}
-.eva-503-btn {
-  flex: 1;
-  padding: 0.65rem 1rem;
-  border-radius: 10px;
-  border: none;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: transform 0.1s ease, opacity 0.15s ease;
-}
-.eva-503-btn:active { transform: scale(0.98); }
-.eva-503-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.eva-503-btn-primary {
-  background: #2563eb;
-  color: #ffffff;
-}
-.eva-503-btn-secondary {
-  background: #e2e8f0;
-  color: #334155;
-}
-@keyframes evaFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+      .eva-503-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(15, 23, 42, 0.72);
+        backdrop-filter: blur(4px);
+        animation: evaFadeIn 0.2s ease-out;
+      }
+      .eva-503-overlay.activo {
+        display: flex;
+      }
+      .eva-503-card {
+        width: 100%;
+        max-width: 420px;
+        background: #ffffff;
+        color: #1e293b;
+        border-radius: 16px;
+        padding: 1.75rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+        border-top: 5px solid #ef4444;
+        text-align: center;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      .eva-503-badge {
+        display: inline-block;
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+        font-weight: 700;
+        font-size: 0.78rem;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.7rem;
+        border-radius: 999px;
+        margin-bottom: 0.75rem;
+      }
+      .eva-503-card h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.25rem;
+        color: #0f172a;
+      }
+      .eva-503-card p {
+        margin: 0 0 1.25rem;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        color: #475569;
+      }
+      .eva-503-detalle {
+        display: block;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.78rem;
+        color: #64748b;
+        margin-bottom: 1.25rem;
+        word-break: break-word;
+      }
+      .eva-503-actions {
+        display: flex;
+        gap: 0.65rem;
+        justify-content: center;
+      }
+      .eva-503-btn {
+        flex: 1;
+        padding: 0.65rem 1rem;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: transform 0.1s ease, opacity 0.15s ease;
+      }
+      .eva-503-btn:active { transform: scale(0.98); }
+      .eva-503-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+      .eva-503-btn-primary {
+        background: #2563eb;
+        color: #ffffff;
+      }
+      .eva-503-btn-secondary {
+        background: #e2e8f0;
+        color: #334155;
+      }
+      @keyframes evaFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
     </style>
   </head>
   <body>
@@ -652,9 +665,15 @@
             <label for="gen-website">Sitio web</label>
             <input type="text" id="gen-website" name="website" tabindex="-1" autocomplete="off" />
           </div>
+
+          <div class="google-autofill-box">
+            <div id="google-autofill-btn"></div>
+            <small class="helper-text">Opcional: rellena tu nombre y correo de Gmail con 1 clic.</small>
+          </div>
+
           <div class="input-group">
             <label for="gen-name">Nombre Completo *</label>
-            <input type="text" id="gen-name" placeholder="Ej: Tatiana Abigail Flores Ortiz" required autocomplete="off" />
+            <input type="text" id="gen-name" name="name" placeholder="Ej: Tatiana Abigail Flores Ortiz" required autocomplete="name" />
             <small class="helper-text">Nombre y al menos un apellido, mayúscula inicial en cada palabra.</small>
           </div>
           <div class="input-group">
@@ -667,12 +686,12 @@
           </div>
           <div class="input-group">
             <label for="gen-phone">Teléfono <span style="opacity:.5;font-weight:400;text-transform:none;">(opcional)</span></label>
-            <input type="tel" id="gen-phone" maxlength="9" placeholder="Ej: 7123-4567" autocomplete="off" inputmode="numeric" />
+            <input type="tel" id="gen-phone" name="tel" maxlength="9" placeholder="Ej: 7123-4567" autocomplete="tel-national" inputmode="numeric" />
             <small class="helper-text">8 dígitos. Si lo omites, se guardará como "---".</small>
           </div>
           <div class="input-group">
             <label for="gen-email">Correo Electrónico <span style="opacity:.5;font-weight:400;text-transform:none;">(opcional)</span></label>
-            <input type="text" id="gen-email" placeholder="Ej: nombre@correo.com" autocomplete="off" />
+            <input type="email" id="gen-email" name="email" placeholder="Ej: nombre@correo.com" autocomplete="email" inputmode="email" />
             <small class="helper-text">Si lo omites, se guardará como "---".</small>
           </div>
           <div class="input-group">
@@ -753,18 +772,18 @@
     <!-- [ACTUALIZADO] marca y aviso desde EVA-DOC (Config & Marca) -->
     <script src="rebranding.js" defer></script>
     <div id="eva-error-503" class="eva-503-overlay" role="alertdialog" aria-modal="true" aria-labelledby="eva-503-titulo">
-  <div class="eva-503-card">
-    <span class="eva-503-badge">ERROR 503 · SERVICE UNAVAILABLE</span>
-    <h3 id="eva-503-titulo">Servicio no disponible</h3>
-    <p id="eva-503-mensaje">
-      El servidor no respondió a tiempo o está recibiendo muchas solicitudes. Por favor, intenta nuevamente en unos segundos.
-    </p>
-    <code id="eva-503-detalle" class="eva-503-detalle">Motivo: Tiempo de espera agotado con el servidor</code>
-    <div class="eva-503-actions">
-      <button type="button" id="eva-503-cerrar" class="eva-503-btn eva-503-btn-secondary">Cerrar</button>
-      <button type="button" id="eva-503-reintentar" class="eva-503-btn eva-503-btn-primary">Reintentar ahora</button>
+      <div class="eva-503-card">
+        <span class="eva-503-badge">ERROR 503 · SERVICE UNAVAILABLE</span>
+        <h3 id="eva-503-titulo">Servicio no disponible</h3>
+        <p id="eva-503-mensaje">
+          El servidor no respondió a tiempo o está recibiendo muchas solicitudes. Por favor, intenta nuevamente en unos segundos.
+        </p>
+        <code id="eva-503-detalle" class="eva-503-detalle">Motivo: Tiempo de espera agotado con el servidor</code>
+        <div class="eva-503-actions">
+          <button type="button" id="eva-503-cerrar" class="eva-503-btn eva-503-btn-secondary">Cerrar</button>
+          <button type="button" id="eva-503-reintentar" class="eva-503-btn eva-503-btn-primary">Reintentar ahora</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
   </body>
 </html>
