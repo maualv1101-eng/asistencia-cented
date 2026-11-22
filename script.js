@@ -1138,11 +1138,26 @@ document.addEventListener("DOMContentLoaded", () => {
     cambiarVista("view-mystery");
   });
 
-  // Botones volver y limpiar clave local
+  // Botones volver, logo hacia menú y limpiar clave local
   document.getElementById("btn-back-register")?.addEventListener("click", () => cambiarVista("view-menu"));
   document.getElementById("btn-back-keygen")?.addEventListener("click", () => cambiarVista("view-menu"));
   document.getElementById("btn-back-mystery")?.addEventListener("click", () => cambiarVista("view-menu"));
   document.getElementById("btn-clear-saved-key")?.addEventListener("click", limpiarClaveLocal);
+
+  const brandLogo = document.getElementById("brand-logo-img");
+  if (brandLogo) {
+    brandLogo.style.cursor = "pointer";
+    brandLogo.title = "Volver al menú principal";
+    brandLogo.setAttribute("role", "button");
+    brandLogo.setAttribute("tabindex", "0");
+    brandLogo.addEventListener("click", () => cambiarVista("view-menu"));
+    brandLogo.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        cambiarVista("view-menu");
+      }
+    });
+  }
 
   // Recuperar clave olvidada
   document.getElementById("reg-student-select")?.addEventListener("change", (e) => {
