@@ -1,9 +1,8 @@
-// FRONTEND
+// FRONTEND — Portal Aula Digital & Asistencia CENTED
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5whpgO3AnwENYrV_Ov-oyGo5cpaH8EXVnsnoiKwJeT-UgQ7qPkH145H5VHR-W1N-P/exec";
 window.SCRIPT_URL = SCRIPT_URL;
 
-// (OAuth 2.0 Web)
 const GOOGLE_CLIENT_ID = "512310432623-bd9rb3vpefk70i9gblg8ol25qhqrio8f.apps.googleusercontent.com";
 
 const ZONA_HORARIA_SV = "America/El_Salvador";
@@ -11,13 +10,42 @@ const STORAGE_KEY_BORRADOR = "cented_borrador_clave";
 const STORAGE_KEY_CLAVE_UNICA = "cented_clave_unica";
 const COOKIE_BORRADOR = "cented_borrador_clave";
 const COOKIE_CLAVE_UNICA = "cented_clave_unica";
+const SESSION_KEY_ALUMNOS = "cented_lista_alumnos_v1";
+const ALUMNOS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+const COOLDOWN_ERROR_MS = 2500;
 
 let geoActivaGlobal = true;
 let coordsActuales = null;
 let estudianteSeleccionadoClave = "";
 let googleButtonRenderizado = false;
+let ultimaAccionFallida = null;
 
-// ── UTILIDADES DE UI Y SANITIZACIÓN DOM ─────────────────────────────
+// ── SANITIZACIÓN, ESTADO DE RED Y UTILIDADES DE UI ──────────────────
+
+function sanitizarTexto(str, maxLen = 150) {
+  return String(str || "")
+    .replace(/[\x00-\x1F\x7F]/g, "")
+    .replace(/^[=+\-@\t\r]+/, "")
+    .trim()
+    .slice(0, maxLen);
+}
+
+function actualizarIndicadorRed(estado) {
+  const dot = document.getElementById("live-status-dot");
+  const pill = document.getElementById("live-status-pill");
+  if (!dot) return;
+
+  dot.classList.remove("slow", "offline");
+  if (!navigator.onLine || estado === "offline") {
+    dot.classList.add("offline");
+    if (pill) pill.title = "Sin conexión a internet o servidor no disponible";
+  } else if (estado === "slow") {
+    dot.classList.add("slow");
+    if (pill) pill.title = "Conectando con el servidor...";
+  } else {
+    if (pill) pill.title = "Conectado y en línea";
+  }
+}
 
 function mostrarAlerta(idElemento, tipo, mensaje) {
   const box = document.getElementById(idElemento);
@@ -49,15 +77,6 @@ function mostrarToast(mensaje, tipo = "info") {
   }, 3600);
 }
 
-function escaparHtmlMisterio(str) {
-  return String(str || "")
-    .replace(/&/g, "\u0026amp;")
-    .replace(/</g, "\u0026lt;")
-    .replace(/>/g, "\u0026gt;")
-    .replace(/"/g, "\u0026quot;")
-    .replace(/'/g, "\u0026#39;");
-}
-
 function cambiarVista(idVista) {
   document.querySelectorAll(".card-view").forEach((vista) => {
     vista.classList.remove("active");
@@ -68,18 +87,35 @@ function cambiarVista(idVista) {
   }
 }
 
+function habilitarConCooldown(btn, textoOriginal, huboError) {
+  if (!btn) return;
+  if (!huboError) {
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = "⏳ Espera un momento...";
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
+  }, COOLDOWN_ERROR_MS);
+}
+
 // ── COOKIES Y ALMACENAMIENTO LOCAL (RECORDAR DATOS DEL ALUMNO) ──────
 
 function guardarCookie(nombre, valor, dias = 180) {
   try {
     const exp = new Date(Date.now() + dias * 86400000).toUTCString();
+    const secureFlag = location.protocol === "https:" ? "; Secure" : "";
     document.cookie =
       encodeURIComponent(nombre) +
       "=" +
       encodeURIComponent(valor) +
       "; expires=" +
       exp +
-      "; path=/; SameSite=Lax";
+      "; path=/; SameSite=Lax" +
+      secureFlag;
   } catch (_) {}
 }
 
@@ -99,11 +135,11 @@ function leerCookie(nombre) {
 
 function guardarBorradorClave() {
   const datos = {
-    nombre: (document.getElementById("gen-name")?.value || "").trim(),
-    docente: (document.getElementById("gen-teacher")?.value || "").trim(),
-    telefono: (document.getElementById("gen-phone")?.value || "").trim(),
-    correo: (document.getElementById("gen-email")?.value || "").trim(),
-    cumple: (document.getElementById("gen-birthday")?.value || "").trim()
+    nombre: sanitizarTexto(document.getElementById("gen-name")?.value, 120),
+    docente: sanitizarTexto(document.getElementById("gen-teacher")?.value, 80),
+    telefono: sanitizarTexto(document.getElementById("gen-phone")?.value, 15),
+    correo: sanitizarTexto(document.getElementById("gen-email")?.value, 120),
+    cumple: sanitizarTexto(document.getElementById("gen-birthday")?.value, 10)
   };
   const json = JSON.stringify(datos);
   try {
@@ -122,32 +158,47 @@ function cargarBorradorClave() {
 
   try {
     const datos = JSON.parse(raw);
-    const setIfEmpty = (id, val) => {
+    if (!datos || typeof datos !== "object") return;
+    const setIfEmpty = (id, val, maxLen) => {
       const el = document.getElementById(id);
-      if (el && val && !String(el.value || "").trim()) {
-        el.value = val;
+      if (el && typeof val === "string" && val.trim() && !String(el.value || "").trim()) {
+        el.value = sanitizarTexto(val, maxLen);
       }
     };
-    setIfEmpty("gen-name", datos.nombre);
-    setIfEmpty("gen-teacher", datos.docente);
-    setIfEmpty("gen-phone", datos.telefono);
-    setIfEmpty("gen-email", datos.correo);
-    setIfEmpty("gen-birthday", datos.cumple);
+    setIfEmpty("gen-name", datos.nombre, 120);
+    setIfEmpty("gen-teacher", datos.docente, 80);
+    setIfEmpty("gen-phone", datos.telefono, 15);
+    setIfEmpty("gen-email", datos.correo, 120);
+    setIfEmpty("gen-birthday", datos.cumple, 10);
   } catch (_) {}
 }
 
 function guardarClaveLocal(clave) {
   if (!clave) return;
-  const limpia = String(clave).trim().toUpperCase();
+  const limpia = sanitizarTexto(clave, 4).toUpperCase();
+  if (!/^[A-Z0-9]{4}$/.test(limpia)) return;
   try {
     localStorage.setItem(STORAGE_KEY_CLAVE_UNICA, limpia);
   } catch (_) {}
   guardarCookie(COOKIE_CLAVE_UNICA, limpia, 365);
 }
 
+function limpiarClaveLocal() {
+  try {
+    localStorage.removeItem(STORAGE_KEY_CLAVE_UNICA);
+  } catch (_) {}
+  guardarCookie(COOKIE_CLAVE_UNICA, "", -1);
+  const regKey = document.getElementById("reg-key");
+  const btnClear = document.getElementById("btn-clear-saved-key");
+  if (regKey) regKey.value = "";
+  if (btnClear) btnClear.style.display = "none";
+  mostrarToast("Clave guardada eliminada de este dispositivo.", "info");
+}
+
 function cargarClaveLocalEnRegistro() {
   const regKey = document.getElementById("reg-key");
-  if (!regKey || regKey.value.trim()) return;
+  const btnClear = document.getElementById("btn-clear-saved-key");
+  if (!regKey) return;
 
   let guardada = "";
   try {
@@ -155,8 +206,12 @@ function cargarClaveLocalEnRegistro() {
   } catch (_) {}
   if (!guardada) guardada = leerCookie(COOKIE_CLAVE_UNICA);
 
-  if (guardada && guardada.length === 4) {
-    regKey.value = guardada;
+  const limpia = sanitizarTexto(guardada, 4).toUpperCase();
+  if (/^[A-Z0-9]{4}$/.test(limpia)) {
+    if (!regKey.value.trim()) regKey.value = limpia;
+    if (btnClear) btnClear.style.display = "inline-block";
+  } else if (btnClear) {
+    btnClear.style.display = "none";
   }
 }
 
@@ -170,8 +225,7 @@ function decodificarJwtPayload(token) {
 }
 
 function capitalizarNombre(texto) {
-  return String(texto || "")
-    .trim()
+  return sanitizarTexto(texto, 120)
     .replace(/\s+/g, " ")
     .split(" ")
     .filter(Boolean)
@@ -185,11 +239,14 @@ function manejarRespuestaGoogle(response) {
     const inputName = document.getElementById("gen-name");
     const inputEmail = document.getElementById("gen-email");
 
-    if (inputName && data.name) {
+    if (inputName && typeof data.name === "string" && data.name.trim()) {
       inputName.value = capitalizarNombre(data.name);
     }
-    if (inputEmail && data.email) {
-      inputEmail.value = String(data.email).trim().toLowerCase();
+    if (inputEmail && typeof data.email === "string") {
+      const correoLimpio = sanitizarTexto(data.email, 120).toLowerCase();
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoLimpio)) {
+        inputEmail.value = correoLimpio;
+      }
     }
 
     guardarBorradorClave();
@@ -289,7 +346,6 @@ function generarNonce() {
   return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// Implementación SHA-256 pura de respaldo por si crypto.subtle no está disponible
 function sha256FallbackBytes(ascii) {
   function rightRotate(value, amount) {
     return (value >>> amount) | (value << (32 - amount));
@@ -427,16 +483,124 @@ async function firmarPayload(action, camposFijosObj, camposOpcionalesObj = {}) {
   return payload;
 }
 
-async function postBackend(payload) {
-  const body = new URLSearchParams(payload);
-  const resp = await fetch(SCRIPT_URL, {
-    method: "POST",
-    body
-  });
-  if (!resp.ok) {
-    throw new Error("Error HTTP " + resp.status);
+// ── COMUNICACIÓN RESILIENTE CON BACKEND GAS (TIMEOUT + 503 + WARM-UP) ──
+
+function mostrarError503(detalleTecnico, callbackReintento) {
+  const modal = document.getElementById("eva-error-503");
+  const detalleEl = document.getElementById("eva-503-detalle");
+  const btnReintentar = document.getElementById("eva-503-reintentar");
+  if (!modal || !detalleEl || !btnReintentar) return;
+
+  detalleEl.textContent = "Detalle: " + (detalleTecnico || "El backend de Google Apps Script no respondió.");
+  ultimaAccionFallida = typeof callbackReintento === "function" ? callbackReintento : null;
+  btnReintentar.style.display = ultimaAccionFallida ? "inline-block" : "none";
+  btnReintentar.disabled = false;
+  btnReintentar.textContent = "Reintentar ahora";
+
+  modal.classList.add("activo");
+}
+
+function ocultarError503() {
+  document.getElementById("eva-error-503")?.classList.remove("activo");
+}
+
+async function fetchBackendGAS(opciones = {}) {
+  const method = (opciones.method || "GET").toUpperCase();
+  const timeoutMs = opciones.timeoutMs || 12000;
+  const maxReintentos = method === "GET" ? 1 : 0; // Solo reintenta lecturas GET para proteger nonces HMAC en POST
+  const silencioso = Boolean(opciones.silencioso);
+
+  let url = SCRIPT_URL;
+  const fetchConfig = { method, cache: "no-store" };
+
+  if (method === "GET" && opciones.params) {
+    const qs = new URLSearchParams(opciones.params).toString();
+    if (qs) url += (url.includes("?") ? "&" : "?") + qs;
+  } else if (method === "POST" && opciones.params) {
+    fetchConfig.body = opciones.params instanceof URLSearchParams
+      ? opciones.params
+      : new URLSearchParams(opciones.params);
   }
-  return resp.json();
+
+  actualizarIndicadorRed("slow");
+
+  for (let intento = 0; intento <= maxReintentos; intento++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    fetchConfig.signal = controller.signal;
+
+    try {
+      if (!navigator.onLine) {
+        throw { code: 503, motivo: "Sin conexión a internet en el dispositivo." };
+      }
+
+      const respuesta = await fetch(url, fetchConfig);
+      clearTimeout(timer);
+
+      if (respuesta.status >= 500 || respuesta.status === 429) {
+        throw { code: 503, motivo: "Servidor temporalmente saturado (HTTP " + respuesta.status + ")." };
+      }
+      if (!respuesta.ok) {
+        throw { code: respuesta.status, motivo: "Error HTTP " + respuesta.status };
+      }
+
+      const textoCrudo = await respuesta.text();
+      let data;
+      try {
+        data = JSON.parse(textoCrudo);
+      } catch (_) {
+        throw { code: 503, motivo: "El backend devolvió una respuesta inválida o está en mantenimiento." };
+      }
+
+      if (data && (data.code === 503 || data.status === "503 Service Unavailable")) {
+        throw { code: 503, motivo: data.message || "Servicio ocupado, intenta de nuevo." };
+      }
+
+      actualizarIndicadorRed("online");
+      return data;
+    } catch (err) {
+      clearTimeout(timer);
+
+      if (intento < maxReintentos) {
+        await new Promise((r) => setTimeout(r, 1200));
+        continue;
+      }
+
+      actualizarIndicadorRed("offline");
+      const motivoFinal = err.name === "AbortError"
+        ? "Tiempo de espera agotado (" + (timeoutMs / 1000) + "s sin respuesta del backend)."
+        : (err.motivo || "No se pudo establecer conexión con el servidor de Google.");
+
+      if (!silencioso) {
+        mostrarError503(motivoFinal, opciones.onRetry);
+      }
+      throw { code: 503, status: "503 Service Unavailable", message: motivoFinal };
+    }
+  }
+}
+
+async function postBackend(payload, onRetry) {
+  return fetchBackendGAS({
+    method: "POST",
+    params: payload,
+    timeoutMs: 12000,
+    onRetry
+  });
+}
+
+function precalentarBackend() {
+  if (!navigator.onLine) {
+    actualizarIndicadorRed("offline");
+    return;
+  }
+  fetchBackendGAS({
+    method: "GET",
+    params: { action: "version" },
+    timeoutMs: 8000,
+    silencioso: true
+  }).catch(() => {
+    // Silencioso al inicio; solo despierta Apps Script en segundo plano
+  });
 }
 
 // ── GEOLOCALIZACIÓN Y ESTADO DEL BACKEND ────────────────────────────
@@ -451,8 +615,12 @@ async function verificarEstadoGeoYUbicacion() {
   if (btn) btn.disabled = true;
 
   try {
-    const resp = await fetch(SCRIPT_URL + "?action=obtener_geo_estado", { cache: "no-store" });
-    const data = await resp.json();
+    const data = await fetchBackendGAS({
+      method: "GET",
+      params: { action: "obtener_geo_estado" },
+      timeoutMs: 10000,
+      onRetry: verificarEstadoGeoYUbicacion
+    });
     geoActivaGlobal = Boolean(data.geo_activa);
   } catch (_) {
     if (box) box.className = "geo-status-box fail";
@@ -500,33 +668,67 @@ async function verificarEstadoGeoYUbicacion() {
 
 // ── LISTA DE ESTUDIANTES Y RECUPERACIÓN CON AUTORIZACIÓN DOCENTE ────
 
-async function cargarListaAlumnos() {
+function poblarSelectAlumnos(alumnos) {
+  const select = document.getElementById("reg-student-select");
+  const status = document.getElementById("reg-student-list-status");
+  if (!select) return;
+
+  select.textContent = "";
+  const optDefault = document.createElement("option");
+  optDefault.value = "";
+  optDefault.selected = true;
+  optDefault.textContent = "-- Selecciona tu Nombre para recordar clave --";
+  select.appendChild(optDefault);
+
+  alumnos.forEach((nombre) => {
+    const opt = document.createElement("option");
+    opt.value = nombre;
+    opt.textContent = nombre;
+    select.appendChild(opt);
+  });
+
+  if (status) {
+    status.textContent = alumnos.length
+      ? alumnos.length + " estudiantes disponibles. Selecciona tu nombre y pide autorización al docente."
+      : "No hay estudiantes registrados todavía.";
+  }
+}
+
+async function cargarListaAlumnos(forzarRecarga = false) {
   const select = document.getElementById("reg-student-select");
   const status = document.getElementById("reg-student-list-status");
   const btnReload = document.getElementById("btn-reload-students");
   if (!select) return;
 
+  if (!forzarRecarga) {
+    try {
+      const rawCache = sessionStorage.getItem(SESSION_KEY_ALUMNOS);
+      if (rawCache) {
+        const parsed = JSON.parse(rawCache);
+        if (parsed && Array.isArray(parsed.alumnos) && (Date.now() - parsed.ts) < ALUMNOS_CACHE_TTL_MS) {
+          poblarSelectAlumnos(parsed.alumnos);
+          if (btnReload) btnReload.style.display = "none";
+          return;
+        }
+      }
+    } catch (_) {}
+  }
+
   if (status) status.textContent = "Cargando lista de estudiantes...";
   if (btnReload) btnReload.style.display = "none";
 
   try {
-    const resp = await fetch(SCRIPT_URL + "?action=obtener_lista_alumnos", { cache: "no-store" });
-    const data = await resp.json();
-    const alumnos = Array.isArray(data.alumnos) ? data.alumnos : [];
-
-    select.innerHTML = '<option value="" selected>-- Selecciona tu Nombre para recordar clave --</option>';
-    alumnos.forEach((nombre) => {
-      const opt = document.createElement("option");
-      opt.value = nombre;
-      opt.textContent = nombre;
-      select.appendChild(opt);
+    const data = await fetchBackendGAS({
+      method: "GET",
+      params: { action: "obtener_lista_alumnos" },
+      timeoutMs: 10000,
+      onRetry: () => cargarListaAlumnos(true)
     });
-
-    if (status) {
-      status.textContent = alumnos.length
-        ? alumnos.length + " estudiantes disponibles. Selecciona tu nombre y pide autorización al docente."
-        : "No hay estudiantes registrados todavía.";
-    }
+    const alumnos = Array.isArray(data.alumnos) ? data.alumnos : [];
+    poblarSelectAlumnos(alumnos);
+    try {
+      sessionStorage.setItem(SESSION_KEY_ALUMNOS, JSON.stringify({ alumnos, ts: Date.now() }));
+    } catch (_) {}
   } catch (_) {
     if (status) status.textContent = "❌ Error al cargar la lista de estudiantes.";
     if (btnReload) btnReload.style.display = "block";
@@ -559,7 +761,7 @@ function cerrarModalAuthClave() {
 async function confirmarAuthClave() {
   const input = document.getElementById("auth-admin-pass");
   const btn = document.getElementById("btn-confirm-auth-clave");
-  const pass = input ? input.value.trim() : "";
+  const pass = sanitizarTexto(input?.value, 60);
 
   if (!estudianteSeleccionadoClave) return;
   if (!pass) {
@@ -569,13 +771,14 @@ async function confirmarAuthClave() {
 
   if (btn) btn.disabled = true;
   limpiarAlerta("alertAuthClave");
+  let huboError = false;
 
   try {
     const payload = await firmarPayload("consultar_clave_olvidada", {
       nombre: estudianteSeleccionadoClave,
       clave_admin: pass
     });
-    const res = await postBackend(payload);
+    const res = await postBackend(payload, confirmarAuthClave);
 
     if (res.result === "success" && res.clave) {
       const regKey = document.getElementById("reg-key");
@@ -583,6 +786,7 @@ async function confirmarAuthClave() {
       if (regKey) regKey.value = res.clave;
       if (regTeacher && res.docente) regTeacher.value = res.docente;
       guardarClaveLocal(res.clave);
+      cargarClaveLocalEnRegistro();
 
       mostrarAlerta(
         "alertRegistro",
@@ -592,30 +796,38 @@ async function confirmarAuthClave() {
       mostrarToast("Clave Única recuperada correctamente.", "success");
       cerrarModalAuthClave();
     } else {
+      huboError = true;
       mostrarAlerta("alertAuthClave", "error", res.message || "❌ No se pudo consultar la clave.");
     }
   } catch (_) {
+    huboError = true;
     mostrarAlerta("alertAuthClave", "error", "❌ Error de conexión con el servidor.");
   } finally {
-    if (btn) btn.disabled = false;
+    habilitarConCooldown(btn, "✓ Confirmar", huboError);
   }
 }
 
 // ── FORMULARIO 01: REGISTRAR ASISTENCIA ─────────────────────────────
 
 async function manejarRegistroAsistencia(e) {
-  e.preventDefault();
+  if (e && typeof e.preventDefault === "function") e.preventDefault();
   limpiarAlerta("alertRegistro");
+
+  if (!navigator.onLine) {
+    mostrarAlerta("alertRegistro", "error", "❌ Sin conexión a internet. Reconecta para registrar.");
+    actualizarIndicadorRed("offline");
+    return;
+  }
 
   const hp = (document.getElementById("reg-website")?.value || "").trim();
   if (hp !== "") return;
 
-  const clave = (document.getElementById("reg-key")?.value || "").trim().toUpperCase();
-  const grupo = (document.getElementById("reg-group")?.value || "").trim();
-  const docente = (document.getElementById("reg-teacher")?.value || "").trim();
-  const firma = (document.getElementById("firma-valor")?.value || "").trim();
+  const clave = sanitizarTexto(document.getElementById("reg-key")?.value, 4).toUpperCase();
+  const grupo = sanitizarTexto(document.getElementById("reg-group")?.value, 30);
+  const docente = sanitizarTexto(document.getElementById("reg-teacher")?.value, 80);
+  const firma = sanitizarTexto(document.getElementById("firma-valor")?.value, 80);
 
-  if (clave.length !== 4) {
+  if (!/^[A-Z0-9]{4}$/.test(clave)) {
     mostrarAlerta("alertRegistro", "error", "❌ Ingresa tu Clave Única de 4 caracteres.");
     return;
   }
@@ -633,6 +845,7 @@ async function manejarRegistroAsistencia(e) {
     btn.disabled = true;
     btn.textContent = "⏳ Registrando...";
   }
+  let huboError = false;
 
   try {
     const opcionales = {};
@@ -646,7 +859,7 @@ async function manejarRegistroAsistencia(e) {
       { clave, docente, grupo, firma, hp },
       opcionales
     );
-    const res = await postBackend(payload);
+    const res = await postBackend(payload, () => manejarRegistroAsistencia());
 
     if (res.result === "success") {
       guardarClaveLocal(clave);
@@ -657,18 +870,18 @@ async function manejarRegistroAsistencia(e) {
       );
       mostrarToast("Asistencia registrada para " + res.nombre, "success");
       document.getElementById("form-register")?.reset();
+      cargarClaveLocalEnRegistro();
     } else if (res.result === "duplicated") {
       mostrarAlerta("alertRegistro", "warning", res.message || "⚠️ Ya registraste asistencia hoy.");
     } else {
+      huboError = true;
       mostrarAlerta("alertRegistro", "error", res.message || "❌ No se pudo registrar asistencia.");
     }
   } catch (_) {
+    huboError = true;
     mostrarAlerta("alertRegistro", "error", "❌ Error de red al conectar con el backend.");
   } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = "✓ Enviar Asistencia";
-    }
+    habilitarConCooldown(btn, "✓ Enviar Asistencia", huboError);
   }
 }
 
@@ -693,18 +906,24 @@ function formatearCumpleInput(e) {
 }
 
 async function manejarGenerarClave(e) {
-  e.preventDefault();
+  if (e && typeof e.preventDefault === "function") e.preventDefault();
   limpiarAlerta("alertGenerarClave");
+
+  if (!navigator.onLine) {
+    mostrarAlerta("alertGenerarClave", "error", "❌ Sin conexión a internet. Reconecta para generar tu clave.");
+    actualizarIndicadorRed("offline");
+    return;
+  }
 
   const hp = (document.getElementById("gen-website")?.value || "").trim();
   if (hp !== "") return;
 
-  const nombre = (document.getElementById("gen-name")?.value || "").trim().replace(/\s+/g, " ");
-  const docente = (document.getElementById("gen-teacher")?.value || "").trim();
-  const telefono = (document.getElementById("gen-phone")?.value || "").trim();
-  const correo = (document.getElementById("gen-email")?.value || "").trim();
-  const cumple = (document.getElementById("gen-birthday")?.value || "").trim();
-  const codigo = (document.getElementById("gen-override")?.value || "").trim();
+  const nombre = sanitizarTexto(document.getElementById("gen-name")?.value, 120).replace(/\s+/g, " ");
+  const docente = sanitizarTexto(document.getElementById("gen-teacher")?.value, 80);
+  const telefono = sanitizarTexto(document.getElementById("gen-phone")?.value, 15);
+  const correo = sanitizarTexto(document.getElementById("gen-email")?.value, 120).toLowerCase();
+  const cumple = sanitizarTexto(document.getElementById("gen-birthday")?.value, 10);
+  const codigo = sanitizarTexto(document.getElementById("gen-override")?.value, 60);
 
   if (nombre.split(" ").filter(Boolean).length < 2) {
     mostrarAlerta("alertGenerarClave", "error", "❌ Ingresa tu nombre y al menos un apellido.");
@@ -720,9 +939,9 @@ async function manejarGenerarClave(e) {
     btn.disabled = true;
     btn.textContent = "⏳ Generando en servidor...";
   }
+  let huboError = false;
 
   try {
-    // El cliente NO genera ni valida secretos; envía los datos al backend para generar la clave
     const payload = await firmarPayload("guardar_clave", {
       nombre,
       docente,
@@ -732,11 +951,12 @@ async function manejarGenerarClave(e) {
       codigo,
       hp
     });
-    const res = await postBackend(payload);
+    const res = await postBackend(payload, () => manejarGenerarClave());
 
     if (res.result === "success" && res.clave) {
       guardarBorradorClave();
       guardarClaveLocal(res.clave);
+      try { sessionStorage.removeItem(SESSION_KEY_ALUMNOS); } catch (_) {}
 
       const box = document.getElementById("claveGeneradaContainer");
       const codEl = document.getElementById("codGenerado");
@@ -747,15 +967,14 @@ async function manejarGenerarClave(e) {
     } else if (res.result === "duplicated") {
       mostrarAlerta("alertGenerarClave", "warning", res.message || "⚠️ Ya tienes una clave registrada.");
     } else {
+      huboError = true;
       mostrarAlerta("alertGenerarClave", "error", res.message || "❌ No se pudo generar la clave.");
     }
   } catch (_) {
+    huboError = true;
     mostrarAlerta("alertGenerarClave", "error", "❌ Error de red al conectar con el backend.");
   } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = "🔒 Generar Mi Clave Permanente";
-    }
+    habilitarConCooldown(btn, "🔒 Generar Mi Clave Permanente", huboError);
   }
 }
 
@@ -789,15 +1008,22 @@ function agregarBurbujaMisterio(texto, esUsuario) {
   if (esUsuario) {
     burbuja.style.cssText =
       "align-self:flex-end;max-width:85%;background:var(--accent);color:#ffffff;" +
-      "padding:.75rem 1rem;border-radius:12px 12px 2px 12px;font-size:.88rem;line-height:1.45;word-break:break-word;";
-    burbuja.innerHTML =
-      '<div style="font-size:.7rem;opacity:.8;font-weight:700;margin-bottom:.25rem;">🕵️ Anónimo (Tú)</div>' +
-      escaparHtmlMisterio(texto).replace(/\n/g, "<br>");
+      "padding:.75rem 1rem;border-radius:12px 12px 2px 12px;font-size:.88rem;line-height:1.45;word-break:break-word;white-space:pre-line;";
+
+    const titulo = document.createElement("div");
+    titulo.style.cssText = "font-size:.7rem;opacity:.8;font-weight:700;margin-bottom:.25rem;";
+    titulo.textContent = "🕵️ Anónimo (Tú)";
+
+    const cuerpo = document.createElement("div");
+    cuerpo.textContent = texto;
+
+    burbuja.appendChild(titulo);
+    burbuja.appendChild(cuerpo);
   } else {
     burbuja.style.cssText =
       "align-self:flex-start;max-width:85%;background:var(--fg);color:var(--bg);" +
-      "padding:.75rem 1rem;border-radius:12px 12px 12px 2px;font-size:.88rem;line-height:1.45;";
-    burbuja.innerHTML = escaparHtmlMisterio(texto);
+      "padding:.75rem 1rem;border-radius:12px 12px 12px 2px;font-size:.88rem;line-height:1.45;white-space:pre-line;";
+    burbuja.textContent = texto;
   }
 
   feed.appendChild(burbuja);
@@ -805,15 +1031,23 @@ function agregarBurbujaMisterio(texto, esUsuario) {
 }
 
 async function enviarMensajeMisterio(e) {
-  e.preventDefault();
+  if (e && typeof e.preventDefault === "function") e.preventDefault();
   limpiarAlerta("alertMystery");
+
+  if (!navigator.onLine) {
+    mostrarAlerta("alertMystery", "error", "❌ Sin conexión a internet. Reconecta para enviar.");
+    actualizarIndicadorRed("offline");
+    return;
+  }
 
   const hp = (document.getElementById("mys-website")?.value || "").trim();
   if (hp !== "") return;
 
   const textarea = document.getElementById("mys-message");
   const mensajeRaw = (textarea?.value || "").trim();
-  const mensajeLimpio = mensajeRaw.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+  const mensajeLimpio = mensajeRaw
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+    .replace(/^[=+\-@\t\r]+/, "");
 
   if (mensajeLimpio.length < 3) {
     mostrarAlerta("alertMystery", "error", "❌ Escribe un mensaje de al menos 3 caracteres.");
@@ -825,14 +1059,14 @@ async function enviarMensajeMisterio(e) {
     btn.disabled = true;
     btn.textContent = "⏳ Enviando anónimamente...";
   }
+  let huboError = false;
 
   try {
-    // Envío estrictamente anónimo: sin clave, sin nombre y sin coordenadas GPS
     const payload = await firmarPayload("caja_misterio", {
       mensaje: mensajeLimpio.slice(0, 800),
       hp
     });
-    const res = await postBackend(payload);
+    const res = await postBackend(payload, () => enviarMensajeMisterio());
 
     if (res.result === "success") {
       agregarBurbujaMisterio(mensajeLimpio, true);
@@ -842,15 +1076,14 @@ async function enviarMensajeMisterio(e) {
       if (counter) counter.textContent = "0 / 800 caracteres · 100% anónimo y privado";
       mostrarToast("Mensaje anónimo enviado.", "success");
     } else {
+      huboError = true;
       mostrarAlerta("alertMystery", "error", res.message || "❌ No se pudo enviar el mensaje.");
     }
   } catch (_) {
+    huboError = true;
     mostrarAlerta("alertMystery", "error", "❌ Error de conexión con el servidor.");
   } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = "✉️ Enviar Mensaje Anónimo";
-    }
+    habilitarConCooldown(btn, "✉️ Enviar Mensaje Anónimo", huboError);
   }
 }
 
@@ -862,6 +1095,27 @@ document.addEventListener("DOMContentLoaded", () => {
   inicializarTema();
   cargarBorradorClave();
   inicializarGoogleAutoFill();
+  actualizarIndicadorRed(navigator.onLine ? "online" : "offline");
+  precalentarBackend();
+
+  window.addEventListener("online", () => {
+    actualizarIndicadorRed("online");
+    mostrarToast("Conexión restablecida.", "success");
+  });
+  window.addEventListener("offline", () => {
+    actualizarIndicadorRed("offline");
+    mostrarToast("Sin conexión a internet.", "warning");
+  });
+
+  // Modal 503
+  document.getElementById("eva-503-cerrar")?.addEventListener("click", ocultarError503);
+  document.getElementById("eva-503-reintentar")?.addEventListener("click", async function () {
+    if (!ultimaAccionFallida) return;
+    this.disabled = true;
+    this.textContent = "Reconectando...";
+    ocultarError503();
+    await ultimaAccionFallida();
+  });
 
   // Navegación del menú principal
   document.getElementById("btn-menu-register")?.addEventListener("click", () => {
@@ -869,7 +1123,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cambiarVista("view-register");
     cargarClaveLocalEnRegistro();
     verificarEstadoGeoYUbicacion();
-    cargarListaAlumnos();
+    cargarListaAlumnos(false);
   });
 
   document.getElementById("btn-menu-keygen")?.addEventListener("click", () => {
@@ -884,17 +1138,18 @@ document.addEventListener("DOMContentLoaded", () => {
     cambiarVista("view-mystery");
   });
 
-  // Botones volver
+  // Botones volver y limpiar clave local
   document.getElementById("btn-back-register")?.addEventListener("click", () => cambiarVista("view-menu"));
   document.getElementById("btn-back-keygen")?.addEventListener("click", () => cambiarVista("view-menu"));
   document.getElementById("btn-back-mystery")?.addEventListener("click", () => cambiarVista("view-menu"));
+  document.getElementById("btn-clear-saved-key")?.addEventListener("click", limpiarClaveLocal);
 
   // Recuperar clave olvidada
   document.getElementById("reg-student-select")?.addEventListener("change", (e) => {
     const nombre = e.target.value;
     if (nombre) abrirModalAuthClave(nombre);
   });
-  document.getElementById("btn-reload-students")?.addEventListener("click", cargarListaAlumnos);
+  document.getElementById("btn-reload-students")?.addEventListener("click", () => cargarListaAlumnos(true));
   document.getElementById("btn-confirm-auth-clave")?.addEventListener("click", confirmarAuthClave);
   document.getElementById("btn-cancel-auth-clave")?.addEventListener("click", cerrarModalAuthClave);
 
@@ -925,109 +1180,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.addEventListener("load", inicializarGoogleAutoFill);
-
-const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycby5whpgO3AnwENYrV_Ov-oyGo5cpaH8EXVnsnoiKwJeT-UgQ7qPkH145H5VHR-W1N-P/exec";
-
-let ultimaAccionFallida = null;
-
-function mostrarError503(detalleTecnico, callbackReintento) {
-  const modal = document.getElementById("eva-error-503");
-  const detalleEl = document.getElementById("eva-503-detalle");
-  const btnReintentar = document.getElementById("eva-503-reintentar");
-
-  detalleEl.textContent = "Detalle: " + (detalleTecnico || "El backend de Google Apps Script no respondió.");
-  ultimaAccionFallida = typeof callbackReintento === "function" ? callbackReintento : null;
-  btnReintentar.style.display = ultimaAccionFallida ? "inline-block" : "none";
-  btnReintentar.disabled = false;
-  btnReintentar.textContent = "Reintentar ahora";
-
-  modal.classList.add("activo");
-}
-
-function ocultarError503() {
-  document.getElementById("eva-error-503").classList.remove("activo");
-}
-
-document.getElementById("eva-503-cerrar")?.addEventListener("click", ocultarError503);
-
-document.getElementById("eva-503-reintentar")?.addEventListener("click", async function () {
-  if (!ultimaAccionFallida) return;
-  this.disabled = true;
-  this.textContent = "Reconectando...";
-  ocultarError503();
-  await ultimaAccionFallida();
-});
-
-/**
- * Wrapper optimizado para comunicarse con Google Apps Script.
- * @param {Object} opciones - { method: "GET"|"POST", params: Object|URLSearchParams, timeoutMs: number, onRetry: Function }
- */
-async function fetchBackendGAS(opciones = {}) {
-  const method = (opciones.method || "GET").toUpperCase();
-  const timeoutMs = opciones.timeoutMs || 12000; // 12s límite antes de declarar 503
-  const maxReintentos = method === "GET" ? 1 : 0; // Solo reintenta lecturas GET para proteger nonces HMAC en POST
-
-  let url = GAS_BACKEND_URL;
-  const fetchConfig = { method, cache: "no-store" };
-
-  if (method === "GET" && opciones.params) {
-    const qs = new URLSearchParams(opciones.params).toString();
-    if (qs) url += (url.includes("?") ? "&" : "?") + qs;
-  } else if (method === "POST" && opciones.params) {
-    fetchConfig.body = opciones.params instanceof URLSearchParams
-      ? opciones.params
-      : new URLSearchParams(opciones.params);
-  }
-
-  for (let intento = 0; intento <= maxReintentos; intento++) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    fetchConfig.signal = controller.signal;
-
-    try {
-      if (!navigator.onLine) {
-        throw { code: 503, motivo: "Sin conexión a internet en el dispositivo." };
-      }
-
-      const respuesta = await fetch(url, fetchConfig);
-      clearTimeout(timer);
-
-      // Si Google devuelve 429, 500, 502, 503 o 504
-      if (respuesta.status >= 500 || respuesta.status === 429) {
-        throw { code: 503, motivo: `Servidor temporalmente saturado (HTTP ${respuesta.status}).` };
-      }
-
-      // Verificar que sea JSON real y no una página HTML de error de Google
-      const textoCrudo = await respuesta.text();
-      let data;
-      try {
-        data = JSON.parse(textoCrudo);
-      } catch (_) {
-        throw { code: 503, motivo: "El backend devolvió una respuesta inválida o está en mantenimiento." };
-      }
-
-      // Si el propio .gs devolvió un código 503 estructurado
-      if (data && (data.code === 503 || data.status === "503 Service Unavailable")) {
-        throw { code: 503, motivo: data.message || "Servicio ocupado, intenta de nuevo." };
-      }
-
-      return data;
-
-    } catch (err) {
-      clearTimeout(timer);
-
-      // Si aún queda reintento en GET, esperar 1.2s y reintentar silenciosamente
-      if (intento < maxReintentos) {
-        await new Promise(r => setTimeout(r, 1200));
-        continue;
-      }
-
-      const motivoFinal = err.name === "AbortError"
-        ? `Tiempo de espera agotado (${timeoutMs / 1000}s sin respuesta del backend).`
-        : (err.motivo || "No se pudo establecer conexión con el servidor de Google.");
-
-      mostrarError503(motivoFinal, opciones.onRetry);
-      throw { code: 503, status: "503 Service Unavailable", message: motivoFinal };
-    }
-  }
-}
