@@ -74,19 +74,24 @@
       }
       * { margin:0; padding:0; box-sizing:border-box; }
 
-      /* ── DARK MODE ───────────────────────────────── */
-     html[data-theme="dark"] .mobile-zoom-warning {
-  background: #3a2e12;
-  color: #ffe8a3;
-  border-color: var(--warn);
-  box-shadow: 4px 4px 0 var(--warn);
-}
-      html[data-theme="dark"] body { background: var(--bg); }
-      html[data-theme="dark"] .app-container { background: #1d1e24; box-shadow: var(--shadow); }
+    /* ── DARK MODE ───────────────────────────────── */
+      html[data-theme="dark"] {
+        --bg: #14151a; --fg: #f2f2f0;
+        --accent: #6b8bff; --danger: #ff6b60;
+        --ok: #29e0a0; --warn: #ffb340;
+      }
+      html[data-theme="dark"] body { background: var(--bg); color: var(--fg); }
+      html[data-theme="dark"] .app-container { background: #1d1e24; color: var(--fg); box-shadow: var(--shadow); }
       html[data-theme="dark"] .brand .badge { background: var(--fg); color: #1d1e24; }
       html[data-theme="dark"] .overlay-texture {
         background-image: radial-gradient(rgba(255,255,255,.04) 1px, transparent 0),
                           linear-gradient(rgba(255,255,255,.02) 1px, transparent 0);
+      }
+      html[data-theme="dark"] .mobile-zoom-warning {
+        background: #3a2e12;
+        color: #ffe8a3;
+        border-color: var(--warn);
+        box-shadow: 4px 4px 0 var(--warn);
       }
       html[data-theme="dark"] input[type="text"],
       html[data-theme="dark"] input[type="email"],
