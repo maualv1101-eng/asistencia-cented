@@ -676,6 +676,21 @@ function precalentarBackend() {
 
 // ── GEOLOCALIZACIÓN Y ESTADO DEL BACKEND ────────────────────────────
 
+const CENTED_LAT = 13.716795758900204;
+const CENTED_LNG = -89.1001956388224;
+const RADIO_MAX_KM = 1.0;
+
+function haversineKmCliente(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 async function verificarEstadoGeoYUbicacion() {
   const box = document.getElementById("geo-status-box");
   const text = document.getElementById("geo-status-text");
@@ -719,12 +734,26 @@ async function verificarEstadoGeoYUbicacion() {
 
   navigator.geolocation.getCurrentPosition(
     (pos) => {
+      const latNum = pos.coords.latitude;
+      const lngNum = pos.coords.longitude;
+      const distKm = haversineKmCliente(latNum, lngNum, CENTED_LAT, CENTED_LNG);
+
       coordsActuales = {
-        lat: pos.coords.latitude.toFixed(7),
-        lng: pos.coords.longitude.toFixed(7)
+        lat: latNum.toFixed(7),
+        lng: lngNum.toFixed(7)
       };
+
+      if (distKm > RADIO_MAX_KM) {
+        const distTxt = distKm >= 1 ? distKm.toFixed(2) + " km" : Math.round(distKm * 1000) + " m";
+        if (box) box.className = "geo-status-box fail";
+        if (text) text.textContent = "❌ Estás fuera del rango del CENTED (a " + distTxt + "; máx. 1 km).";
+        if (btn) btn.disabled = true;
+        return;
+      }
+
+      const metros = Math.round(distKm * 1000);
       if (box) box.className = "geo-status-box ok";
-      if (text) text.textContent = "✅ Ubicación GPS lista. El servidor validará el radio del CENTED.";
+      if (text) text.textContent = "✅ Ubicación dentro del rango del CENTED (" + metros + " m).";
       if (btn) btn.disabled = false;
     },
     () => {
@@ -733,7 +762,7 @@ async function verificarEstadoGeoYUbicacion() {
       if (text) text.textContent = "❌ Activa el permiso de ubicación (GPS) para registrar asistencia.";
       if (btn) btn.disabled = true;
     },
-    { enableHighAccuracy: true, timeout: 12000, maximumAge: 15000 }
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
   );
 }
 
@@ -906,9 +935,17 @@ async function manejarRegistroAsistencia(e) {
     mostrarAlerta("alertRegistro", "error", "❌ Selecciona tu grupo (Mañana o Tarde).");
     return;
   }
-  if (geoActivaGlobal && !coordsActuales) {
-    mostrarAlerta("alertRegistro", "error", "❌ Esperando coordenadas GPS válidas. Activa la ubicación.");
-    return;
+  if (geoActivaGlobal) {
+    if (!coordsActuales) {
+      mostrarAlerta("alertRegistro", "error", "❌ Esperando coordenadas GPS válidas. Activa la ubicación.");
+      return;
+    }
+    const distKm = haversineKmCliente(parseFloat(coordsActuales.lat), parseFloat(coordsActuales.lng), CENTED_LAT, CENTED_LNG);
+    if (distKm > RADIO_MAX_KM) {
+      const distTxt = distKm >= 1 ? distKm.toFixed(2) + " km" : Math.round(distKm * 1000) + " m";
+      mostrarAlerta("alertRegistro", "error", "❌ Estás fuera del radio permitido (a " + distTxt + " del CENTED; máx. 1 km).");
+      return;
+    }
   }
 
   const btn = document.getElementById("btnRegistrar");
