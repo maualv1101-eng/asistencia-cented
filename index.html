@@ -749,12 +749,15 @@
         </p>
       </section>
 
-      <!-- ── REGISTRAR ASISTENCIA ───────────────── -->
+    <!-- ── REGISTRAR ASISTENCIA ───────────────── -->
       <section id="view-register" class="card-view">
         <h2 class="view-title">【 登録 】 Registrar Asistencia</h2>
-        <div id="geo-status-box" class="geo-status-box checking">
+        <div id="geo-status-box" class="geo-status-box checking" style="flex-wrap:wrap;">
           <span class="geo-dot">📍</span>
-          <span id="geo-status-text">Verificando ubicación...</span>
+          <span id="geo-status-text" style="flex:1;">Verificando ubicación...</span>
+          <button type="button" id="btn-retry-geo" class="btn-secondary" style="display:none;width:100%;margin-top:.5rem;padding:.65rem;font-size:.85rem;">
+            🔄 Solicitar / Reintentar ubicación (GPS)
+          </button>
         </div>
         <div class="map-status-container">
           <div class="map-caption">📍 Ubicación del CENTED — debes estar a máx. 1 km</div>
