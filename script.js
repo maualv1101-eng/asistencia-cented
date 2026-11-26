@@ -695,10 +695,12 @@ async function verificarEstadoGeoYUbicacion() {
   const box = document.getElementById("geo-status-box");
   const text = document.getElementById("geo-status-text");
   const btn = document.getElementById("btnRegistrar");
+  const btnRetry = document.getElementById("btn-retry-geo");
 
   if (box) box.className = "geo-status-box checking";
   if (text) text.textContent = "Verificando configuración de ubicación...";
   if (btn) btn.disabled = true;
+  if (btnRetry) btnRetry.style.display = "none";
 
   try {
     const data = await fetchBackendGAS({
@@ -712,6 +714,7 @@ async function verificarEstadoGeoYUbicacion() {
     if (box) box.className = "geo-status-box fail";
     if (text) text.textContent = "❌ No se pudo conectar con el servidor de asistencia.";
     if (btn) btn.disabled = false;
+    if (btnRetry) btnRetry.style.display = "block";
     return;
   }
 
@@ -748,6 +751,7 @@ async function verificarEstadoGeoYUbicacion() {
         if (box) box.className = "geo-status-box fail";
         if (text) text.textContent = "❌ Estás fuera del rango del CENTED (a " + distTxt + "; máx. 1 km).";
         if (btn) btn.disabled = true;
+        if (btnRetry) btnRetry.style.display = "block";
         return;
       }
 
@@ -755,12 +759,30 @@ async function verificarEstadoGeoYUbicacion() {
       if (box) box.className = "geo-status-box ok";
       if (text) text.textContent = "✅ Ubicación dentro del rango del CENTED (" + metros + " m).";
       if (btn) btn.disabled = false;
+      if (btnRetry) btnRetry.style.display = "none";
     },
-    () => {
+    async (err) => {
       coordsActuales = null;
       if (box) box.className = "geo-status-box fail";
-      if (text) text.textContent = "❌ Activa el permiso de ubicación (GPS) para registrar asistencia.";
       if (btn) btn.disabled = true;
+      if (btnRetry) btnRetry.style.display = "block";
+
+      let msg = "❌ Activa el permiso de ubicación (GPS) para registrar asistencia.";
+      if (err && err.code === 1) {
+        try {
+          if (navigator.permissions?.query) {
+            const st = await navigator.permissions.query({ name: "geolocation" });
+            if (st.state === "denied") {
+              msg = "❌ Ubicación bloqueada en este navegador. Toca el ícono 🔒 o ⚙️ junto a grupocented.fyi → Ubicación → Permitir y luego presiona el botón de abajo.";
+            }
+          }
+        } catch (_) {}
+      } else if (err && err.code === 2) {
+        msg = "❌ Sin señal GPS. Enciende la ubicación de tu celular y presiona el botón de abajo.";
+      } else if (err && err.code === 3) {
+        msg = "⏳ El GPS tardó demasiado en responder. Presiona el botón de abajo para reintentar.";
+      }
+      if (text) text.textContent = msg;
     },
     { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
   );
@@ -1252,6 +1274,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-back-keygen")?.addEventListener("click", () => cambiarVista("view-menu"));
   document.getElementById("btn-back-mystery")?.addEventListener("click", () => cambiarVista("view-menu"));
   document.getElementById("btn-clear-saved-key")?.addEventListener("click", limpiarClaveLocal);
+  document.getElementById("btn-retry-geo")?.addEventListener("click", () => {
+    verificarEstadoGeoYUbicacion();
+  });
 
   const brandLogo = document.getElementById("brand-logo-img");
   if (brandLogo) {
